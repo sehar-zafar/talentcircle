@@ -13,31 +13,50 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 :root{
-  --bg-base:#0c0c10;
-  --bg-surface:#131318;
-  --bg-card:#18181f;
-  --bg-elevated:#1e1e28;
-  --border:#252530;
-  --border-hover:#353545;
-  --text-primary:#f0f0f5;
-  --text-secondary:#9090a8;
-  --text-muted:#5a5a70;
+  /* Palette (dark) */
+  --bg-base:#000000;
+  --bg-surface:#0c0510;
+  --bg-surface2:#190a21;
+
+  /* Derived surfaces */
+  --bg-card:rgba(255,255,255,0.03);
+  --bg-elevated:rgba(255,255,255,0.06);
+
+  --border:rgba(189,36,210,0.22);
+  --border-hover:rgba(225,99,242,0.42);
+
+  --text-primary:#ffffff;
+  --text-secondary:rgba(255,255,255,0.78);
+  --text-muted:rgba(255,255,255,0.62);
+
+  /* Violet / Purple */
+  --violet:#bd24d2;
+  --violet2-dark:#e163f2;
+  --violet2-light:#bd24d2;
+  --purple:#861996;
+
+  --accent-purple:var(--violet);
+  --accent-purple-dim:var(--purple);
+  --accent-purple-bg:rgba(189,36,210,0.12);
+  --accent-purple-border:rgba(189,36,210,0.30);
+
+  /* Keep existing gold/teal/blue for variety */
   --accent-gold:#e8b84b;
   --accent-gold-dim:#b8902e;
   --accent-gold-bg:rgba(232,184,75,0.08);
   --accent-gold-border:rgba(232,184,75,0.2);
-  --accent-purple:#8b5cf6;
-  --accent-purple-dim:#6d46d4;
-  --accent-purple-bg:rgba(139,92,246,0.1);
-  --accent-purple-border:rgba(139,92,246,0.25);
+
   --accent-teal:#22d3b8;
   --accent-teal-bg:rgba(34,211,184,0.08);
   --accent-teal-border:rgba(34,211,184,0.2);
+
   --accent-blue:#60a5fa;
   --accent-blue-bg:rgba(96,165,250,0.08);
   --accent-blue-border:rgba(96,165,250,0.2);
+
   --green:#4ade80;
   --red:#f87171;
+
   --radius-sm:8px;
   --radius-md:12px;
   --radius-lg:16px;
@@ -49,35 +68,84 @@
 }
 
 [data-theme="light"]{
-  --bg-base:#f4f4f8;
-  --bg-surface:#ffffff;
-  --bg-card:#ffffff;
-  --bg-elevated:#f0f0f6;
-  --border:#e2e2ec;
-  --border-hover:#c8c8dc;
-  --text-primary:#0f0f18;
-  --text-secondary:#5a5a78;
-  --text-muted:#9090b0;
+  /* Palette (light) */
+  --bg-base:#ffffff;
+  --bg-surface:#fdfafc;
+  --bg-surface2:#f4eef7;
+
+  --bg-card:rgba(0,0,0,0.02);
+  --bg-elevated:rgba(0,0,0,0.04);
+
+  --border:rgba(134,25,150,0.20);
+  --border-hover:rgba(225,99,242,0.35);
+
+  --text-primary:#0b0610;
+  --text-secondary:rgba(11,6,16,0.74);
+  --text-muted:rgba(11,6,16,0.58);
+
+  --violet: #bd24d2;
+  --violet2-dark:#e163f2;
+  --violet2-light:#bd24d2;
+  --purple:#861996;
+
+  --accent-purple:var(--violet2-light);
+  --accent-purple-dim:var(--purple);
+  --accent-purple-bg:rgba(189,36,210,0.10);
+  --accent-purple-border:rgba(189,36,210,0.25);
+
   --accent-gold:#b8860b;
   --accent-gold-dim:#8b6408;
   --accent-gold-bg:rgba(184,134,11,0.08);
   --accent-gold-border:rgba(184,134,11,0.22);
-  --accent-purple:#7c3aed;
-  --accent-purple-dim:#5b21b6;
-  --accent-purple-bg:rgba(124,58,237,0.08);
-  --accent-purple-border:rgba(124,58,237,0.22);
+
   --accent-teal:#0f9980;
   --accent-teal-bg:rgba(15,153,128,0.08);
   --accent-teal-border:rgba(15,153,128,0.2);
+
   --accent-blue:#2563eb;
   --accent-blue-bg:rgba(37,99,235,0.08);
   --accent-blue-border:rgba(37,99,235,0.2);
+
   --green:#16a34a;
   --red:#dc2626;
 }
 
+
 html,body{height:100%;font-family:var(--font-body);background:var(--bg-base);color:var(--text-primary);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 body{display:flex;overflow:hidden}
+
+/* ─── Animated violet background layer ─── */
+.page-bg{
+  position:fixed;
+  inset:-40px;
+  z-index:-1;
+  background:
+    radial-gradient(900px 520px at 15% 10%, rgba(189,36,210,0.22) 0%, transparent 55%),
+    radial-gradient(720px 460px at 85% 20%, rgba(225,99,242,0.18) 0%, transparent 60%),
+    radial-gradient(860px 540px at 55% 95%, rgba(134,25,150,0.16) 0%, transparent 58%),
+    linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-base) 70%);
+  filter:saturate(1.05) contrast(1.02);
+  animation:bgDrift 10s ease-in-out infinite;
+  transform:translateZ(0);
+}
+[data-theme="light"] .page-bg{
+  background:
+    radial-gradient(900px 520px at 15% 10%, rgba(189,36,210,0.14) 0%, transparent 55%),
+    radial-gradient(720px 460px at 85% 20%, rgba(225,99,242,0.10) 0%, transparent 60%),
+    radial-gradient(860px 540px at 55% 95%, rgba(134,25,150,0.10) 0%, transparent 58%),
+    linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-base) 70%);
+}
+@keyframes bgDrift{
+  0%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(0,-10px,0) scale(1.01)}
+  100%{transform:translate3d(0,0,0) scale(1)}
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce){
+  .page-bg{animation:none !important}
+}
+
 
 /* ─── SCROLLBAR ─── */
 ::-webkit-scrollbar{width:5px}
@@ -639,28 +707,28 @@ body{display:flex;overflow:hidden}
 
   <nav class="sidebar-nav">
     <div class="nav-section-label">Menu</div>
-    <a href="#" class="nav-item">
+    <a href="./dashboard.html" class="nav-item">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
       Dashboard
     </a>
-    <a href="#" class="nav-item">
+    <a href="./calendar.html" class="nav-item">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
       Calendar
     </a>
-    <a href="#" class="nav-item">
+    <a href="./sessions.html" class="nav-item">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       Sessions
     </a>
-    <a href="#" class="nav-item">
+    <a href="./tokens.html" class="nav-item">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2"/></svg>
       Tokens
     </a>
-    <a href="#" class="nav-item active">
+    <a href="./points.html" class="nav-item active">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
       Points
       <span class="nav-dot"></span>
     </a>
-    <a href="#" class="nav-item">
+    <a href="./notifications.html" class="nav-item">
       <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
       Messages
       <span class="nav-badge">3</span>
@@ -983,13 +1051,240 @@ body{display:flex;overflow:hidden}
 
 <script>
 // ─── STATE ───────────────────────────────────────────────
-let tokenBalance = 1240;
-let todayEarned = 45;
+let tokenBalance = 0;
+let todayEarned = 0;
 let loginClaimed = false;
 let surveySelected = null;
 let surveyClaimed = false;
-let adsWatched = 3;
+let adsWatched = 0;
+let adsLimit = 0;
 let adWatching = false;
+
+async function tcFetch(path, options = {}) {
+  const res = await fetch(apiUrl(path), {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error('API ' + path + ' failed: ' + res.status + (text ? (' ' + text) : ''));
+  }
+  return await res.json();
+}
+
+function getAuthToken() {
+  // Supports common patterns used elsewhere in this project
+  return localStorage.getItem('token') ||
+    localStorage.getItem('tc_token') ||
+    (window.TC_TOKEN ? window.TC_TOKEN : null);
+}
+
+function setAuthHeader(headers) {
+  const token = getAuthToken();
+  if (token) headers['Authorization'] = token;
+  return headers;
+}
+
+async function loadPointsSummary() {
+  const token = getAuthToken();
+  if (!token) return; // keep UI as-is if not logged in
+
+  const data = await tcFetch('/api/points/summary', {
+    method: 'GET',
+    headers: setAuthHeader({})
+  });
+
+  tokenBalance = Number(data.token_balance || 0);
+  todayEarned = Number(data.today_tokens || 0);
+
+  loginClaimed = Boolean(Number(data.daily_state?.login_claimed || 0));
+  surveyClaimed = Boolean(Number(data.daily_state?.survey_claimed || 0));
+  adsWatched = Number(data.daily_state?.ads_watched_count || 0);
+  adsLimit = Number(data.daily_state?.ads_limit || 0);
+
+  updateBalances();
+
+  // Update earned day index + UI
+  const loginDayIndex = Number(data.daily_state?.login_day_index || 1);
+  const loginDots = document.querySelectorAll('#login-card .day-dot');
+  loginDots.forEach((dot, idx) => {
+    const day = idx + 1;
+    dot.classList.remove('done', 'today', 'future');
+    if (day < loginDayIndex) dot.classList.add('done');
+    else if (day === loginDayIndex) dot.classList.add('today');
+    else dot.classList.add('future');
+  });
+
+  // Buttons / statuses
+  const loginBtn = document.getElementById('login-btn');
+  if (loginBtn) {
+    if (loginClaimed) {
+      loginBtn.textContent = '✓ Claimed for today';
+      loginBtn.classList.add('claimed');
+      loginBtn.disabled = true;
+    } else {
+      loginBtn.textContent = 'Claim +? 🪙';
+      loginBtn.disabled = false;
+    }
+  }
+
+  const surveyBtn = document.getElementById('survey-btn');
+  if (surveyBtn) {
+    if (surveyClaimed) {
+      surveyBtn.textContent = '✓ Submitted';
+      surveyBtn.classList.add('claimed');
+      surveyBtn.disabled = true;
+      surveyBtn.style.opacity = '1';
+      surveyBtn.style.pointerEvents = 'auto';
+    } else {
+      surveyBtn.style.opacity = '0.45';
+      surveyBtn.style.pointerEvents = 'none';
+    }
+  }
+
+  const adsBtn = document.getElementById('ads-btn');
+  if (adsBtn) {
+    if (adsWatched >= adsLimit && adsLimit > 0) {
+      adsBtn.textContent = '✓ Daily limit reached';
+      adsBtn.classList.add('claimed');
+      adsBtn.disabled = true;
+      adsBtn.style.opacity = '0.65';
+    } else {
+      adsBtn.style.opacity = '1';
+      adsBtn.style.pointerEvents = 'auto';
+    }
+  }
+
+  // Update reset countdown (server returns countdown)
+  if (data.reset_countdown) {
+    document.getElementById('reset-timer').textContent = data.reset_countdown;
+  }
+
+  // Update progress ring values (simple mapping already in markup)
+  const pct = Number(data.progress_pct || 0);
+  const xpToNext = Number(data.xp_to_next || 0);
+  const totalXp = Number(data.total_xp || 0);
+  const level = Number(data.level || 1);
+
+  const rankBar = document.getElementById('rank-bar');
+  if (rankBar) rankBar.style.width = Math.max(0, Math.min(100, pct)) + '%';
+
+  const xpBar = document.getElementById('xp-bar');
+  if (xpBar) xpBar.style.width = Math.max(0, Math.min(100, pct)) + '%';
+
+  const levelCurrent = document.querySelector('.lp.current');
+  if (levelCurrent) levelCurrent.textContent = 'Lv. ' + level;
+  const xpBarLabels = document.querySelectorAll('.xp-bar-labels span');
+  if (xpBarLabels && xpBarLabels.length >= 2) {
+    xpBarLabels[0].textContent = totalXp.toLocaleString() + ' XP earned';
+    xpBarLabels[1].textContent = xpToNext.toLocaleString() + ' XP to go';
+  }
+
+  // Update today breakdown numbers (we’ll calculate from activity later)
+}
+
+async function loadPointsBadges() {
+  const token = getAuthToken();
+  if (!token) return;
+  const data = await tcFetch('/api/points/badges', { method: 'GET', headers: setAuthHeader({}) });
+
+  // badge markup uses BADGES constant below; we will replace rendering using API
+  const badgeGrid = document.getElementById('badges-grid');
+  if (!badgeGrid) return;
+  badgeGrid.innerHTML = '';
+
+  (data.badges || []).forEach(b => {
+    const el = document.createElement('div');
+    el.className = 'badge-item' + (b.earned ? '' : ' locked');
+    el.innerHTML = `
+      <div class="badge-emoji">${b.icon}</div>
+      <div class="badge-name">${b.label}</div>
+      ${b.earned ? '' : '<div class="badge-lock">🔒</div>'}
+      <div class="badge-tooltip">${b.desc || ''}</div>
+    `;
+    badgeGrid.appendChild(el);
+  });
+}
+
+async function loadPointsLeaderboard() {
+  const token = getAuthToken();
+  if (!token) return;
+
+  const data = await tcFetch('/api/points/leaderboard?window=week', { method: 'GET', headers: setAuthHeader({}) });
+
+  const lbList = document.getElementById('leaderboard-list');
+  if (!lbList) return;
+  lbList.innerHTML = '';
+
+  const RANK_ICONS = {1:'🥇',2:'🥈',3:'🥉'};
+  (data.leaders || []).forEach(l => {
+    const el = document.createElement('div');
+    el.className = 'lb-row' + (l.isMe ? ' me' : '');
+    el.innerHTML = `
+      <span class="lb-rank">${RANK_ICONS[l.rank] || l.rank}</span>
+      <div class="lb-avatar">${l.av || 'U'}</div>
+      <span class="lb-name${l.isMe?' me':''}">${l.name || ''}${l.isMe?' (you)':''}</span>
+      <span class="lb-xp${l.isMe?' me':''}">${(l.xp || 0).toLocaleString()}</span>
+    `;
+    lbList.appendChild(el);
+  });
+}
+
+async function loadPointsActivity() {
+  const token = getAuthToken();
+  if (!token) return;
+
+  const data = await tcFetch('/api/points/activity', { method: 'GET', headers: setAuthHeader({}) });
+
+  const actEl = document.getElementById('xp-activity');
+  if (!actEl) return;
+  actEl.innerHTML = '';
+
+  const kindToCls = (k) => {
+    if (k === 'login') return 'gold';
+    if (k === 'ad') return 'teal';
+    if (k === 'survey') return 'purple';
+    return 'gold';
+  };
+
+  const kindToIcon = (k) => {
+    if (k === 'login') return '🪙';
+    if (k === 'ad') return '📺';
+    if (k === 'survey') return '🎓';
+    return '⭐';
+  };
+
+  (data.activity || []).forEach(a => {
+    const el = document.createElement('div');
+    const cls = kindToCls(a.kind);
+    el.className = 'act-item';
+    el.innerHTML = `
+      <span class="act-emoji">${kindToIcon(a.kind)}</span>
+      <span class="act-desc">${a.description || a.kind || ''}</span>
+      <span class="act-xp ${cls}">${(a.xp_awarded || a.tokens_awarded || 0).toString().includes('+') ? a.xp_awarded : ('+' + ((a.xp_awarded || a.tokens_awarded || 0)))} XP</span>
+      <span class="act-time">${a.created_at || ''}</span>
+    `;
+    actEl.appendChild(el);
+  });
+}
+
+async function initPointsPage() {
+  try {
+    await Promise.all([
+      loadPointsSummary(),
+      loadPointsBadges(),
+      loadPointsLeaderboard(),
+      loadPointsActivity()
+    ]);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+initPointsPage();
 
 function updateBalances() {
   ['header-tokens','sidebar-tokens'].forEach(id => {
@@ -1058,23 +1353,33 @@ ACT_DATA.forEach((v, i) => {
 });
 
 // ─── DAILY LOGIN ─────────────────────────────────────────
-function claimLogin(btn) {
+async function claimLogin(btn) {
   if (loginClaimed) return;
   loginClaimed = true;
-  const rect = btn.getBoundingClientRect();
-  spawnBurst(15, rect.left + rect.width / 2, rect.top, 'var(--accent-gold)');
-  tokenBalance += 15;
-  todayEarned += 15;
-  document.getElementById('today-login-xp').textContent = '+30';
-  const badge = document.getElementById('login-status-badge');
-  badge.textContent = '✓ Claimed';
-  badge.style.color = 'var(--accent-gold)';
-  badge.style.borderColor = 'var(--accent-gold-border)';
-  badge.style.background = 'var(--accent-gold-bg)';
-  btn.textContent = '✓ Claimed for today';
-  btn.classList.add('claimed');
-  updateBalances();
+
+  try {
+    btn.disabled = true;
+    const rect = btn.getBoundingClientRect();
+    spawnBurst(5, rect.left + rect.width / 2, rect.top, 'var(--accent-gold)');
+
+    const data = await tcFetch('/api/points/login/claim', {
+      method: 'POST',
+      headers: setAuthHeader({})
+    });
+
+    // refresh from server
+    await loadPointsSummary();
+    // small success burst with awarded tokens
+    if (data && typeof data.tokens_awarded !== 'undefined') {
+      spawnBurst(Number(data.tokens_awarded) || 0, rect.left + rect.width / 2, rect.top, 'var(--accent-gold)');
+    }
+  } catch (e) {
+    console.error(e);
+    loginClaimed = false;
+    btn.disabled = false;
+  }
 }
+
 
 // ─── SURVEY ──────────────────────────────────────────────
 function selectSurvey(el) {
