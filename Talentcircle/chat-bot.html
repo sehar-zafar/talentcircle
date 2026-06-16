@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Workspace Assistant | TalentCircle</title>
+
+  <!-- Global Instant Theme Synchronization Engine -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="./src/nav-common.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Poppins', 'sans-serif'] },
+          colors: {
+            purple: {
+              50: '#fdf2ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe',
+              400: '#b300ff', 500: '#9600B6', 600: '#7a0094', 700: '#5a0072',
+              800: '#3a0050', 900: '#1a0f2e', 950: '#0f0a1a',
+            }
+          },
+          animation: {
+            'float': 'float 4s ease-in-out infinite',
+            'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+            'pop-in': 'popIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+            'fade-in': 'fadeIn 0.5s ease forwards',
+            'blob': 'blobMove 12s ease-in-out infinite',
+            'gradient-move': 'gradientMove 6s ease infinite',
+            'typing-dot': 'typingBounce 1.3s ease-in-out infinite',
+            'wiggle': 'wiggle 0.6s ease-in-out',
+            'shimmer': 'shimmer 2.5s linear infinite',
+          },
+          keyframes: {
+            float: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-6px)' } },
+            slideUp: { '0%': { opacity: '0', transform: 'translateY(15px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+            pulseGlow: { '0%, 100%': { boxShadow: '0 0 15px rgba(150, 0, 182, 0.15)' }, '50%': { boxShadow: '0 0 30px rgba(150, 0, 182, 0.4)' } },
+            popIn: { '0%': { opacity: '0', transform: 'translateY(12px) scale(0.92)' }, '100%': { opacity: '1', transform: 'translateY(0) scale(1)' } },
+            fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+            blobMove: { '0%, 100%': { transform: 'translate(0px, 0px) scale(1)' }, '33%': { transform: 'translate(30px, -25px) scale(1.08)' }, '66%': { transform: 'translate(-20px, 15px) scale(0.95)' } },
+            gradientMove: { '0%, 100%': { backgroundPosition: '0% 50%' }, '50%': { backgroundPosition: '100% 50%' } },
+            typingBounce: { '0%, 80%, 100%': { transform: 'scale(0.6)', opacity: '0.35' }, '40%': { transform: 'scale(1)', opacity: '1' } },
+            wiggle: { '0%, 100%': { transform: 'rotate(0deg)' }, '25%': { transform: 'rotate(-6deg)' }, '75%': { transform: 'rotate(6deg)' } },
+            shimmer: { '0%': { backgroundPosition: '-200% 0' }, '100%': { backgroundPosition: '200% 0' } },
+          }
+        },
+      },
+    }
+  </script>
+
+  <style>
+    body { transition: background-color 0.4s ease, color 0.4s ease; }
+
+    /* Unified Glassmorphism System Specs Matchers */
+    .glass {
+      backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(150, 0, 182, 0.12);
+      transition: background 0.4s, border-color 0.4s, box-shadow 0.4s, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .dark .glass {
+      background: rgba(20, 20, 40, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Custom Scrollbar Map Styling */
+    .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(150, 0, 182, 0.2); border-radius: 99px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #9600B6; }
+
+    /* Hexagonal Computational Bot Grid Clip */
+    .bot-hex {
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    }
+
+    /* Animated gradient fill for the bot avatar */
+    .bot-gradient {
+      background: linear-gradient(120deg, #9600B6, #ec4899, #b300ff, #9600B6);
+      background-size: 300% 300%;
+    }
+
+    /* Shimmer sweep used on the header title accent */
+    .shimmer-text {
+      background: linear-gradient(90deg, currentColor 0%, #ec4899 50%, currentColor 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    /* Typing indicator dots */
+    .typing-dot { animation: typingBounce 1.3s ease-in-out infinite; }
+    .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body class="font-sans bg-slate-50 dark:bg-purple-950 text-slate-900 dark:text-white min-h-screen overflow-x-hidden flex flex-col">
+
+  <!-- Core Layer Background Design Hues -->
+  <div class="fixed inset-0 z-0 pointer-events-none transition-opacity duration-500">
+    <div class="absolute w-[600px] h-[600px] -top-32 -right-32 bg-purple-500/5 dark:bg-purple-500/10 rounded-full blur-[120px] animate-blob"></div>
+    <div class="absolute w-[500px] h-[500px] -bottom-32 -left-32 bg-purple-500/5 dark:bg-purple-700/5 rounded-full blur-[120px] animate-blob" style="animation-delay: -6s;"></div>
+  </div>
+
+  <div class="flex flex-col lg:flex-row min-h-screen relative z-10 w-full flex-grow">
+
+    <!-- ===================== SIDEBAR NAVIGATION PANEL ===================== -->
+    <aside class="w-full lg:w-[240px] bg-white/60 dark:bg-black/20 border-b lg:border-b-0 lg:border-r border-purple-500/10 dark:border-white/10 p-5 flex flex-col justify-between shrink-0 z-20 backdrop-blur-xl">
+      <div>
+        <div class="flex items-center gap-3 mb-6 lg:mb-10 px-2 justify-center lg:justify-start animate-fade-in">
+          <a href="home.html" class="block transition-transform duration-300 hover:scale-105">
+            <img src="images/logo.png" class="h-9 w-auto object-contain transition-all duration-300 invert brightness-50 contrast-150 dark:invert-0 dark:brightness-100 dark:contrast-100" alt="TalentCircle Logo">
+          </a>
+        </div>
+
+        <nav class="flex lg:flex-col gap-1.5 lg:gap-1 lg:space-y-1 overflow-x-auto lg:overflow-y-auto custom-scroll text-xs md:text-sm pb-1 lg:pb-0">
+          <p class="hidden lg:block text-[10px] font-bold text-slate-400 dark:text-purple-300/40 uppercase tracking-widest px-3 py-2">Menu</p>
+          <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-purple-500/5 hover:text-purple-500 hover:translate-x-1 transition-all duration-200 whitespace-nowrap">
+            <i class="fas fa-th-large w-4 text-center"></i><span class="hidden sm:inline lg:inline">Dashboard</span>
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-purple-500/5 hover:text-purple-500 hover:translate-x-1 transition-all duration-200 whitespace-nowrap">
+            <i class="fas fa-coins w-4 text-center"></i><span class="hidden sm:inline lg:inline">Tokens</span>
+          </a>
+          <a href="ranking.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-purple-500/5 hover:text-purple-500 hover:translate-x-1 transition-all duration-200 whitespace-nowrap">
+            <i class="fas fa-trophy w-4 text-center"></i><span class="hidden sm:inline lg:inline">Rankings</span>
+          </a>
+          <a href="badges.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-purple-500/5 hover:text-purple-500 hover:translate-x-1 transition-all duration-200 whitespace-nowrap">
+            <i class="fas fa-award w-4 text-center"></i><span class="hidden sm:inline lg:inline">Badges</span>
+          </a>
+          <a href="schedule.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-purple-500/5 hover:text-purple-500 hover:translate-x-1 transition-all duration-200 whitespace-nowrap relative">
+            <i class="fas fa-calendar-alt w-4 text-center"></i><span class="hidden sm:inline lg:inline">Schedule</span>
+            <span class="absolute -top-1 -right-1 lg:right-3 w-4 h-4 rounded-full bg-pink-500 text-white text-[9px] font-bold flex items-center justify-center animate-pulse">3</span>
+          </a>
+          <a href="chat-bot.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 font-semibold border-l-4 border-purple-600 shadow-sm animate-pulse-glow transition-all whitespace-nowrap">
+            <i class="fas fa-robot w-4 text-center text-purple-500"></i><span class="hidden sm:inline lg:inline">AI Assistant</span>
+          </a>
+        </nav>
+      </div>
+
+      <button id="theme-toggle" class="mt-4 lg:mt-8 w-full py-3 px-4 rounded-xl border border-purple-500/20 glass font-bold text-[10px] tracking-widest uppercase hover:border-purple-500/50 hover:scale-[1.02] active:scale-95 focus:outline-none transition-all">
+        <span id="theme-toggle-label">🌓 Switch Theme Mode</span>
+      </button>
+    </aside>
+
+    <!-- ===================== MAIN CHAT WORKSPACE AREA ===================== -->
+    <main class="flex-1 max-w-7xl w-full mx-auto flex flex-col h-screen overflow-hidden">
+
+      <!-- Workspace Header -->
+      <header class="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-purple-500/10 dark:border-white/10 bg-white/40 dark:bg-black/10 backdrop-blur-xl flex-shrink-0 z-30">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="bot-hex w-9 h-9 bot-gradient animate-gradient-move flex items-center justify-center text-white text-sm shadow-md flex-shrink-0 animate-float">
+            <i class="fas fa-brain"></i>
+          </div>
+          <div class="min-w-0">
+            <h1 class="text-sm sm:text-base font-black tracking-tight flex items-center gap-2 truncate">
+              <span class="shimmer-text animate-shimmer">CircleAI Assistant</span>
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-ping flex-shrink-0"></span>
+            </h1>
+            <p class="text-[10px] opacity-50 truncate">Ecosystem Routing Engine v2.4</p>
+          </div>
+        </div>
+
+        <!-- Token Balance Display HUD -->
+        <div class="flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-purple-500/20 text-xs font-mono font-bold glass flex-shrink-0 hover:scale-105 transition-transform">
+          <i class="fas fa-coins text-purple-500 animate-wiggle" style="animation-iteration-count: infinite; animation-duration: 3s;"></i>
+          <span>1,240 <span class="hidden sm:inline opacity-40 font-sans font-normal">Credits</span></span>
+        </div>
+      </header>
+
+      <!-- ===================== INTERACTIVE SPLIT DISCUSSION VIEWPORT ===================== -->
+      <div class="flex-grow flex overflow-hidden min-h-0 relative">
+
+        <!-- Left Column: Primary Conversational Stream Area -->
+        <div class="flex-1 flex flex-col h-full bg-slate-100/30 dark:bg-transparent">
+
+          <!-- Live Messages Display Output Area -->
+          <div id="chatMessageViewport" class="flex-grow overflow-y-auto p-4 sm:p-6 space-y-6 custom-scroll">
+
+            <!-- Bot Initial Greeting Message Node -->
+            <div class="flex items-start gap-3 sm:gap-3.5 max-w-[88%] sm:max-w-2xl animate-pop-in">
+              <div class="bot-hex w-8 h-8 bot-gradient animate-gradient-move text-white flex-shrink-0 flex items-center justify-center text-xs shadow-md mt-0.5">
+                <i class="fas fa-robot"></i>
+              </div>
+              <div class="rounded-2xl rounded-tl-none px-4 py-3 bg-white dark:bg-[#150f2e] border border-purple-500/10 dark:border-purple-900/30 text-xs md:text-sm leading-relaxed shadow-sm">
+                Greetings, Aisha Khan. I am synchronized with your <strong>Python Developer</strong> node path vectors.
+                <br><br>
+                How can I assist your workflow matrices today? I can evaluate skill gaps, analyze matching paths, or initialize peer-to-peer token allocation protocols.
+              </div>
+            </div>
+
+            <!-- User Sample Query Message Node -->
+            <div class="flex items-start gap-3 sm:gap-3.5 max-w-[88%] sm:max-w-2xl ml-auto flex-row-reverse animate-pop-in" style="animation-delay: 0.1s;">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-500 to-pink-500 text-white flex-shrink-0 flex items-center justify-center text-xs font-bold shadow-md mt-0.5">
+                AK
+              </div>
+              <div class="rounded-2xl rounded-tr-none px-4 py-3 bg-purple-600 text-white border border-transparent text-xs md:text-sm leading-relaxed shadow-lg shadow-purple-600/20">
+                Show my skill-exchange metrics. I need to calculate how many tokens I need to request a UX/UI design instruction module from a matching peer.
+              </div>
+            </div>
+
+            <!-- Bot Sample Automated Metric Response Node -->
+            <div class="flex items-start gap-3 sm:gap-3.5 max-w-[95%] sm:max-w-2xl animate-pop-in" style="animation-delay: 0.2s;">
+              <div class="bot-hex w-8 h-8 bot-gradient animate-gradient-move text-white flex-shrink-0 flex items-center justify-center text-xs shadow-md mt-0.5">
+                <i class="fas fa-robot"></i>
+              </div>
+              <div class="rounded-2xl rounded-tl-none px-4 py-3 bg-white dark:bg-[#150f2e] border border-purple-500/10 dark:border-purple-900/30 text-xs md:text-sm leading-relaxed shadow-sm w-full">
+                <p class="mb-3 font-semibold text-purple-600 dark:text-purple-400">Ecosystem Vector Calculations Matrix:</p>
+
+                <!-- Inlined Layout Presentation Table Data -->
+                <div class="border border-purple-500/10 rounded-xl overflow-hidden mb-3 text-xs">
+                  <div class="grid grid-cols-2 bg-purple-500/5 p-2 font-bold border-b border-purple-500/10">
+                    <span>Telemetry Dimension</span><span>Computed Balance</span>
+                  </div>
+                  <div class="grid grid-cols-2 p-2 border-b border-purple-500/5 opacity-80 hover:bg-purple-500/5 transition-colors">
+                    <span>Your Instruction Rate</span><span>+50 Tokens / Hr</span>
+                  </div>
+                  <div class="grid grid-cols-2 p-2 border-b border-purple-500/5 opacity-80 hover:bg-purple-500/5 transition-colors">
+                    <span>Avg. UI Peer Cost</span><span>75 Tokens / Hr</span>
+                  </div>
+                  <div class="grid grid-cols-2 p-2 bg-purple-500/5 font-bold text-purple-600 dark:text-purple-400">
+                    <span>Deficit Margin</span><span>-25 Tokens / Hr</span>
+                  </div>
+                </div>
+
+                You are currently short 25 tokens per hour for a direct peer exchange module. You can execute 1 hour of <strong>Python Instruction</strong> to erase this deficit, or allocate credits from your local wallet balance.
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Control Panel: Prompt Deployment System Input -->
+          <div class="p-4 border-t border-purple-500/10 dark:border-white/10 bg-white/80 dark:bg-[#0c0817]/40 flex flex-col gap-2 flex-shrink-0 backdrop-blur-md">
+
+            <!-- Quick Suggestion Chip Array Track Loop -->
+            <div class="flex gap-2 overflow-x-auto custom-scroll pb-1 text-[10px] font-bold uppercase tracking-wider">
+              <button onclick="appendQuerySuggestion(this.textContent)" class="px-3 py-1.5 rounded-lg border border-purple-500/10 hover:border-purple-500/40 hover:scale-105 active:scale-95 glass text-slate-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-inherit whitespace-nowrap transition-all">📊 Analyze Skill Gaps</button>
+              <button onclick="appendQuerySuggestion(this.textContent)" class="px-3 py-1.5 rounded-lg border border-purple-500/10 hover:border-purple-500/40 hover:scale-105 active:scale-95 glass text-slate-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-inherit whitespace-nowrap transition-all">🔄 Optimize Token Swaps</button>
+              <button onclick="appendQuerySuggestion(this.textContent)" class="px-3 py-1.5 rounded-lg border border-purple-500/10 hover:border-purple-500/40 hover:scale-105 active:scale-95 glass text-slate-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-inherit whitespace-nowrap transition-all">🛡️ Verify Badges Proof</button>
+              <button onclick="appendQuerySuggestion(this.textContent)" class="px-3 py-1.5 rounded-lg border border-purple-500/10 hover:border-purple-500/40 hover:scale-105 active:scale-95 glass text-slate-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-inherit whitespace-nowrap transition-all">📅 Check My Schedule</button>
+            </div>
+
+            <!-- Main Input Bar Execution Frame -->
+            <form id="aiPromptForm" class="flex gap-2 relative items-center mt-1">
+              <input type="text" id="aiInputField" required autocomplete="off"
+                class="w-full pl-4 pr-12 py-3.5 bg-purple-500/5 dark:bg-black/40 border border-purple-500/20 dark:border-white/10 rounded-xl text-inherit placeholder-slate-400 dark:placeholder-gray-400/70 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-all duration-300"
+                placeholder="Ask CircleAI to calculate vectors, route networks, or map skills alignment..."/>
+
+              <button type="submit" aria-label="Transmit Prompt Node"
+                class="absolute right-2 p-2 w-9 h-9 rounded-lg bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-[length:200%_200%] animate-gradient-move text-white flex items-center justify-center text-xs hover:opacity-90 hover:scale-110 active:scale-95 transition-all shadow-md shadow-purple-600/20">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </form>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Hidden or Contextual Assistant Panel Metadata Info -->
+        <div class="w-[280px] bg-purple-500/5 dark:bg-black/10 border-l border-purple-500/10 dark:border-white/10 p-5 hidden xl:flex flex-col space-y-4 overflow-y-auto custom-scroll flex-shrink-0">
+          <h4 class="text-xs font-bold uppercase tracking-widest opacity-50">Ecosystem Context</h4>
+
+          <div class="p-4 rounded-xl bg-white/5 border border-purple-500/5 text-xs space-y-2 glass hover:scale-[1.02] transition-transform animate-fade-in">
+            <p class="font-bold text-purple-600 dark:text-purple-400"><i class="fas fa-brain mr-1.5"></i> Active Vector Track</p>
+            <p class="opacity-70 leading-relaxed font-light">Your system profile is optimized for <strong>Python Core Topologies</strong>, tracking machine learning vector clustering modules matching variables loop architectures.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-white/5 border border-purple-500/5 text-xs space-y-3 glass hover:scale-[1.02] transition-transform animate-fade-in" style="animation-delay: 0.1s;">
+            <p class="font-bold text-purple-600 dark:text-purple-400"><i class="fas fa-chart-network mr-1.5"></i> Network Proximity</p>
+            <div class="space-y-1.5 opacity-80 font-medium">
+              <div class="flex justify-between"><span>UI Design Peers</span><span class="text-emerald-500 font-semibold">14 Online</span></div>
+              <div class="flex justify-between"><span>Active Escrow Pools</span><span>32 Blocks</span></div>
+            </div>
+          </div>
+
+          <!-- Upcoming Meetings Tracker Card -->
+          <div class="p-4 rounded-xl bg-white/5 border border-purple-500/5 text-xs space-y-3 glass hover:scale-[1.02] transition-transform animate-fade-in" style="animation-delay: 0.2s;">
+            <p class="font-bold text-purple-600 dark:text-purple-400 flex items-center justify-between">
+              <span><i class="fas fa-calendar-check mr-1.5"></i> Upcoming Meetings</span>
+              <span class="text-[9px] bg-pink-500/10 text-pink-500 px-2 py-0.5 rounded-full font-bold animate-pulse">3 Today</span>
+            </p>
+            <div class="space-y-2">
+              <div class="flex items-center gap-2.5 p-2 rounded-lg bg-purple-500/5 hover:bg-purple-500/10 hover:translate-x-1 transition-all duration-200 group">
+                <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-purple-600 text-white flex-shrink-0 group-hover:animate-wiggle">
+                  <span class="text-[11px] font-black leading-none">10</span>
+                  <span class="text-[8px] uppercase leading-none opacity-80">AM</span>
+                </div>
+                <div class="min-w-0">
+                  <p class="font-semibold truncate">Python Mentorship Sync</p>
+                  <p class="opacity-60 text-[10px] truncate">with Bilal R. · 30 min</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2.5 p-2 rounded-lg bg-purple-500/5 hover:bg-purple-500/10 hover:translate-x-1 transition-all duration-200 group">
+                <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-fuchsia-600 text-white flex-shrink-0 group-hover:animate-wiggle">
+                  <span class="text-[11px] font-black leading-none">1</span>
+                  <span class="text-[8px] uppercase leading-none opacity-80">PM</span>
+                </div>
+                <div class="min-w-0">
+                  <p class="font-semibold truncate">UX/UI Exchange Call</p>
+                  <p class="opacity-60 text-[10px] truncate">with Sara M. · 45 min</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2.5 p-2 rounded-lg bg-purple-500/5 hover:bg-purple-500/10 hover:translate-x-1 transition-all duration-200 group">
+                <div class="flex flex-col items-center justify-center w-10 h-10 rounded-lg bg-emerald-600 text-white flex-shrink-0 group-hover:animate-wiggle">
+                  <span class="text-[11px] font-black leading-none">5</span>
+                  <span class="text-[8px] uppercase leading-none opacity-80">PM</span>
+                </div>
+                <div class="min-w-0">
+                  <p class="font-semibold truncate">Skill Pod Standup</p>
+                  <p class="opacity-60 text-[10px] truncate">Team Circle · 15 min</p>
+                </div>
+              </div>
+            </div>
+            <button onclick="appendQuerySuggestion('Check My Schedule')" class="w-full mt-1 py-2 rounded-lg border border-purple-500/20 text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:scale-[1.02] active:scale-95 transition-all">
+              <i class="fas fa-plus mr-1"></i> View Full Calendar
+            </button>
+          </div>
+
+          <!-- Weekly Timetable Overview Card -->
+          <div class="p-4 rounded-xl bg-white/5 border border-purple-500/5 text-xs space-y-3 glass hover:scale-[1.02] transition-transform animate-fade-in" style="animation-delay: 0.3s;">
+            <p class="font-bold text-purple-600 dark:text-purple-400"><i class="fas fa-table-cells mr-1.5"></i> Weekly Timetable</p>
+            <div class="grid grid-cols-5 gap-1.5">
+              <div class="flex flex-col items-center gap-1">
+                <span class="text-[9px] font-bold opacity-50">Mon</span>
+                <div class="w-full h-3 rounded bg-purple-500/70 hover:scale-110 transition-transform" title="Morning session"></div>
+                <div class="w-full h-2 rounded bg-purple-500/15"></div>
+                <div class="w-full h-4 rounded bg-pink-500/50 hover:scale-110 transition-transform" title="Afternoon session"></div>
+              </div>
+              <div class="flex flex-col items-center gap-1">
+                <span class="text-[9px] font-bold opacity-50">Tue</span>
+                <div class="w-full h-2 rounded bg-purple-500/15"></div>
+                <div class="w-full h-4 rounded bg-purple-500/70 hover:scale-110 transition-transform" title="Midday session"></div>
+                <div class="w-full h-3 rounded bg-purple-500/15"></div>
+              </div>
+              <div class="flex flex-col items-center gap-1 relative">
+                <span class="text-[9px] font-black text-purple-600 dark:text-purple-400">Wed</span>
+                <div class="w-full h-3 rounded bg-fuchsia-500/70 ring-2 ring-purple-500/50 animate-pulse-glow hover:scale-110 transition-transform" title="Live now"></div>
+                <div class="w-full h-3 rounded bg-purple-500/70 hover:scale-110 transition-transform" title="Afternoon session"></div>
+                <div class="w-full h-2 rounded bg-purple-500/15"></div>
+              </div>
+              <div class="flex flex-col items-center gap-1">
+                <span class="text-[9px] font-bold opacity-50">Thu</span>
+                <div class="w-full h-2 rounded bg-purple-500/15"></div>
+                <div class="w-full h-2 rounded bg-purple-500/15"></div>
+                <div class="w-full h-4 rounded bg-purple-500/70 hover:scale-110 transition-transform" title="Evening session"></div>
+              </div>
+              <div class="flex flex-col items-center gap-1">
+                <span class="text-[9px] font-bold opacity-50">Fri</span>
+                <div class="w-full h-4 rounded bg-pink-500/50 hover:scale-110 transition-transform" title="Morning session"></div>
+                <div class="w-full h-2 rounded bg-purple-500/15"></div>
+                <div class="w-full h-2 rounded bg-purple-500/15"></div>
+              </div>
+            </div>
+            <p class="opacity-60 text-[10px] leading-relaxed"><span class="font-semibold text-purple-600 dark:text-purple-400">Today (Wed):</span> 3 sessions booked · 1 open slot at 4 PM.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- APPLICATION CODE ENGINES INTERCEPTORS IMPLEMENTATIONS -->
+  <script>
+    const htmlDoc = document.documentElement;
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeToggleLabel = document.getElementById('theme-toggle-label');
+    const aiPromptForm = document.getElementById('aiPromptForm');
+    const aiInputField = document.getElementById('aiInputField');
+    const chatMessageViewport = document.getElementById('chatMessageViewport');
+
+    // Theme switching logic layer context routing parameters
+    function updateThemeLabel() {
+      themeToggleLabel.textContent = htmlDoc.classList.contains('dark') ? '🌙 Dark Mode Active' : '☀️ Light Mode Active';
+    }
+    updateThemeLabel();
+
+    themeToggle.addEventListener('click', () => {
+      htmlDoc.classList.toggle('dark');
+      localStorage.setItem('theme', htmlDoc.classList.contains('dark') ? 'dark' : 'light');
+      updateThemeLabel();
+      themeToggle.classList.add('animate-wiggle');
+      setTimeout(() => themeToggle.classList.remove('animate-wiggle'), 600);
+    });
+
+    // Helper functions for appending suggestions into input stream fields tracking
+    function appendQuerySuggestion(text) {
+      if (!aiInputField) return;
+      // Extract emoji prefix if present inside text strings structures loops
+      aiInputField.value = text.replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF]/g, '').trim();
+      aiInputField.focus();
+    }
+
+    // Interactive message insertion engine runtime controller handler mockup block
+    aiPromptForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const promptValue = aiInputField.value.trim();
+      if (!promptValue) return;
+
+      // 1. Render User Input Message Node into Viewport Structure Loop Array Matrix
+      const userNode = document.createElement('div');
+      userNode.className = 'flex items-start gap-3 sm:gap-3.5 max-w-[88%] sm:max-w-2xl ml-auto flex-row-reverse animate-pop-in';
+      userNode.innerHTML = `
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-500 to-pink-500 text-white flex-shrink-0 flex items-center justify-center text-xs font-bold shadow-md mt-0.5">AK</div>
+        <div class="rounded-2xl rounded-tr-none px-4 py-3 bg-purple-600 text-white border border-transparent text-xs md:text-sm leading-relaxed shadow-lg shadow-purple-600/20">${promptValue}</div>
+      `;
+      chatMessageViewport.appendChild(userNode);
+
+      // Clear value immediately once parsed to prevent stack errors
+      aiInputField.value = '';
+
+      // Auto scroll viewport directly down to anchor visibility properties bounds arrays loops
+      chatMessageViewport.scrollTop = chatMessageViewport.scrollHeight;
+
+      // 2. Render an animated "typing" indicator while the response is "computed"
+      const typingNode = document.createElement('div');
+      typingNode.className = 'flex items-start gap-3 sm:gap-3.5 max-w-2xl animate-pop-in';
+      typingNode.id = 'typingIndicator';
+      typingNode.innerHTML = `
+        <div class="bot-hex w-8 h-8 bot-gradient animate-gradient-move text-white flex-shrink-0 flex items-center justify-center text-xs shadow-md mt-0.5"><i class="fas fa-robot"></i></div>
+        <div class="rounded-2xl rounded-tl-none px-4 py-3 bg-white dark:bg-[#150f2e] border border-purple-500/10 dark:border-purple-900/30 shadow-sm flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-purple-500 typing-dot"></span>
+          <span class="w-2 h-2 rounded-full bg-purple-500 typing-dot"></span>
+          <span class="w-2 h-2 rounded-full bg-purple-500 typing-dot"></span>
+        </div>
+      `;
+      chatMessageViewport.appendChild(typingNode);
+      chatMessageViewport.scrollTop = chatMessageViewport.scrollHeight;
+
+      // 3. Mock Automated Assistant Response Stream Callback Delay Loop
+      setTimeout(() => {
+        typingNode.remove();
+
+        const botNode = document.createElement('div');
+        botNode.className = 'flex items-start gap-3 sm:gap-3.5 max-w-[88%] sm:max-w-2xl animate-pop-in';
+
+        const lowerPrompt = promptValue.toLowerCase();
+        const isScheduleQuery = /schedule|meeting|timetable|calendar|agenda|appointment/.test(lowerPrompt);
+
+        let responseHtml;
+        if (isScheduleQuery) {
+          responseHtml = `
+            <div class="bot-hex w-8 h-8 bot-gradient animate-gradient-move text-white flex-shrink-0 flex items-center justify-center text-xs shadow-md mt-0.5"><i class="fas fa-robot"></i></div>
+            <div class="rounded-2xl rounded-tl-none px-4 py-3 bg-white dark:bg-[#150f2e] border border-purple-500/10 dark:border-purple-900/30 text-xs md:text-sm leading-relaxed shadow-sm w-full">
+              <p class="mb-3 font-semibold text-purple-600 dark:text-purple-400"><i class="fas fa-calendar-check mr-1.5"></i>Today's Meeting &amp; Timetable Overview:</p>
+              <div class="border border-purple-500/10 rounded-xl overflow-hidden mb-3 text-xs">
+                <div class="grid grid-cols-3 bg-purple-500/5 p-2 font-bold border-b border-purple-500/10">
+                  <span>Time</span><span>Session</span><span>With</span>
+                </div>
+                <div class="grid grid-cols-3 p-2 border-b border-purple-500/5 opacity-80 hover:bg-purple-500/5 transition-colors">
+                  <span>10:00 AM</span><span>Python Mentorship Sync</span><span>Bilal R.</span>
+                </div>
+                <div class="grid grid-cols-3 p-2 border-b border-purple-500/5 opacity-80 hover:bg-purple-500/5 transition-colors">
+                  <span>1:00 PM</span><span>UX/UI Exchange Call</span><span>Sara M.</span>
+                </div>
+                <div class="grid grid-cols-3 p-2 border-b border-purple-500/5 opacity-80 hover:bg-purple-500/5 transition-colors">
+                  <span>5:00 PM</span><span>Skill Pod Standup</span><span>Team Circle</span>
+                </div>
+                <div class="grid grid-cols-3 p-2 bg-purple-500/5 font-bold text-purple-600 dark:text-purple-400">
+                  <span>4:00 PM</span><span>Open Slot</span><span>—</span>
+                </div>
+              </div>
+              You have <strong>3 meetings</strong> booked today and <strong>1 open slot</strong> at 4 PM. I can reschedule, send a reminder, or block out focus time around these &mdash; just let me know.
+            </div>
+          `;
+        } else {
+          responseHtml = `
+            <div class="bot-hex w-8 h-8 bot-gradient animate-gradient-move text-white flex-shrink-0 flex items-center justify-center text-xs shadow-md mt-0.5"><i class="fas fa-robot"></i></div>
+            <div class="rounded-2xl rounded-tl-none px-4 py-3 bg-white dark:bg-[#150f2e] border border-purple-500/10 dark:border-purple-900/30 text-xs md:text-sm leading-relaxed shadow-sm">
+              Ecosystem routing request acknowledged. Processing value query token data fields tracking sequence... Your profile telemetry looks optimal. Let me fetch appropriate distributed peers mappings parameters slot slots tracking...
+            </div>
+          `;
+        }
+
+        botNode.innerHTML = responseHtml;
+        chatMessageViewport.appendChild(botNode);
+        chatMessageViewport.scrollTop = chatMessageViewport.scrollHeight;
+      }, 1100);
+    });
+  </script>
+</body>
+</html>

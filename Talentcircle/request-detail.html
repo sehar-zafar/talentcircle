@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connection Requests — TalentCircle</title>
+  
+  <!-- Global Instant Theme Synchronization Engine -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.className = savedTheme;
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+   <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+  <script>
+    tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Poppins','sans-serif']}}}}
+  </script>
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--t1);
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+    :root {
+      --bg:#07050f;--surf:#0d0920;--card:rgba(18,14,36,0.45);--card2:#18132e;--bd:rgba(155,48,217,.16);--bd2:rgba(255,255,255,.05);
+      --t1:#f0eeff;--t2:#9ca3af;--t3:#4b5563;
+      --acc:#9b30d9;--acc2:#b855f0;--adim:rgba(155,48,217,.14);
+    }
+    .light {
+      --bg:#f8f6fc;--surf:#ffffff;--card:rgba(255,255,255,0.75);--card2:#f5f2ff;--bd:rgba(155,48,217,.2);--bd2:rgba(0,0,0,.06);
+      --t1:#0f0a1e;--t2:#6b7280;--t3:#9ca3af;
+    }
+    
+    ::-webkit-scrollbar{width:4px;height:4px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:var(--acc);border-radius:10px;}
+    
+    .glass{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+    
+    .card{background:var(--card);border:1px solid var(--bd2);border-radius:16px;transition:all .25s cubic-bezier(0.16, 1, 0.3, 1);}
+    .card:hover{border-color:var(--bd);box-shadow:0 8px 32px rgba(155,48,217,.1);transform:translateY(-2px);}
+    
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .2s;color:var(--t2);text-decoration:none;}
+    .nav-item:hover{color:#e9d5ff;background:rgba(155,48,217,.1);}
+    
+    .badge-poly{clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);}
+    .slbl{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:6px;padding-left:2px;}
+
+    @keyframes fu{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+    .fu-item { animation: fu 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    
+    @media(max-width:1024px){
+      #sb{display:none;}
+      #tb{left:0!important;}
+      #mn{margin-left:0!important; padding-left:16px; padding-right:16px;}
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="min-h-screen">
+
+<!-- Ambient Blur Background Orbs -->
+<div class="fixed inset-0 z-0 pointer-events-none transition-opacity duration-500">
+  <div class="absolute w-[600px] h-[600px] -top-32 -right-32 bg-purple-500/10 rounded-full blur-[120px]"></div>
+  <div class="absolute w-[500px] h-[500px] -bottom-32 -left-32 bg-purple-700/5 rounded-full blur-[120px]"></div>
+</div>
+
+<div class="app flex h-screen w-screen overflow-hidden relative z-10">
+
+  <!-- ══════════ SIDEBAR NAVIGATION ══════════ -->
+  <aside id="sb" class="fixed left-0 top-0 h-full w-56 z-40 flex flex-col py-5 px-3 overflow-y-auto glass" style="background:var(--surf);border-right:1px solid var(--bd2);">
+    <div class="flex items-center gap-3 px-2 mb-7">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-lg">
+        <img src="images/logo.png" alt="TalentCircle Logo" class="w-full h-full object-contain dark:invert-0 light:invert light:brightness-50 light:contrast-150"/>
+      </div>
+      <div>
+        <div class="font-black text-sm tracking-tight" style="color:var(--t1)">TalentCircle</div>
+        <div style="font-size:.62rem;color:var(--t3)" class="font-medium">Network Loops</div>
+      </div>
+    </div>
+
+    <div class="slbl px-1">Menu</div>
+    <nav class="flex flex-col gap-0.5 mb-5">
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-th-large w-4 text-center mr-1"></i>Dashboard</a>
+      <a href="calendar.html" class="nav-item"><i class="fas fa-calendar-alt w-4 text-center mr-1"></i>Calendar</a>
+      <a href="chat-list.html" class="nav-item"><i class="fas fa-comment-alt w-4 text-center mr-1"></i>Messages</a>
+      <a href="search.html" class="nav-item"><i class="fas fa-search w-4 text-center mr-1"></i>Discover Peers</a>
+      <a href="matches.html" class="nav-item on"><i class="fas fa-users-cog w-4 text-center mr-1"></i>Matches</a>
+      <a href="community-forum.html" class="nav-item"><i class="fas fa-comments w-4 text-center mr-1"></i>Community Hub</a>
+      <a href="ranking.html" class="nav-item"><i class="fas fa-trophy w-4 text-center mr-1"></i>Rankings</a>
+      <a href="badges.html" class="nav-item"><i class="fas fa-award w-4 text-center mr-1"></i>Badges</a>
+      <a href="certificate.html" class="nav-item"><i class="fas fa-certificate w-4 text-center mr-1"></i>Certificates</a>
+      <a href="chat-bot.html" class="nav-item"><i class="fas fa-robot w-4 text-center mr-1"></i>AI Assistant</a>
+    </nav>
+  </aside>
+
+  <!-- ══════════ TOPBAR NAVBAR ══════════ -->
+  <header id="tb" class="fixed top-0 left-56 right-0 h-14 z-30 flex items-center justify-between px-5 gap-3 glass" style="background:var(--surf);border-bottom:1px solid var(--bd2)">
+    <div>
+      <div style="font-size:.67rem;color:var(--t3)">Network / <span style="color:#b855f0">Connection Requests</span></div>
+      <div style="font-size:.82rem;font-weight:600;color:var(--t1)">Manage Peer Links</div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button onclick="toggleTheme()" class="w-8 h-8 rounded-xl border flex items-center justify-center text-xs opacity-60 hover:opacity-100 glass focus:outline-none" title="Toggle Theme">
+        <i id="mi" class="fas fa-moon"></i><i id="si" class="fas fa-sun hidden"></i>
+      </button>
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center font-bold text-xs text-white shadow-md">AK</div>
+    </div>
+  </header>
+
+  <!-- ══════════ MAIN WORKSPACE ══════════ -->
+  <main id="mn" class="main flex-1 flex flex-col overflow-y-auto custom-scroll h-full pt-20 p-5" style="margin-left:224px;">
+    <div class="max-w-4xl w-full mx-auto space-y-6">
+      
+      <!-- Tab Control Row -->
+      <div class="flex bg-purple-900/5 dark:bg-black/40 light:bg-purple-500/5 border border-purple-500/10 rounded-xl p-1 text-xs font-semibold w-max glass fu-item">
+        <button id="tabIncoming" onclick="switchRequestTab('incoming')" class="px-5 py-2 rounded-lg bg-purple-600 text-white shadow-sm transition-all focus:outline-none">Incoming Requests (<span id="incomingCount">2</span>)</button>
+        <button id="tabSent" onclick="switchRequestTab('sent')" class="px-5 py-2 rounded-lg text-gray-400 hover:text-inherit transition-all focus:outline-none">Sent Pending</button>
+      </div>
+
+      <!-- Requests Render Matrix Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="requestsGrid"></div>
+
+      <!-- Empty Fallback Container Layout -->
+      <div id="emptyRequestsFallback" class="hidden card p-16 text-center text-gray-400 max-w-md mx-auto space-y-3 fu-item">
+        <div class="text-4xl text-purple-500"><i class="fas fa-user-friends"></i></div>
+        <h3 class="text-base font-bold text-inherit">Ecosystem Pipe Clear</h3>
+        <p class="text-xs opacity-70">No pending connection node requests mapped inside this active filter pool vector.</p>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Toast HUD Notification Feedback Frame Module -->
+<div id="toastNotificationHUD" class="fixed bottom-6 right-6 z-50 glass border border-purple-500/30 px-5 py-3 rounded-xl text-xs md:text-sm font-semibold shadow-xl transform translate-y-24 opacity-0 transition-all duration-300 flex items-center gap-2.5">
+  <div class="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs"><i class="fas fa-check-circle"></i></div>
+  <span id="toastMessageString" class="font-bold">Node link accepted! 🎉</span>
+</div>
+
+<!-- ══════════ ENGINE CONTROLLERS LOGIC SCRIPTS ══════════ -->
+<script>
+  const htmlDoc = document.documentElement;
+  let activeTab = 'incoming';
+
+  // Core Requests Data Framework Mock Array Model Matrix Mapping
+  let INCOMING_REQUESTS = [
+    { id: 401, name: "Sarah Rahman", topic: "UI/UX Design Alignment", avatar: "SR", skills: ["Figma", "Design Systems"], date: "2 hours ago", xp: "9,120" },
+    { id: 402, name: "James Wilson", topic: "Python Automation Logic", avatar: "JW", skills: ["Python Data", "Scraping Bot"], date: "Yesterday", xp: "8,400" }
+  ];
+
+  let SENT_REQUESTS = [
+    { id: 501, name: "Liam O'Donnell", topic: "Laravel Multi-Tenant Bridge", avatar: "LO", skills: ["Backend Route"], date: "3 days ago", xp: "9,850" }
+  ];
+
+  function toggleTheme() {
+    const isDark = htmlDoc.classList.contains('dark');
+    htmlDoc.className = isDark ? 'light' : 'dark';
+    document.getElementById('mi').classList.toggle('hidden', isDark);
+    document.getElementById('si').classList.toggle('hidden', !isDark);
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+  }
+
+  function switchRequestTab(mode) {
+    activeTab = mode;
+    const tabIn = document.getElementById('tabIncoming');
+    const tabSent = document.getElementById('tabSent');
+
+    if(mode === 'incoming') {
+      tabIn.className = "px-5 py-2 rounded-lg bg-purple-600 text-white shadow-sm transition-all focus:outline-none";
+      tabSent.className = "px-5 py-2 rounded-lg text-gray-400 hover:text-inherit transition-all focus:outline-none";
+    } else {
+      tabSent.className = "px-5 py-2 rounded-lg bg-purple-600 text-white shadow-sm transition-all focus:outline-none";
+      tabIn.className = "px-5 py-2 rounded-lg text-gray-400 hover:text-inherit transition-all focus:outline-none";
+    }
+    renderRequests();
+  }
+
+  function renderRequests() {
+    const grid = document.getElementById('requestsGrid');
+    const fallback = document.getElementById('emptyRequestsFallback');
+    document.getElementById('incomingCount').textContent = INCOMING_REQUESTS.length;
+
+    grid.innerHTML = '';
+    const currentList = activeTab === 'incoming' ? INCOMING_REQUESTS : SENT_REQUESTS;
+
+    if (currentList.length === 0) {
+      fallback.classList.remove('hidden');
+      return;
+    }
+    fallback.classList.add('hidden');
+
+    currentList.forEach((r, idx) => {
+      const nodeCard = document.createElement('div');
+      nodeCard.className = 'card p-5 flex flex-col justify-between relative overflow-hidden glass fu-item';
+      nodeCard.style.animationDelay = `${idx * 0.03}s`;
+
+      const controlsMarkup = activeTab === 'incoming' 
+        ? `<div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-purple-500/5">
+             <button onclick="handleRequestAction(${r.id}, 'accept')" class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-md transition-all active:scale-95"><i class="fas fa-user-plus mr-1.5"></i>Accept</button>
+             <button onclick="handleRequestAction(${r.id}, 'ignore')" class="w-full py-2 bg-purple-500/5 border border-purple-500/20 hover:bg-purple-500/10 text-gray-400 hover:text-inherit font-bold text-xs uppercase tracking-wider rounded-lg transition-all active:scale-95">Ignore</button>
+           </div>`
+        : `<div class="mt-4 pt-3 border-t border-purple-500/5 flex items-center justify-between">
+             <span class="text-[10px] opacity-40 font-mono italic"><i class="fas fa-hourglass-half mr-1"></i>Awaiting Peer Signature...</span>
+             <button onclick="handleRequestAction(${r.id}, 'cancel')" class="px-3 py-1.5 bg-red-500/5 border border-red-500/20 hover:border-red-500 text-gray-400 hover:text-red-500 font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-95">Cancel</button>
+           </div>`;
+
+      nodeCard.innerHTML = `
+        <div class="space-y-3.5">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 badge-poly bg-gradient-to-br from-purple-800 to-purple-950 border border-purple-500/20 flex items-center justify-center font-black text-xs text-purple-400 font-mono shadow-md">${r.avatar}</div>
+            <div class="text-left flex-1 min-w-0">
+              <h3 class="text-sm font-bold text-slate-800 dark:text-white truncate">${r.name}</h3>
+              <p class="text-[10px] opacity-40 font-mono mt-0.5"><i class="fas fa-clock mr-1"></i>${r.date} • <i class="fas fa-shield-alt mr-0.5"></i>${r.xp} XP</p>
+            </div>
+          </div>
+
+          <div class="p-2.5 bg-purple-500/5 border border-purple-500/10 rounded-xl text-left">
+            <span class="block text-[8px] uppercase tracking-wider text-gray-400 font-bold">Proposed Sync Objective</span>
+            <span class="text-xs font-semibold text-purple-500 dark:text-purple-400 mt-0.5 block truncate">${r.topic}</span>
+          </div>
+
+          <div class="flex flex-wrap gap-1 text-left">
+            ${r.skills.map(s => `<span class="px-2 py-0.5 rounded bg-purple-500/10 text-[9px] font-bold text-gray-400">${s}</span>`).join('')}
+          </div>
+        </div>
+        ${controlsMarkup}
+      `;
+      grid.appendChild(nodeCard);
+    });
+  }
+
+  function handleRequestAction(id, action) {
+    const toast = document.getElementById('toastNotificationHUD');
+    const msg = document.getElementById('toastMessageString');
+
+    if(activeTab === 'incoming') {
+      INCOMING_REQUESTS = INCOMING_REQUESTS.filter(x => x.id !== id);
+      msg.textContent = action === 'accept' ? "Peer link accepted successfully! 🎉" : "Connection request ignored.";
+    } else {
+      SENT_REQUESTS = SENT_REQUESTS.filter(x => x.id !== id);
+      msg.textContent = "Pending proposal node retracted safely.";
+    }
+
+    // Trigger Toast Alert Visibility Lifecycle
+    toast.style.transform = 'translateY(0)';
+    toast.style.opacity = '1';
+    renderRequests();
+
+    setTimeout(() => {
+      toast.style.transform = 'translateY(24px)';
+      toast.style.opacity = '0';
+    }, 2000);
+  }
+
+  // Bootstrap operational handlers loops immediately inside paint lifecycle
+  (function initRequestsFramework() {
+    const activeTheme = localStorage.getItem('theme') || 'dark';
+    document.getElementById('mi').classList.toggle('hidden', activeTheme === 'light');
+    document.getElementById('si').classList.toggle('hidden', activeTheme === 'dark');
+
+    renderRequests();
+  })();
+</script>
+</body>
+</html>

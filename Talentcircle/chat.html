@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TalentCircle — Chat</title>
+  
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.className = savedTheme;
+    })();
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { 
+            sans: ['Poppins', 'sans-serif'],
+            mono: ['Space Mono', 'monospace']
+          },
+          colors: {
+            purple: {
+              50: '#fdf2ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe',
+              400: '#b300ff', 500: '#9600B6', 600: '#7a0094', 700: '#5a0072',
+              800: '#3a0050', 900: '#1a0f2e', 950: '#0f0a1a',
+            }
+          },
+          animation: {
+            'float': 'float 4s ease-in-out infinite',
+            'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+          },
+          keyframes: {
+            float: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-6px)' } },
+            slideUp: { '0%': { opacity: '0', transform: 'translateY(12px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+          }
+        },
+      },
+    }
+  </script>
+
+  <style>
+    body { transition: background-color 0.4s ease, color 0.4s ease; }
+
+    /* Unified Glassmorphism System Specs Matchers */
+    .glass {
+      backdrop-filter: blur(20px);
+      transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
+    }
+    .dark .glass {
+      background: rgba(20, 20, 40, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .light .glass {
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(150, 0, 182, 0.12);
+    }
+
+    /* Custom Responsive Scrollbar Viewport Map */
+    .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(150, 0, 182, 0.2); border-radius: 99px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #9600B6; }
+    
+    /* Interactive Message Row Targets */
+    .msg-row { animation: msgFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes msgFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="bg-purple-950 dark:bg-purple-950 light:bg-slate-50 text-white dark:text-white light:text-slate-900 h-screen overflow-hidden flex flex-col">
+
+  <div class="fixed inset-0 z-0 pointer-events-none transition-opacity duration-500">
+    <div class="absolute w-[600px] h-[600px] -top-32 -right-32 bg-purple-500/10 dark:bg-purple-500/10 light:bg-purple-500/5 rounded-full blur-[120px]"></div>
+    <div class="absolute w-[500px] h-[500px] -bottom-32 -left-32 bg-purple-700/5 dark:bg-purple-700/5 light:bg-purple-500/3 rounded-full blur-[120px]"></div>
+  </div>
+
+  <nav class="relative z-30 w-full flex items-center justify-between px-4 md:px-6 h-16 border-b border-white/10 dark:border-white/10 light:border-purple-500/10 backdrop-blur-md bg-black/20 dark:bg-black/20 light:bg-white/60 flex-shrink-0">
+    <div class="flex items-center gap-4">
+      <a class="flex items-center gap-2 text-xs md:text-sm font-semibold opacity-60 hover:opacity-100 hover:text-purple-500 transition-all" href="chat-list.html">
+        <i class="fas fa-chevron-left text-[10px]"></i> Back
+      </a>
+      
+      <div class="w-px h-5 bg-white/10 dark:bg-white/10 light:bg-purple-500/10"></div>
+      
+      <a href="home.html" class="block">
+        <img src="images/logo.png" class="h-7 w-auto object-contain transition-all duration-300 dark:invert-0 light:invert light:brightness-50 light:contrast-150" alt="TalentCircle Logo">
+      </a>
+      
+      <div class="w-px h-5 bg-white/10 dark:bg-white/10 light:bg-purple-500/10"></div>
+      
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-900 to-purple-950 border border-purple-500/30 flex items-center justify-center font-bold text-purple-400 font-mono text-xs shadow-sm">SR</div>
+        <div class="text-left leading-none">
+          <div class="text-xs md:text-sm font-bold text-slate-800 dark:text-white">Sarah Rahman</div>
+          <div class="flex items-center gap-1.5 text-[10px] opacity-50 font-mono mt-1">
+            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_6px_#22c55e]"></span> Active Now
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button class="w-8 h-8 border border-purple-500/10 rounded-xl flex items-center justify-center text-xs opacity-60 hover:opacity-100 glass hover:border-purple-500/40 active:scale-95 transition-all" title="Video Call"><i class="fas fa-video"></i></button>
+      <button class="w-8 h-8 border border-purple-500/10 rounded-xl flex items-center justify-center text-xs opacity-60 hover:opacity-100 glass hover:border-purple-500/40 active:scale-95 transition-all" title="Schedule Session"><i class="fas fa-calendar-alt"></i></button>
+      <button class="w-8 h-8 border border-purple-500/10 rounded-xl flex items-center justify-center text-xs opacity-60 hover:opacity-100 glass hover:border-purple-500/40 active:scale-95 transition-all" id="themeBtn" title="Toggle Theme">🌙</button>
+      <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center font-bold text-xs text-white shadow-md">AS</div>
+    </div>
+  </nav>
+
+  <div class="chat-wrapper flex-1 flex overflow-hidden relative z-10 w-full">
+    
+    <div class="flex-1 flex flex-col overflow-hidden h-full bg-black/5 dark:bg-transparent light:bg-slate-100/30">
+      
+      <div class="messages-scroll flex-1 overflow-y-auto p-4 md:p-6 space-y-4 custom-scroll" id="msgScroll">
+
+        <div class="date-sep flex items-center gap-3 opacity-40 py-2">
+          <div class="flex-1 h-px bg-current"></div>
+          <span class="text-[9px] font-mono tracking-widest uppercase">Today — Sunday, May 10</span>
+          <div class="flex-1 h-px bg-current"></div>
+        </div>
+
+        <div class="msg-row in flex items-end gap-3 max-w-[70%]">
+          <div class="w-7 h-7 rounded-xl bg-gradient-to-br from-purple-900 to-purple-950 border border-purple-500/20 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-purple-400 font-mono shadow-sm">SR</div>
+          <div class="space-y-1 text-left">
+            <div class="px-4 py-3 rounded-2xl rounded-tl-none bg-purple-900/10 dark:bg-[#150f2e] light:bg-white border border-purple-500/10 dark:border-purple-900/30 text-xs md:text-sm leading-relaxed shadow-sm">
+              Hi! I saw you confirmed our 3pm session today. Just wanted to check — will it be on Zoom or your platform?
+            </div>
+            <div class="text-[9px] opacity-40 font-mono px-1">9:02 AM</div>
+          </div>
+        </div>
+
+        <div class="msg-row out flex items-end gap-3 max-w-[70%] ml-auto flex-row-reverse">
+          <div class="space-y-1 text-right">
+            <div class="px-4 py-3 rounded-2xl rounded-tr-none bg-purple-600 text-white border border-transparent text-xs md:text-sm leading-relaxed shadow-md shadow-purple-500/10">
+              Hey Sarah! It'll be on Zoom. I'll send the link 10 mins before.
+            </div>
+            <div class="text-[9px] opacity-40 font-mono px-1 flex items-center justify-end gap-1">
+              9:05 AM <i class="fas fa-check-double text-purple-400"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="session-card max-w-md rounded-2xl p-4 bg-purple-900/10 dark:bg-[#120e24] light:bg-white border border-purple-500/10 dark:border-purple-950/40 border-left-4 border-l-purple-600 flex items-center gap-3.5 shadow-sm glass">
+          <div class="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 flex-shrink-0"><i class="fas fa-calendar-check"></i></div>
+          <div class="flex-1 min-w-0 text-left">
+            <div class="text-xs md:text-sm font-bold truncate">Initial Interview — Sarah Rahman</div>
+            <div class="text-[10px] opacity-50 font-mono mt-0.5">Today · 3:00 PM – 3:45 PM</div>
+          </div>
+          <span class="bg-purple-500/10 border border-purple-500/20 text-purple-500 dark:text-purple-400 px-2.5 py-0.5 rounded-full text-[9px] font-black font-mono tracking-wider ml-auto">TODAY</span>
+        </div>
+
+        <div class="msg-row in flex items-end gap-3 max-w-[70%]">
+          <div class="w-7 h-7 rounded-xl bg-gradient-to-br from-purple-900 to-purple-950 border border-purple-500/20 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-purple-400 font-mono shadow-sm">SR</div>
+          <div class="space-y-1 text-left">
+            <div class="px-4 py-3 rounded-2xl rounded-tl-none bg-purple-900/10 dark:bg-[#150f2e] light:bg-white border border-purple-500/10 dark:border-purple-900/30 text-xs md:text-sm leading-relaxed shadow-sm">
+              Perfect, thank you! 🙌
+            </div>
+            <div class="text-[9px] opacity-40 font-mono px-1">9:07 AM</div>
+          </div>
+        </div>
+
+        <div class="msg-row in flex items-end gap-3 max-w-[70%]">
+          <div class="w-7 h-7 rounded-xl bg-gradient-to-br from-purple-900 to-purple-950 border border-purple-500/20 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-purple-400 font-mono shadow-sm opacity-0">SR</div>
+          <div class="space-y-1 text-left">
+            <div class="px-4 py-3 rounded-2xl bg-purple-900/10 dark:bg-[#150f2e] light:bg-white border border-purple-500/10 dark:border-purple-900/30 text-xs md:text-sm leading-relaxed shadow-sm">
+              Quick question — should I prepare a portfolio or just talk through my experience?
+            </div>
+            <div class="text-[9px] opacity-40 font-mono px-1">9:08 AM</div>
+          </div>
+        </div>
+
+        <div class="msg-row out flex items-end gap-3 max-w-[70%] ml-auto flex-row-reverse">
+          <div class="space-y-1 text-right">
+            <div class="px-4 py-3 rounded-2xl rounded-tr-none bg-purple-600 text-white border border-transparent text-xs md:text-sm leading-relaxed shadow-md shadow-purple-500/10">
+              Both would be great! Having a portfolio ready is a nice-to-have, but the conversation will drive most of it. Just be ready to speak to your last 3 roles in detail.
+            </div>
+            <div class="text-[9px] opacity-40 font-mono px-1 flex items-center justify-end gap-1">
+              9:12 AM <i class="fas fa-check-double text-purple-400"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="msg-system text-center text-[10px] opacity-40 font-mono py-2" id="typingIndicator">Sarah is typing…</div>
+
+      </div>
+
+      <div class="p-4 border-t border-white/10 dark:border-white/10 light:border-purple-500/10 bg-black/10 dark:bg-[#0c0817]/40 light:bg-white/80 flex flex-col gap-2 flex-shrink-0 backdrop-blur-md">
+        <div class="input-toolbar flex items-center gap-1">
+          <button class="w-7 h-7 text-xs opacity-50 hover:opacity-100 rounded-lg hover:bg-purple-500/5 transition-all focus:outline-none" title="Attach file"><i class="fas fa-paperclip"></i></button>
+          <button class="w-7 h-7 text-xs opacity-50 hover:opacity-100 rounded-lg hover:bg-purple-500/5 transition-all focus:outline-none" title="Insert Session Slot"><i class="fas fa-calendar-plus"></i></button>
+          <button class="w-7 h-7 text-xs opacity-50 hover:opacity-100 rounded-lg hover:bg-purple-500/5 transition-all focus:outline-none" title="Message Template"><i class="fas fa-file-alt"></i></button>
+          <button class="w-7 h-7 text-xs opacity-50 hover:opacity-100 rounded-lg hover:bg-purple-500/5 transition-all focus:outline-none" title="Insert Emoji"><i class="fas fa-smile"></i></button>
+        </div>
+        
+        <form id="aiPromptForm" class="flex gap-2 relative items-end mt-1 bg-purple-900/5 dark:bg-black/40 light:bg-purple-500/5 border border-purple-500/20 dark:border-white/10 light:border-purple-500/20 rounded-xl p-2 focus-within:border-purple-500 transition-all">
+          <textarea class="flex-1 bg-transparent border-none outline-none text-inherit placeholder-gray-400/60 text-xs md:text-sm px-2 py-1.5 resize-none max-h-32 custom-scroll leading-relaxed" id="msgInput" rows="1" placeholder="Message Sarah..."></textarea>
+          <button type="submit" id="sendBtn" aria-label="Transmit Message Payload"
+            class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-xs hover:bg-purple-500 active:scale-95 transition-all flex-shrink-0 shadow-md">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </form>
+        
+        <div class="input-hint flex justify-between text-[9px] opacity-40 font-mono px-1">
+          <span>Enter to send · Shift+Enter for newline</span>
+          <span>TalentCircle · End-to-End Encrypted</span>
+        </div>
+      </div>
+
+    </div>
+
+    <aside class="info-panel w-[280px] bg-black/10 dark:bg-black/20 light:bg-white/60 border-l border-white/10 dark:border-white/10 light:border-purple-500/10 backdrop-blur-xl flex-shrink-0 hidden xl:flex flex-col overflow-y-auto custom-scroll divide-y divide-purple-500/10">
+      
+      <div class="p-6 flex flex-col items-center text-center">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-800 to-purple-950 border-2 border-purple-500 flex items-center justify-center font-black text-purple-400 font-mono text-xl shadow-lg mb-3 animate-float">SR</div>
+        <div class="text-sm font-extrabold tracking-tight">Sarah Rahman</div>
+        <div class="text-[11px] opacity-50 font-medium mt-0.5">UX Designer · Candidate</div>
+        
+        <div class="flex flex-wrap gap-1.5 mt-4 justify-center font-mono text-[9px] font-bold">
+          <span class="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">Active</span>
+          <span class="px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-purple-500 dark:text-purple-400">Shortlisted</span>
+          <span class="px-2 py-0.5 rounded bg-purple-900/20 border border-white/10 text-inherit">Remote</span>
+        </div>
+      </div>
+
+      <div class="p-5 space-y-2 text-xs">
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono mb-3">Telemetry Details</p>
+        <div class="flex justify-between items-center py-1 border-b border-purple-500/5"><span class="opacity-50">Email</span><span class="font-semibold truncate max-w-[160px]">s.rahman@mail.com</span></div>
+        <div class="flex justify-between items-center py-1 border-b border-purple-500/5"><span class="opacity-50">Experience</span><span class="font-semibold">6 Years</span></div>
+        <div class="flex justify-between items-center py-1 border-b border-purple-500/5"><span class="opacity-50">Location</span><span class="font-semibold">Lahore, PK</span></div>
+        <div class="flex justify-between items-center py-1 border-b border-purple-500/5"><span class="opacity-50">Applied Date</span><span class="font-semibold">May 3, 2026</span></div>
+        <div class="flex justify-between items-center py-1"><span class="opacity-50">Role Goal</span><span class="font-semibold">Sr. UX Designer</span></div>
+      </div>
+
+      <div class="p-5 text-xs space-y-3">
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono">Today's Active Sessions</p>
+        <div class="p-3 rounded-xl bg-purple-500/5 border border-purple-500/10 relative">
+          <div class="text-[10px] font-bold font-mono text-purple-500 dark:text-purple-400">3:00 PM — 3:45 PM</div>
+          <div class="font-bold text-inherit mt-1">Initial Interview</div>
+          <div class="text-[10px] opacity-40 font-medium mt-0.5">Video Stream Loop · Zoom</div>
+        </div>
+      </div>
+
+      <div class="p-5 text-xs space-y-2">
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono mb-3">Quick Actions</p>
+        <button class="w-full py-2.5 px-3 rounded-xl border border-purple-500/10 bg-purple-500/5 hover:border-purple-500/50 active:scale-98 text-left flex items-center gap-2 font-medium transition-all"><i class="fas fa-calendar-plus opacity-60"></i> Schedule Session</button>
+        <button class="w-full py-2.5 px-3 rounded-xl border border-purple-500/10 bg-purple-500/5 hover:border-purple-500/50 active:scale-98 text-left flex items-center gap-2 font-medium transition-all"><i class="fas fa-id-card opacity-60"></i> View Talent Profile</button>
+        <button class="w-full py-2.5 px-3 rounded-xl border border-purple-500/10 bg-purple-500/5 hover:border-purple-500/50 active:scale-98 text-left flex items-center gap-2 font-medium transition-all"><i class="fas fa-check-circle opacity-60"></i> Mark Reviewed</button>
+        <button class="w-full py-2.5 px-3 rounded-xl border border-red-500/10 bg-red-500/5 hover:border-red-500 hover:text-red-500 text-gray-400 active:scale-98 text-left flex items-center gap-2 font-medium transition-all"><i class="fas fa-archive opacity-60"></i> Archive Channel</button>
+      </div>
+    </aside>
+
+  </div>
+
+  <script>
+    const input = document.getElementById('msgInput');
+    const scroll = document.getElementById('msgScroll');
+    const sendBtn = document.getElementById('sendBtn');
+    const themeBtn = document.getElementById('themeBtn');
+    const htmlDoc = document.documentElement;
+
+    // Smooth fluid resize operation for input textarea canvas
+    input.addEventListener('input', () => {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 128) + 'px';
+    });
+
+    function escapeHtml(str) {
+      return (str ?? '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    // Stateful multi-theme view implementation sync
+    themeBtn.addEventListener('click', () => {
+      if (htmlDoc.classList.contains('dark')) {
+        htmlDoc.className = 'light';
+        localStorage.setItem('theme', 'light');
+        themeBtn.textContent = '🌙';
+      } else {
+        htmlDoc.className = 'dark';
+        localStorage.setItem('theme', 'dark');
+        themeBtn.textContent = '☀️';
+      }
+    });
+
+    // Synchronize initial configuration flags directly on loading loops
+    const initialTheme = localStorage.getItem('theme') || 'dark';
+    themeBtn.textContent = initialTheme === 'dark' ? '☀️' : '🌙';
+
+    // --- Backend integration for chat ---
+    let activeConversationId = null;
+    let lastSeenMessageId = 0;
+    let isPolling = false;
+
+    function getAuthToken() {
+      // Expected to exist elsewhere in the app.
+      // Keep tolerant fallbacks so this page works with whichever key your auth uses.
+      return (
+        localStorage.getItem('token') ||
+        localStorage.getItem('authToken') ||
+        localStorage.getItem('talentcircle_token') ||
+        sessionStorage.getItem('token') ||
+        sessionStorage.getItem('authToken') ||
+        sessionStorage.getItem('talentcircle_token')
+      );
+    }
+
+    function apiFetch(path, options = {}) {
+      const token = getAuthToken();
+      const headers = Object.assign({
+        'Content-Type': 'application/json'
+      }, options.headers || {});
+
+      if (token) {
+        headers['Authorization'] = token;
+      }
+
+      return fetch(path, Object.assign({}, options, { headers }));
+    }
+
+    function ensureConversationSelected(conversations) {
+      // Allow passing conversation id as querystring: chat.html?conversation_id=123
+      const url = new URL(window.location.href);
+      const fromQuery = url.searchParams.get('conversation_id');
+      if (fromQuery) {
+        const parsed = Number(fromQuery);
+        if (!Number.isNaN(parsed) && parsed > 0) return parsed;
+      }
+      if (conversations && conversations.length > 0) return conversations[0].id;
+      return null;
+    }
+
+    function formatTime(ts) {
+      try {
+        const d = new Date(ts);
+        return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      } catch (e) {
+        return 'Just now';
+      }
+    }
+
+    function renderMessage(m) {
+      const typingIndicator = document.getElementById('typingIndicator');
+      // If we don't know my user_id, default to 'incoming' styling.
+      // (When we send a message, the optimistic bubble is shown anyway; then we re-fetch.)
+      const out = String(m.sender_user_id) === String(window.__tc_user_id || window.__tc_me_user_id || '');
+
+
+      const row = document.createElement('div');
+      row.className = out
+        ? 'msg-row out flex items-end gap-3 max-w-[70%] ml-auto flex-row-reverse'
+        : 'msg-row in flex items-end gap-3 max-w-[70%]';
+
+      const body = m.body != null ? escapeHtml(m.body) : (m.metadata && typeof m.metadata === 'string' ? escapeHtml(m.metadata) : '');
+      const timeLabel = m.created_at ? formatTime(m.created_at) : 'Just now';
+
+      if (out) {
+        row.innerHTML = `
+          <div class="space-y-1 text-right">
+            <div class="px-4 py-3 rounded-2xl rounded-tr-none bg-purple-600 text-white border border-transparent text-xs md:text-sm leading-relaxed shadow-md shadow-purple-500/10">
+              ${body}
+            </div>
+            <div class="text-[9px] opacity-40 font-mono px-1 flex items-center justify-end gap-1">
+              ${escapeHtml(timeLabel)} <i class="fas fa-check-double text-purple-400"></i>
+            </div>
+          </div>`;
+      } else {
+        row.innerHTML = `
+          <div class="space-y-1 text-left">
+            <div class="px-4 py-3 rounded-2xl rounded-tl-none bg-purple-900/10 dark:bg-[#150f2e] light:bg-white border border-purple-500/10 dark:border-purple-900/30 text-xs md:text-sm leading-relaxed shadow-sm">
+              ${body}
+            </div>
+            <div class="text-[9px] opacity-40 font-mono px-1">${escapeHtml(timeLabel)}</div>
+          </div>`;
+      }
+
+      if (typingIndicator && typingIndicator.parentNode) {
+        scroll.insertBefore(row, typingIndicator);
+      } else {
+        scroll.appendChild(row);
+      }
+    }
+
+    async function loadConversations() {
+      const res = await apiFetch('/api/chat/conversations');
+      if (!res.ok) throw new Error('Failed to load conversations');
+      return res.json();
+    }
+
+    async function loadMessages(conversationId, limit = 200, { clear = false } = {}) {
+      const res = await apiFetch(`/api/chat/messages?conversation_id=${encodeURIComponent(conversationId)}&limit=${encodeURIComponent(limit)}`);
+      if (!res.ok) throw new Error('Failed to load messages');
+      const data = await res.json();
+
+      if (clear) {
+        // Keep the typing indicator only.
+        const typingIndicator = document.getElementById('typingIndicator');
+        scroll.innerHTML = '';
+        if (typingIndicator) scroll.appendChild(typingIndicator);
+      }
+
+      // Render all returned messages, skipping ones we've already seen.
+      for (const m of data.messages || []) {
+        if (typeof m.id === 'number' && m.id <= lastSeenMessageId) continue;
+        renderMessage(m);
+        if (typeof m.id === 'number') lastSeenMessageId = Math.max(lastSeenMessageId, m.id);
+      }
+
+      scroll.scrollTop = scroll.scrollHeight;
+      return data;
+    }
+
+    function disableInputTemporarily(ms = 800) {
+      input.disabled = true;
+      sendBtn.disabled = true;
+      setTimeout(() => {
+        input.disabled = false;
+        sendBtn.disabled = false;
+      }, ms);
+    }
+
+    async function sendMessage(e) {
+      if (e) e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      if (!activeConversationId) {
+        // Try to initialize conversation on first send.
+        try {
+          const convData = await loadConversations();
+          activeConversationId = ensureConversationSelected(convData.conversations);
+        } catch (err) {
+          console.error(err);
+          return;
+        }
+      }
+      if (!activeConversationId) return;
+
+      // Optimistic UI: show outgoing immediately.
+      const row = document.createElement('div');
+      row.className = 'msg-row out flex items-end gap-3 max-w-[70%] ml-auto flex-row-reverse';
+      row.innerHTML = `
+        <div class="space-y-1 text-right">
+          <div class="px-4 py-3 rounded-2xl rounded-tr-none bg-purple-600 text-white border border-transparent text-xs md:text-sm leading-relaxed shadow-md shadow-purple-500/10">
+            ${escapeHtml(text)}
+          </div>
+          <div class="text-[9px] opacity-40 font-mono px-1 flex items-center justify-end gap-1">
+            Sending… <i class="fas fa-spinner fa-spin text-purple-400"></i>
+          </div>
+        </div>`;
+
+      const typingIndicator = document.getElementById('typingIndicator');
+      if (typingIndicator) scroll.insertBefore(row, typingIndicator);
+      else scroll.appendChild(row);
+
+      input.value = '';
+      input.style.height = 'auto';
+      scroll.scrollTop = scroll.scrollHeight;
+
+      disableInputTemporarily(600);
+
+      try {
+        const payload = {
+          conversation_id: activeConversationId,
+          type: 'text',
+          body: text
+        };
+
+        const res = await apiFetch('/api/chat/messages', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          console.error('Send failed', res.status);
+          return;
+        }
+
+        // Re-fetch latest chunk to ensure server truth and IDs.
+        await loadMessages(activeConversationId, 200, { clear: false });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    document.getElementById('aiPromptForm').addEventListener('submit', sendMessage);
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    async function bootstrapChat() {
+      try {
+        const convData = await loadConversations();
+        activeConversationId = ensureConversationSelected(convData.conversations);
+
+        if (activeConversationId) {
+          lastSeenMessageId = 0;
+
+          const typingIndicator = document.getElementById('typingIndicator');
+          // Clear the sample UI, but keep typing indicator at the bottom.
+          scroll.innerHTML = '';
+          if (typingIndicator) scroll.appendChild(typingIndicator);
+
+          await loadMessages(activeConversationId, 200, { clear: false });
+
+          // Poll for new messages.
+          if (!isPolling) {
+            isPolling = true;
+            setInterval(async () => {
+              if (!activeConversationId) return;
+              try {
+                await loadMessages(activeConversationId, 50, { clear: false });
+              } catch (err) {
+                console.error(err);
+              }
+            }, 2500);
+          }
+        }
+      } catch (err) {
+        console.error('Chat bootstrap failed:', err);
+      }
+    }
+
+    // Boot
+    bootstrapChat();
+
+    // Enforce default anchor placement boundaries immediately on boot routine completion
+    scroll.scrollTop = scroll.scrollHeight;
+  </script>
+</body>
+</html>
+

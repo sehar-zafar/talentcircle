@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Token Wallet — TalentCircle</title>
+  
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.className = savedTheme;
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <script>
+    tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Poppins','sans-serif'],mono:['Geist Mono','monospace']}}}}
+  </script>
+ <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--t1);
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+    :root{
+      --p950:#0f0a1a; --p900:#1a0f2e; --p800:#3a0050; --p700:#5a0072; --p600:#7a0094; --p500:#9600B6; --p400:#b300ff;
+      --bg:#07050f; --surf:#0d0920; --card:rgba(18,14,36,0.45); --card2:#18132e; --bd:rgba(155,48,217,.16); --bd2:rgba(255,255,255,.05);
+      --t0:#f0eeff; --t1:#c4b8e8; --t2:#8878b8; --t3:#5a4d80;
+      --acc:#9b30d9; --acc2:#b855f0; --adim:rgba(155,48,217,.14);
+      --g:#d4a332; --g-l:rgba(212,163,50,.10); --g-b:rgba(212,163,50,.28);
+      --gn:#3daf68; --gn-l:rgba(61,175,104,.09); --gn-b:rgba(61,175,104,.26);
+      --rd:#f2566a; --rd-l:rgba(242,86,106,.09); --rd-b:rgba(242,86,106,.26);
+      --tl:#2dc4b8; --tl-l:rgba(45,196,184,.09); --tl-b:rgba(45,196,184,.26);
+      --bl:#5090ee; --bl-l:rgba(80,144,238,.09); --bl-b:rgba(80,144,238,.26);
+      --am:#e8853a; --am-l:rgba(232,133,58,.09); --am-b:rgba(232,133,58,.26);
+      --sb:244px; --ease:cubic-bezier(.4,0,.2,1);
+      --shadow-sm:0 1px 4px rgba(0,0,0,.45); --shadow-lg:0 12px 40px rgba(0,0,0,.65);
+      --glow:0 0 28px rgba(179,0,255,.18);
+    }
+    .light {
+      --bg:#f8f6fc; --surf:#ffffff; --card:rgba(255,255,255,0.75); --card2:#f5f2ff; --bd:rgba(155,48,217,.2); --bd2:rgba(0,0,0,.06);
+      --t0:#1a0f2e; --t1:#5a4b73; --t2:#7a6b94; --t3:#9082a6;
+    }
+    
+    ::-webkit-scrollbar{width:4px;height:4px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:var(--acc);border-radius:10px;}
+    
+    .glass{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+    .tg{background:linear-gradient(135deg,#b855f0,#9b30d9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    
+    .card{background:var(--card);border:1px solid var(--bd2);border-radius:16px;transition:all .22s;}
+    .card:hover{border-color:var(--bd);box-shadow:0 8px 32px rgba(155,48,217,.1);transform:translateY(-2px);}
+    .card2{background:var(--card2);border:1px solid var(--bd2);border-radius:12px;}
+    
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .2s;color:var(--t2);text-decoration:none;}
+    .nav-item:hover{color:#e9d5ff;background:rgba(155,48,217,.1);}
+    .nav-item.on{color:#fff;background:linear-gradient(135deg,#9b30d9,#b855f0);box-shadow:0 4px 16px rgba(155,48,217,.35);}
+    
+    .nbadge{margin-left:auto;background:rgba(155,48,217,.18);color:#b855f0;padding:1px 7px;border-radius:20px;font-size:.65rem;font-weight:700;}
+    .slbl{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:6px;padding-left:2px;}
+    
+    .kpi{background:var(--card);border:1px solid var(--bd2);border-radius:16px;padding:18px;transition:all .22s;animation:fu .45s ease both;}
+    .kpi:hover{border-color:var(--bd);transform:translateY(-3px);box-shadow:0 8px 28px rgba(155,48,217,.14);}
+    
+    .pbar{height:5px;border-radius:20px;background:var(--card2);overflow:hidden;}
+    .pf{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--acc),var(--acc2));}
+    .tag{padding:2px 9px;border-radius:20px;font-size:.65rem;font-weight:600;letter-spacing:.03em;}
+    
+    .stab{padding:8px 16px;font-size:.78rem;font-weight:600;border-bottom:2px solid transparent;background:none;cursor:pointer;transition:all .2s;color:var(--t2);}
+    .stab.on{border-bottom-color:#9b30d9;color:#b855f0;}
+    
+    .sr{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--card2);border:1px solid var(--bd2);transition:all .2s;}
+    .sr:hover{border-color:var(--bd);}
+    .rc{padding:12px;border-radius:12px;background:var(--card2);border:1px solid var(--bd2);transition:all .2s;}
+    
+    .qa{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;border-radius:14px;border:1px solid var(--bd2);background:var(--card2);cursor:pointer;transition:all .2s;font-size:.72rem;font-weight:600;color:var(--t2);text-decoration:none;}
+    .qa:hover{border-color:var(--bd);color:#b855f0;background:var(--adim);transform:scale(1.02);}
+    .wt{padding:14px;border-radius:12px;border:1px solid var(--bd2);background:var(--card2);text-align:center;cursor:pointer;text-decoration:none;display:block;transition:all .2s;}
+    .wt:hover{border-color:var(--bd);box-shadow:0 4px 20px rgba(155,48,217,.18);transform:translateY(-2px);}
+    
+    .hmc{width:11px;height:11px;border-radius:3px;transition:transform .15s;cursor:default;}
+    .hmc:hover{transform:scale(1.35);}
+    .hm0{background:var(--card2);}
+    .hm1{background:rgba(155,48,217,.2);}
+    .hm2{background:rgba(155,48,217,.4);}
+    .hm3{background:rgba(155,48,217,.65);}
+    .hm4{background:rgba(155,48,217,.9);}
+    
+    .av-a{background:linear-gradient(135deg,#9b30d9,#b855f0);}
+    .av-b{background:linear-gradient(135deg,#2060e0,#40b0f0);}
+    .av-c{background:linear-gradient(135deg,#059669,#10b981);}
+    .av-d{background:linear-gradient(135deg,#d97706,#f59e0b);}
+    .av-e{background:linear-gradient(135deg,#0891b2,#22d3ee);}
+    .gd{width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.22);flex-shrink:0;}
+
+    #canvas3d-container { width: 100%; height: 260px; position: relative; }
+    #object3d-canvas { width: 100%; height: 100%; display: block; outline: none; cursor: grab; }
+    #object3d-canvas:active { cursor: grabbing; }
+    
+    @keyframes fu{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+    .fu{opacity:0;animation:fu .4s var(--ease) forwards}
+    .d1{animation-delay:.05s;}.d2{animation-delay:.1s;}.d3{animation-delay:.15s;}.d4{animation-delay:.2s;}.d5{animation-delay:.25s;}
+
+    @media(max-width:1024px){
+      #sb{display:none;}
+      #tb{left:0!important;}
+      #mn{margin-left:0!important; padding-left:16px; padding-right:16px;}
+    }
+    @media(max-width:768px){
+      .analytics-row{grid-template-columns:1fr;}
+      .earn-grid{grid-template-columns:1fr 1fr;}
+    }
+    @media(max-width:640px){
+      .earn-grid{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+<aside id="sb" class="fixed left-0 top-0 h-full w-56 z-40 flex flex-col py-5 px-3 overflow-y-auto glass" style="background:var(--surf);border-right:1px solid var(--bd2);">
+  <div class="flex items-center gap-3 px-2 mb-7">
+    <div class="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0 shadow-lg">
+      <img src="images/logo.png" alt="TalentCircle Logo" class="w-full h-full object-contain dark:invert-0 light:invert light:brightness-50 light:contrast-150"/>
+    </div>
+    <div>
+      <div class="font-black text-sm tracking-tight" style="color:var(--t0)">TalentCircle</div>
+      <div style="font-size:.62rem;color:var(--t3)" class="font-medium">Ecosystem Vault</div>
+    </div>
+  </div>
+
+  <div class="slbl px-1">Workspace</div>
+  <nav class="flex flex-col gap-0.5 mb-5">
+    <a href="dashboard.html" class="nav-item"><i class="fas fa-th-large w-4 text-center mr-1"></i>Dashboard</a>
+    <a href="calendar.html" class="nav-item"><i class="fas fa-calendar-alt w-4 text-center mr-1"></i>Calendar</a>
+    <a href="chat-list.html" class="nav-item"><i class="fas fa-comment-alt w-4 text-center mr-1"></i>Messages<span class="nbadge">5</span></a>
+    <a href="search.html" class="nav-item"><i class="fas fa-search w-4 text-center mr-1"></i>Discover Peers</a>
+    <a href="matches.html" class="nav-item"><i class="fas fa-users-cog w-4 text-center mr-1"></i>Matches</a>
+    <a href="community-forum.html" class="nav-item"><i class="fas fa-comments w-4 text-center mr-1"></i>Community Hub</a>
+  </nav>
+
+  <div class="slbl px-1">Finance</div>
+  <nav class="flex flex-col gap-0.5 mb-5">
+    <a href="ranking.html" class="nav-item"><i class="fas fa-trophy w-4 text-center mr-1"></i>Rankings</a>
+    <a href="badges.html" class="nav-item"><i class="fas fa-award w-4 text-center mr-1"></i>Badges</a>
+    <a href="certificate.html" class="nav-item"><i class="fas fa-certificate w-4 text-center mr-1"></i>Certificates</a>
+    <a href="#" class="nav-item on"><i class="fas fa-coins w-4 text-center mr-1"></i>Token Wallet</a>
+    <a href="chat-bot.html" class="nav-item"><i class="fas fa-robot w-4 text-center mr-1"></i>AI Assistant</a>
+  </nav>
+
+  <div class="mt-auto">
+    <div class="flex items-center gap-2.5 p-2.5 rounded-xl" style="background:var(--card2);border:1px solid var(--bd2)">
+      <div class="av-a w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0">A</div>
+      <div class="min-w-0 flex-1">
+        <div style="font-size:.75rem;font-weight:600;color:var(--t0)" class="truncate">Alex Rivera</div>
+        <div style="font-size:.65rem;color:var(--t3)" class="truncate">Full-Stack Dev</div>
+      </div>
+      <div class="gd"></div>
+    </div>
+  </div>
+</aside>
+
+<header id="tb" class="fixed top-0 left-56 right-0 h-14 z-30 flex items-center px-5 gap-3 glass" style="background:var(--surf);border-bottom:1px solid var(--bd2)">
+  <div class="tb-breadcrumb">
+    <span class="tb-bc-item text-xs font-semibold opacity-60">Finance</span>
+    <span class="tb-bc-sep opacity-30 mx-1">›</span>
+    <span class="tb-bc-item on text-xs font-bold" style="color:var(--t0)">Token Wallet</span>
+  </div>
+
+  <div class="ml-auto flex items-center gap-2">
+    <div class="tb-balance px-3 py-1.5 rounded-xl text-xs font-mono font-bold glass flex items-center gap-1.5" style="background:var(--card); border-color:var(--bd2);">
+      🪙&nbsp;<span id="tb-num">240</span>&nbsp;<span class="text-[10px] font-sans font-normal opacity-40">tokens</span>
+    </div>
+    <div class="w-px h-5 bg-purple-500/10 mx-1"></div>
+    <button class="w-8 h-8 rounded-xl border flex items-center justify-center text-xs opacity-60 hover:opacity-100 glass focus:outline-none" onclick="toggleTheme()" title="Toggle layout view theme">
+      <i id="theme-ico" class="fas fa-moon"></i>
+    </button>
+  </div>
+</header>
+
+<main id="mn" class="pt-14 min-h-screen p-5" style="margin-left:224px;">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <div class="card p-6 md:p-8 overflow-hidden relative flex flex-col lg:flex-row items-center justify-between gap-8 border border-purple-500/10 bg-gradient-to-br from-purple-950/20 via-black/40 to-transparent shadow-xl fu d1">
+      <div class="space-y-4 max-w-xl text-center lg:text-left z-10">
+        <span class="px-3 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-500 dark:text-purple-400 font-mono font-bold text-[10px] tracking-widest uppercase rounded-full">Decentralized Asset Flow</span>
+        <h1 class="text-3xl md:text-5xl font-black tracking-tight leading-none text-inherit">
+          Ecosystem <span class="text-purple-500 dark:text-purple-400 animate-glow">Token Wallet</span>
+        </h1>
+        <p class="text-xs md:text-sm opacity-70 leading-relaxed font-light">
+          Earn credits dynamically by delivering instruct modules to global peers, or allocate locked tokens inside custom P2P verification escrows.
+        </p>
+        <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-1 text-xs font-semibold">
+          <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-purple-500/5 border border-purple-500/10">
+            <span class="text-[10px] opacity-40 uppercase tracking-wider font-bold">Available Node Balance</span>
+            <span class="text-sm font-black font-mono tracking-tight text-purple-500 dark:text-purple-400" id="hero-num">240</span>
+          </div>
+          <div class="flex items-center gap-1.5 font-mono text-[10px] tracking-wide opacity-50">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#22c55e]"></span> Ledger Synced
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full lg:w-[320px] flex-shrink-0 relative" id="canvas3d-side-panel">
+        <div id="canvas3d-container">
+          <canvas id="object3d-canvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 fu d2">
+      <div class="card p-5 border-l-4 border-l-red-500 flex flex-col justify-between h-32">
+        <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono">Total Allocation Spent</div>
+        <div>
+          <div class="text-2xl font-black font-mono tracking-tight text-red-500" id="kpi-spent">580</div>
+          <div class="text-[11px] opacity-50 font-medium mt-0.5">29 interactive swap tracks booked</div>
+        </div>
+      </div>
+      <div class="card p-5 border-l-4 border-l-emerald-500 flex flex-col justify-between h-32">
+        <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono">Total Allocation Earned</div>
+        <div>
+          <div class="text-2xl font-black font-mono tracking-tight text-emerald-500" id="kpi-earned">820</div>
+          <div class="text-[11px] opacity-50 font-medium mt-0.5">Peer instructional loops contribution</div>
+        </div>
+      </div>
+      <div class="card p-5 border-l-4 border-l-purple-600 flex flex-col justify-between h-32">
+        <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono">Standard Baseline Rate</div>
+        <div>
+          <div class="text-2xl font-black font-mono tracking-tight text-purple-500 dark:text-purple-400">20</div>
+          <div class="text-[11px] opacity-50 font-medium mt-0.5">Tokens locked per certified slot session</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-4 border border-purple-500/20 bg-purple-500/5 relative overflow-hidden flex flex-col sm:flex-row items-center gap-4 text-xs font-semibold fu d2">
+      <div class="w-9 h-9 rounded-xl bg-purple-600/10 border border-purple-500/20 text-purple-500 flex items-center justify-center text-sm flex-shrink-0 animate-bounce"><i class="fas fa-bolt"></i></div>
+      <div class="text-center sm:text-left flex-1 min-w-0">
+        <div class="font-extrabold text-sm tracking-tight text-slate-800 dark:text-white">Weekend 2× Multiplication Campaign Active</div>
+        <div class="opacity-60 font-light mt-0.5">Deliver peer instruction modules before Sunday midnight parameters bounds to claim double value signatures.</div>
+      </div>
+      <div class="flex gap-2 w-full sm:w-auto">
+        <button onclick="showToast('🚀 Boost metrics verified on your node layer.')" class="flex-1 sm:flex-none px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg shadow-md focus:outline-none text-[10px] uppercase tracking-wider">Activate</button>
+      </div>
+    </div>
+
+    <div class="analytics-row grid grid-cols-1 md:grid-cols-2 gap-4 fu d3">
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-4 border-b border-purple-500/5 pb-3">
+          <div>
+            <h3 class="text-sm font-bold tracking-tight">Monthly Token Flow</h3>
+            <p class="text-[10px] opacity-40 font-medium mt-0.5">Earned vs spent metrics log history</p>
+          </div>
+          <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-mono text-[10px] font-bold border border-emerald-500/20">+8% Earned</span>
+        </div>
+        <div class="bar-chart flex items-end gap-3 h-36 justify-center" id="bar-chart"></div>
+        <div class="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider opacity-60 mt-4 pt-2 border-t border-purple-500/5">
+          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Earned Pool</span>
+          <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span> Spent Pool</span>
+        </div>
+      </div>
+
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-4 border-b border-purple-500/5 pb-3">
+          <div>
+            <h3 class="text-sm font-bold tracking-tight">Allocation Breakdown</h3>
+            <p class="text-[10px] opacity-40 font-medium mt-0.5">Ecosystem asset distribution metrics</p>
+          </div>
+          <span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-500 dark:text-purple-400 font-mono text-[10px] font-bold border border-purple-500/20">820 Total</span>
+        </div>
+        <div class="flex items-center gap-6 flex-wrap sm:flex-nowrap">
+          <div class="donut-ring relative w-24 h-24 flex-shrink-0 flex items-center justify-center">
+            <svg class="donut-svg absolute w-full h-full -rotate-90" viewBox="0 0 104 104">
+              <circle cx="52" cy="52" r="40" fill="none" stroke="currentColor" class="text-purple-500/5" stroke-width="12"/>
+              <circle id="d0" cx="52" cy="52" r="40" fill="none" stroke="#9600B6" stroke-width="12" stroke-dasharray="251" stroke-dashoffset="251"/>
+              <circle id="d1" cx="52" cy="52" r="40" fill="none" stroke="#f2566a" stroke-width="12" stroke-dasharray="251" stroke-dashoffset="251"/>
+              <circle id="d2" cx="52" cy="52" r="40" fill="none" stroke="#e8853a" stroke-width="12" stroke-dasharray="251" stroke-dashoffset="251"/>
+              <circle id="d3" cx="52" cy="52" r="40" fill="none" stroke="#2dc4b8" stroke-width="12" stroke-dasharray="251" stroke-dashoffset="251"/>
+            </svg>
+            <div class="text-center font-mono">
+              <div class="text-sm font-black tracking-tight leading-none">820</div>
+              <div class="text-[8px] opacity-40 uppercase tracking-wider mt-0.5">Tkn</div>
+            </div>
+          </div>
+          <div class="donut-legend flex-1 space-y-1.5 text-xs font-semibold" id="donut-legend"></div>
+        </div>
+        <div class="brk-list space-y-2 mt-4 pt-2 border-t border-purple-500/5 text-[11px]" id="brk-list"></div>
+      </div>
+    </div>
+
+    <div class="space-y-4 fu d4">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="text-sm font-bold tracking-tight">Earn Platform Credits</h3>
+          <p class="text-xs opacity-50 mt-0.5">Contribute code or verify capabilities tracks to claim signatures. No purchases required.</p>
+        </div>
+        <span class="px-2.5 py-1 rounded-full bg-purple-500/5 border border-purple-500/10 text-purple-500 text-[10px] font-bold font-mono tracking-wide">+125 Available Today</span>
+      </div>
+
+      <div class="earn-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        
+        <div class="card p-5 text-center flex flex-col justify-between items-center group relative overflow-hidden border border-purple-500/10 bg-purple-500/5">
+          <div class="w-full flex flex-col items-center gap-3">
+            <div class="flex items-center justify-between w-full">
+              <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-sm"><i class="fas fa-chalkboard-teacher"></i></div>
+              <span class="px-2.5 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-500 dark:text-purple-400 font-mono text-[10px] font-bold">+20 🪙</span>
+            </div>
+            <div class="text-left w-full">
+              <h4 class="text-xs font-bold tracking-tight text-slate-800 dark:text-white">Teach a Swap Session</h4>
+              <p class="text-[11px] opacity-50 leading-relaxed mt-1">Lead an instructional track for any peer node. Earn 20 tokens flat rate per active slot hour.</p>
+            </div>
+          </div>
+          <div class="w-full mt-4 space-y-3">
+            <div class="w-full flex justify-between items-center text-[10px] opacity-40 font-mono"><span>Monthly quota</span><span>47 / 50</span></div>
+            <div class="h-1 bg-purple-500/10 rounded-full overflow-hidden"><div class="h-full bg-purple-500 w-[94%]" id="ef-teach"></div></div>
+            <button onclick="earnIt(this,20,'Taught a certified ecosystem skill block','teach')" class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl shadow-md transition-all transform active:scale-95">Schedule Session</button>
+          </div>
+        </div>
+
+        <div class="card p-5 text-center flex flex-col justify-between items-center group relative overflow-hidden border border-purple-500/10 bg-purple-500/5">
+          <div class="w-full flex flex-col items-center gap-3">
+            <div class="flex items-center justify-between w-full">
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-sm"><i class="fas fa-star"></i></div>
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 font-mono text-[10px] font-bold">+5 🪙</span>
+            </div>
+            <div class="text-left w-full">
+              <h4 class="text-xs font-bold tracking-tight text-slate-800 dark:text-white">Sign Session Feedback</h4>
+              <p class="text-[11px] opacity-50 leading-relaxed mt-1">Leave feedback for an asset swap you completed. Network signatures strengthen platform validity metrics.</p>
+            </div>
+          </div>
+          <div class="w-full mt-4 space-y-3">
+            <div class="w-full flex justify-between items-center text-[10px] opacity-40 font-mono"><span>Pending tracks</span><span>3 awaiting</span></div>
+            <div class="h-1 bg-purple-500/10 rounded-full overflow-hidden"><div class="h-full bg-emerald-500 w-[60%]" id="ef-review"></div></div>
+            <button onclick="earnIt(this,5,'Ecosystem feedback verification signature reward','review')" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition-all transform active:scale-95">Write Review</button>
+          </div>
+        </div>
+
+        <div class="card p-5 text-center flex flex-col justify-between items-center group relative overflow-hidden border border-purple-500/10 bg-purple-500/5">
+          <div class="w-full flex flex-col items-center gap-3">
+            <div class="flex items-center justify-between w-full">
+              <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-sm"><i class="fas fa-fire"></i></div>
+              <span class="px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 font-mono text-[10px] font-bold">+10 🪙</span>
+            </div>
+            <div class="text-left w-full">
+              <h4 class="text-xs font-bold tracking-tight text-slate-800 dark:text-white">Daily Node Check-In</h4>
+              <p class="text-[11px] opacity-50 leading-relaxed mt-1">Authenticate your workspace daily to build linear streaks. Multipliers unlock additional asset multipliers blocks.</p>
+            </div>
+          </div>
+          <div class="w-full mt-4 space-y-3">
+            <div class="w-full flex justify-between items-center text-[10px] opacity-40 font-mono"><span>Current tracking streak</span><span>14 days</span></div>
+            <div class="h-1 bg-purple-500/10 rounded-full overflow-hidden"><div class="h-full bg-amber-500 w-[70%]" id="ef-streak"></div></div>
+            <button onclick="earnIt(this,10,'Workspace identity verification check-in','streak')" class="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-md transition-all transform active:scale-95">Claim Today</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="card flex flex-col overflow-hidden border border-purple-500/10 shadow-xl fu d5">
+      <div class="p-4 border-b border-purple-500/5 bg-purple-500/5 flex flex-col sm:flex-row items-center justify-between gap-4 flex-shrink-0">
+        <h3 class="text-sm font-bold tracking-tight">Ledger Transaction History</h3>
+        <div class="tabs flex bg-purple-900/5 dark:bg-black/40 light:bg-purple-500/5 border border-purple-500/10 rounded-xl p-1 text-[11px] font-semibold glass">
+          <button class="tab px-3 py-1.5 rounded-lg transition-all focus:outline-none on" onclick="filterTx(this,'all')">All</button>
+          <button class="tab px-3 py-1.5 rounded-lg transition-all focus:outline-none text-gray-400" onclick="filterTx(this,'earned')">Earned</button>
+          <button class="tab px-3 py-1.5 rounded-lg transition-all focus:outline-none text-gray-400" onclick="filterTx(this,'bonus')">Bonus</button>
+          <button class="tab px-3 py-1.5 rounded-lg transition-all focus:outline-none text-gray-400" onclick="filterTx(this,'daily')">Daily</button>
+          <button class="tab px-3 py-1.5 rounded-lg transition-all focus:outline-none text-gray-400" onclick="filterTx(this,'spent')">Spent</button>
+        </div>
+      </div>
+      <div class="overflow-x-auto custom-scroll max-h-72 w-full">
+        <table class="w-full text-left border-collapse min-w-[700px] text-xs md:text-sm font-medium">
+          <thead>
+            <tr class="border-b border-purple-500/10 bg-purple-500/5 text-[10px] font-bold uppercase tracking-widest text-purple-500 dark:text-purple-400">
+              <th class="py-3 px-5 w-32">Block Type</th>
+              <th class="py-3 px-5">Context Description</th>
+              <th class="py-3 px-5">Timestamp</th>
+              <th class="py-3 px-5 text-right">Value Delta</th>
+              <th class="py-3 px-5 text-right">Balance</th>
+            </tr>
+          </thead>
+          <tbody id="tx-body" class="divide-y divide-purple-500/5"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div class="toast fixed bottom-6 right-6 z-50 rounded-xl p-3 px-4 shadow-xl text-xs md:text-sm font-semibold flex items-center gap-2 glass border border-purple-500/30" id="toast">
+  <div class="w-5 h-5 rounded-full bg-purple-500/10 text-purple-500 flex items-center justify-center text-xs"><i class="fas fa-check-circle"></i></div>
+  <span id="toast-msg" class="font-bold"></span>
+</div>
+
+<script>
+  let balance = 0;
+  let TXNS = [];
+  let curFilter = 'all';
+  const claimed = new Set();
+  const htmlDoc = document.documentElement;
+
+  function setBalance(n){
+    balance = n;
+    ['sb-num','tb-num','hero-num'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.textContent = n.toLocaleString();
+    });
+  }
+
+  function toggleTheme(){
+    const isDark = htmlDoc.classList.contains('dark');
+    htmlDoc.className = isDark ? 'light' : 'dark';
+    document.getElementById('theme-ico').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    if (window.syncTheme3D) window.syncTheme3D(isDark ? 'light' : 'dark');
+  }
+
+  let toastTimer;
+  function showToast(msg){
+    clearTimeout(toastTimer);
+    const t = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    t.classList.add('on');
+    toastTimer = setTimeout(()=> t.classList.remove('on'), 3000);
+  }
+
+  function burst(amount,x,y){
+    const el = document.createElement('div');
+    el.className='token-burst';
+    el.style.cssText=`left:${x}px;top:${y}px`;
+    el.textContent='+'+amount+' 🪙';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),1100);
+  }
+
+  function earnIt(btn,amount,desc,key){
+    if(claimed.has(key)) return;
+    claimed.add(key);
+    const r = btn.getBoundingClientRect();
+    burst(amount,r.left+r.width/2,r.top);
+    setBalance(balance+amount);
+    btn.textContent='✓ Claimed';
+    btn.className='w-full py-2 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl cursor-not-allowed';
+    btn.disabled=true;
+    TXNS.unshift({type:'earned',desc,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),amount:+amount,balance});
+    renderTx(curFilter);
+    showToast('+'+amount+' tokens signed to your node wallet pipeline.');
+  }
+
+  // ========================================================
+  // High-Performance Interactive Three.js 3D Token Exchange
+  // ========================================================
+  (function initTokenExchange3D() {
+    const container = document.getElementById('canvas3d-container');
+    const canvas = document.getElementById('object3d-canvas');
+    if (!canvas || !container) return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 500);
+    camera.position.z = 45;
+
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const tokenGroup = new THREE.Group();
+    scene.add(tokenGroup);
+
+    // Construct Central Core Token Mesh
+    const coinGeo = new THREE.CylinderGeometry(8, 8, 1.2, 32);
+    const coinMat = new THREE.MeshBasicMaterial({
+      color: localStorage.getItem('theme') === 'light' ? 0x7a0094 : 0x231a34,
+      transparent: true,
+      opacity: 0.8
+    });
+    const coinMesh = new THREE.Mesh(coinGeo, coinMat);
+    coinMesh.rotation.x = Math.PI / 2; // Face viewport camera flat plane
+    tokenGroup.add(coinMesh);
+
+    // Core Perimeter Outlines Border Rings
+    const wireMat = new THREE.LineBasicMaterial({
+      color: 0xb300ff,
+      transparent: true,
+      opacity: 0.4
+    });
+    const coinWireframe = new THREE.LineSegments(new THREE.EdgesGeometry(coinGeo), wireMat);
+    coinMesh.add(coinWireframe);
+
+    // Flowing Input/Output Data Packet Particles Matrix Loop
+    const packetCount = 45;
+    const packetGeometry = new THREE.BufferGeometry();
+    const packetPositions = new Float32Array(packetCount * 3);
+    const packetMetadata = [];
+
+    for (let i = 0; i < packetCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 12 + Math.random() * 8; // Extent circle circumference bounds
+      const zOffset = (Math.random() - 0.5) * 4;
+      
+      packetPositions[i * 3] = radius * Math.cos(angle);
+      packetPositions[i * 3 + 1] = radius * Math.sin(angle);
+      packetPositions[i * 3 + 2] = zOffset;
+
+      packetMetadata.push({
+        angle,
+        radius,
+        zOffset,
+        speed: Math.random() * 0.02 + 0.01,
+        direction: Math.random() > 0.5 ? 1 : -1
+      });
+    }
+    packetGeometry.setAttribute('position', new THREE.BufferAttribute(packetPositions, 3));
+
+    const glowTexture = (function() {
+      const c = document.createElement('canvas'); c.width = 16; c.height = 16;
+      const ctx = c.getContext('2d');
+      const grad = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
+      grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.4, '#9600B6'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, 16, 16);
+      return new THREE.CanvasTexture(c);
+    })();
+
+    const packetPointsMat = new THREE.PointsMaterial({
+      size: 1.2,
+      map: glowTexture,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    const packetSystem = new THREE.Points(packetGeometry, packetPointsMat);
+    tokenGroup.add(packetSystem);
+
+    let isDragging = false;
+    let rotX = 0.3, rotY = -0.4;
+    let prevX = 0, prevY = 0;
+
+    canvas.addEventListener('mousedown', (e) => { isDragging = true; prevX = e.clientX; prevY = e.clientY; });
+    window.addEventListener('mouseup', () => isDragging = false);
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      rotY += (e.clientX - prevX) * 0.006;
+      rotX += (e.clientY - prevY) * 0.006;
+      prevX = e.clientX; prevY = e.clientY;
+    });
+
+    function frameRenderLoop() {
+      requestAnimationFrame(frameRenderLoop);
+      const time = Date.now() * 0.001;
+
+      if (!isDragging) {
+        // Soft floating precession cycle matrix loops
+        tokenGroup.position.y = Math.sin(time * 1.4) * 0.4;
+        tokenGroup.rotation.y = time * 0.25;
+        tokenGroup.rotation.x = 0.3 + Math.sin(time * 0.2) * 0.05;
+      } else {
+        tokenGroup.position.y += (0 - tokenGroup.position.y) * 0.1;
+        tokenGroup.rotation.x += (rotX - tokenGroup.rotation.x) * 0.08;
+        tokenGroup.rotation.y += (rotY - tokenGroup.rotation.y) * 0.08;
+      }
+
+      // Compute individual asset data streams positions shifting matrices
+      const posArr = packetGeometry.attributes.position.array;
+      for (let i = 0; i < packetCount; i++) {
+        const p = packetMetadata[i];
+        p.angle += p.speed * p.direction;
+        
+        // Dynamic constriction breathing vectors modeling exchange paths
+        const currentRadius = p.radius + Math.sin(time * 2 + i) * 1.5;
+        posArr[i * 3] = currentRadius * Math.cos(p.angle);
+        posArr[i * 3 + 1] = currentRadius * Math.sin(p.angle);
+      }
+      packetGeometry.attributes.position.needsUpdate = true;
+
+      renderer.render(scene, camera);
+    }
+    frameRenderLoop();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    window.syncTheme3D = function(mode) {
+      coinMat.color.setHex(mode === 'light' ? 0x7a0094 : 0x231a34);
+    };
+  })();
+
+  // Historic Telemetry Dataset Mappings & Breakdown Layout Bars Processing
+  const MONTHS=['Jan','Feb','Mar','Apr','May','Jun'];
+  const EARNED=[80,120,95,140,110,160];
+  const SPENT=[60,80,70,100,90,120];
+  const max=Math.max(...EARNED,...SPENT);
+  const el=document.getElementById('bar-chart');
+  if(el) {
+    MONTHS.forEach((m,i)=>{
+      const eH=Math.round(EARNED[i]/max*100);
+      const sH=Math.round(SPENT[i]/max*100);
+      const col=document.createElement('div');
+      col.className='bar-col';
+      col.innerHTML=`
+        <div class="bar-pair">
+          <div class="b-slot"><div class="b-tip">${EARNED[i]}</div><div class="b-fill" id="be${i}" style="background:var(--gn);opacity:.85"></div></div>
+          <div class="b-slot"><div class="b-tip">${SPENT[i]}</div><div class="b-fill" id="bs${i}" style="background:var(--rd);opacity:.8"></div></div>
+        </div>
+        <div class="bar-lbl mt-1">${m}</div>`;
+      el.appendChild(col);
+      setTimeout(()=>{
+        const be=document.getElementById('be'+i); const bs=document.getElementById('bs'+i);
+        if(be) be.style.height=eH+'%'; if(bs) bs.style.height=sH+'%';
+      },300+i*40);
+    });
+  }
+
+  const SEGS=[
+    {id:'d0',pct:.268,color:'var(--acc)',  label:'Instructional Swaps',val:220},
+    {id:'d1',pct:.293,color:'var(--rd)',  label:'Escrow Allocations', val:240},
+    {id:'d2',pct:.073,color:'var(--am)',  label:'Daily Streaks',  val:60},
+    {id:'d3',pct:.049,color:'var(--tl)',  label:'Feedback Rewards',  val:40},
+  ];
+  let off=0;
+  SEGS.forEach(s=>{
+    setTimeout(()=>{
+      const element=document.getElementById(s.id); if(!element) return;
+      const len=251*s.pct; element.style.strokeDasharray=len+' '+(251-len);
+      element.style.strokeDashoffset=-off; off+=len;
+    },400);
+  });
+  
+  const leg=document.getElementById('donut-legend');
+  if(leg) SEGS.forEach(s=>{
+    const total=560; const pct=Math.round(s.val/total*100);
+    const row=document.createElement('div'); row.className='flex justify-between py-0.5 border-b border-purple-500/5';
+    row.innerHTML=`<div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full" style="background:${s.color}"></span><span class="opacity-70 truncate max-w-[120px]">${s.label}</span></div><span class="font-mono font-bold" style="color:${s.color}">${s.val} <span class="opacity-30 text-[9px]">${pct}%</span></span>`;
+    leg.appendChild(row);
+  });
+
+  const BRK=[
+    {label:'Teaching instances logged',val:220,total:560,color:'var(--acc)'},
+    {label:'Escrow contracts deployed',  val:240,total:560,color:'var(--rd)'},
+    {label:'Consecutive streaks multipliers',    val:60, total:560,color:'var(--am)'},
+  ];
+  const bl=document.getElementById('brk-list');
+  if(bl) BRK.forEach((d,i)=>{
+    const row=document.createElement('div'); row.className='space-y-1';
+    row.innerHTML=`<div class="flex justify-between text-[10px] opacity-60 font-semibold"><span>${d.label}</span><span class="font-mono font-bold" style="color:${d.color}">${d.val}</span></div><div class="pbar"><div class="brk-bar h-full rounded-full transition-all duration-[900ms] w-0" id="brk${i}" style="background:${d.color}"></div></div>`;
+    bl.appendChild(row);
+    setTimeout(()=>{ const targetBar=document.getElementById('brk'+i); if(targetBar) targetBar.style.width=Math.round(d.val/d.total*100)+'%'; },500+i*50);
+  });
+
+  // Ledgers Filtering Processing Arrays
+  const META={earned:{label:'Earned',e:'📥'},spent:{label:'Spent',e:'📤'},bonus:{label:'Bonus',e:'⚡'},daily:{label:'Daily',e:'🔥'}};
+  function filterTx(btn,f){
+    document.querySelectorAll('.tab').forEach(b=> { b.className = "tab px-3 py-1.5 rounded-lg text-gray-400 font-semibold hover:text-inherit bg-transparent transition-all focus:outline-none"; });
+    btn.className = "tab px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-500 font-bold shadow-sm focus:outline-none on";
+    curFilter=f; renderTx(f);
+  }
+  function renderTx(f='all'){
+    const body=document.getElementById('tx-body'); if(!body) return; body.innerHTML='';
+    const rows=f==='all'?TXNS:TXNS.filter(t=>t.type===f);
+    if(!rows.length){body.innerHTML=`<tr><td colspan="5" class="text-center py-10 opacity-30 text-xs font-medium">No transacting block packets verified inside this filter vector.</td></tr>`;return;}
+    rows.forEach(tx=>{
+      const m=META[tx.type]||META.earned; const pos=tx.amount>0; const tr=document.createElement('tr'); tr.className='hover:bg-purple-500/5 transition-colors text-inherit';
+      tr.innerHTML=`<td class="py-3 px-5"><span class="px-2 py-0.5 border border-purple-500/10 rounded-lg bg-purple-500/5 font-bold text-[10px] uppercase tracking-wider text-purple-400">${m.e} ${m.label}</span></td><td class="py-3 px-5 font-normal truncate max-w-[200px]">${tx.desc}</td><td class="py-3 px-5 opacity-50 font-mono text-[11px]">${tx.date}</td><td class="py-3 px-5 text-right font-mono font-bold ${pos?'text-emerald-500':'text-red-400'}">${pos?'+':''}${tx.amount}</td><td class="py-3 px-5 text-right opacity-40 font-mono text-[11px]">${Math.abs(tx.balance)}</td>`;
+      body.appendChild(tr);
+    });
+  }
+
+  async function apiGet(url){
+    const token = localStorage.getItem('token'); const headers = {};
+    if(token) headers['Authorization'] = token;
+    const res = await fetch(url, { headers }); const data = await res.json().catch(()=>null);
+    if(!res.ok) throw new Error(data && data.error ? data.error : 'Network transaction fault exception');
+    return data;
+  }
+
+  async function loadWallet(){
+    try{
+      const summary = await apiGet('/backend/api/tokens/summary');
+      if(summary && typeof summary.token_balance === 'number') setBalance(summary.token_balance);
+      const spentEl = document.getElementById('kpi-spent'); const earnedEl = document.getElementById('kpi-earned');
+      if(spentEl && typeof summary.total_spent === 'number') spentEl.textContent = Math.abs(summary.total_spent).toLocaleString();
+      if(earnedEl && typeof summary.total_earned === 'number') earnedEl.textContent = Math.abs(summary.total_earned).toLocaleString();
+
+      const txData = await apiGet('/backend/api/tokens/transactions');
+      TXNS = txData && txData.transactions ? txData.transactions : []; renderTx(curFilter);
+    }catch(e){
+      console.warn('Ecosystem RPC pipeline offline; showcasing baseline mock values arrays.', e.message || e);
+      TXNS = [
+        {type:'earned', desc:'Completed initial onboarding mapping verification block', date:'05/14/2026', amount:100, balance:240},
+        {type:'daily', desc:'Workspace baseline authentication active streak', date:'05/12/2026', amount:15, balance:140},
+        {type:'spent', desc:'Locked token collateral escrow candidate #401', date:'05/10/2026', amount:-50, balance:125}
+      ];
+      setBalance(240);
+      renderTx(curFilter);
+    }
+  }
+
+  loadWallet();
+</script>
+</body>
+</html>

@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — TalentCircle</title>
+  
+  <!-- Global Instant Theme Synchronization Engine -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.className = savedTheme;
+  })();
+</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+  <!-- API helper (window.apiUrl) -->
+  <script src="src/api-base.js"></script>
+
+  <script>
+    tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Poppins','sans-serif']}}}}
+  </script>
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--t1);
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+    :root {
+      --bg:#07050f;--surf:#0d0920;--card:rgba(18,14,36,0.45);--card2:#18132e;--bd:rgba(155,48,217,.16);--bd2:rgba(255,255,255,.05);
+      --t1:#f0eeff;--t2:#9ca3af;--t3:#4b5563;
+      --acc:#9b30d9;--acc2:#b855f0;--adim:rgba(155,48,217,.14);
+    }
+    .light {
+      --bg:#f8f6fc;--surf:#ffffff;--card:rgba(255,255,255,0.75);--card2:#f5f2ff;--bd:rgba(155,48,217,.2);--bd2:rgba(0,0,0,.06);
+      --t1:#0f0a1e;--t2:#6b7280;--t3:#9ca3af;
+    }
+    
+    ::-webkit-scrollbar{width:4px;height:4px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:var(--acc);border-radius:10px;}
+    
+    .glass{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+    .tg{background:linear-gradient(135deg,#b855f0,#9b30d9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    
+    .card{background:var(--card);border:1px solid var(--bd2);border-radius:16px;transition:all .22s;}
+    .card:hover{border-color:var(--bd);box-shadow:0 8px 32px rgba(155,48,217,.1);transform:translateY(-2px);}
+    .card2{background:var(--card2);border:1px solid var(--bd2);border-radius:12px;}
+    
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .2s;color:var(--t2);text-decoration:none;}
+    .nav-item:hover{color:#e9d5ff;background:rgba(155,48,217,.1);}
+    .nav-item.on{color:#fff;background:linear-gradient(135deg,#9b30d9,#b855f0);box-shadow:0 4px 16px rgba(155,48,217,.35);}
+    
+    .nbadge{margin-left:auto;background:rgba(155,48,217,.18);color:#b855f0;padding:1px 7px;border-radius:20px;font-size:.65rem;font-weight:700;}
+    .nav-item.on .nbadge{background:rgba(255,255,255,.22);color:#fff;}
+    .slbl{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:6px;padding-left:2px;}
+    
+    .kpi{background:var(--card);border:1px solid var(--bd2);border-radius:16px;padding:18px;transition:all .22s;animation:fu .45s ease both;}
+    .kpi:hover{border-color:var(--bd);transform:translateY(-3px);box-shadow:0 8px 28px rgba(155,48,217,.14);}
+    
+    .pbar{height:5px;border-radius:20px;background:var(--card2);overflow:hidden;}
+    .pf{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--acc),var(--acc2));}
+    .tag{padding:2px 9px;border-radius:20px;font-size:.65rem;font-weight:600;letter-spacing:.03em;}
+    
+    .stab{padding:8px 16px;font-size:.78rem;font-weight:600;border-bottom:2px solid transparent;background:none;cursor:pointer;transition:all .2s;color:var(--t2);}
+    .stab.on{border-bottom-color:#9b30d9;color:#b855f0;}
+    
+    .sr{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--card2);border:1px solid var(--bd2);transition:all .2s;}
+    .sr:hover{border-color:var(--bd);}
+    .rc{padding:12px;border-radius:12px;background:var(--card2);border:1px solid var(--bd2);transition:all .2s;}
+    .rc:hover{border-color:var(--bd);}
+    
+    .qa{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;border-radius:14px;border:1px solid var(--bd2);background:var(--card2);cursor:pointer;transition:all .2s;font-size:.72rem;font-weight:600;color:var(--t2);text-decoration:none;}
+    .qa:hover{border-color:var(--bd);color:#b855f0;background:var(--adim);transform:scale(1.02);}
+    .wt{padding:14px;border-radius:12px;border:1px solid var(--bd2);background:var(--card2);text-align:center;cursor:pointer;text-decoration:none;display:block;transition:all .2s;}
+    .wt:hover{border-color:var(--bd);box-shadow:0 4px 20px rgba(155,48,217,.18);transform:translateY(-2px);}
+    
+    .hmc{width:11px;height:11px;border-radius:3px;transition:transform .15s;cursor:default;}
+    .hmc:hover{transform:scale(1.35);}
+    .hm0{background:var(--card2);}
+    .hm1{background:rgba(155,48,217,.2);}
+    .hm2{background:rgba(155,48,217,.4);}
+    .hm3{background:rgba(155,48,217,.65);}
+    .hm4{background:rgba(155,48,217,.9);}
+    
+    .av-a{background:linear-gradient(135deg,#9b30d9,#b855f0);}
+    .av-b{background:linear-gradient(135deg,#2060e0,#40b0f0);}
+    .av-c{background:linear-gradient(135deg,#059669,#10b981);}
+    .av-d{background:linear-gradient(135deg,#d97706,#f59e0b);}
+    .av-e{background:linear-gradient(135deg,#0891b2,#22d3ee);}
+    .gd{width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.22);flex-shrink:0;}
+    
+    @keyframes fu{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+    .d1{animation-delay:.05s;}.d2{animation-delay:.1s;}.d3{animation-delay:.15s;}.d4{animation-delay:.2s;}.d5{animation-delay:.25s;}
+    
+    @media(max-width:1024px){
+      #sb{display:none;}
+      #tb{left:0!important;}
+      #mn{margin-left:0!important; padding-left:16px; padding-right:16px;}
+      .chartsRow1{grid-template-columns:1fr!important;}
+      .chartsRow2{grid-template-columns:1fr!important;}
+      .profileRow{grid-template-columns:1fr!important;}
+    }
+    @media(max-width:640px){
+      .qaGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+      .kpiGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+      header#tb input{display:none;}
+    }
+    @media(max-width:420px){
+      .qaGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+      .kpiGrid{grid-template-columns:1fr!important;}
+    }
+
+    .chip-up{background:rgba(34,197,94,.12);color:#22c55e;padding:2px 9px;border-radius:20px;font-size:.66rem;font-weight:700;}
+    .chip-dn{background:rgba(239,68,68,.12);color:#ef4444;padding:2px 9px;border-radius:20px;font-size:.66rem;font-weight:700;}
+  </style>
+</head>
+<body class="min-h-screen">
+
+<!-- ══════════ SIDEBAR NAVIGATION ══════════ -->
+<aside id="sb" class="fixed left-0 top-0 h-full w-56 z-40 flex flex-col py-5 px-3 overflow-y-auto glass" style="background:var(--surf);border-right:1px solid var(--bd2);">
+  <div class="flex items-center gap-3 px-2 mb-7">
+    <div class="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0 shadow-lg">
+      <img src="images/logo.png" alt="TalentCircle Logo" class="w-full h-full object-contain dark:invert-0 light:invert light:brightness-50 light:contrast-150"/>
+    </div>
+    <div>
+      <div class="font-black text-sm tracking-tight" style="color:var(--t1)">TalentCircle</div>
+      <div style="font-size:.62rem;color:var(--t3)" class="font-medium">Ecosystem Control</div>
+    </div>
+  </div>
+
+  <div class="slbl px-1">Menu</div>
+  <nav class="flex flex-col gap-0.5 mb-5">
+    <a href="#" class="nav-item on"><i class="fas fa-th-large w-4 text-center mr-1"></i>Dashboard</a>
+    <a href="calendar.html" class="nav-item"><i class="fas fa-calendar-alt w-4 text-center mr-1"></i>Calendar<span class="nbadge">3</span></a>
+    <a href="chat-list.html" class="nav-item"><i class="fas fa-comment-alt w-4 text-center mr-1"></i>Messages<span class="nbadge">5</span></a>
+    <a href="matches.html" class="nav-item"><i class="fas fa-users-cog w-4 text-center mr-1"></i>Matches</a>
+    <a href="community-forum.html" class="nav-item"><i class="fas fa-comments w-4 text-center mr-1"></i>Community Hub</a>
+    <a href="ranking.html" class="nav-item"><i class="fas fa-trophy w-4 text-center mr-1"></i>Rankings</a>
+    <a href="badges.html" class="nav-item"><i class="fas fa-award w-4 text-center mr-1"></i>Badges</a>
+    <a href="certificate.html" class="nav-item"><i class="fas fa-certificate w-4 text-center mr-1"></i>Certificates</a>
+    <a href="chat-bot.html" class="nav-item"><i class="fas fa-robot w-4 text-center mr-1"></i>AI Assistant</a>
+  </nav>
+
+  <div class="slbl px-1">ANALYTICS</div>
+  <nav class="flex flex-col gap-0.5 mb-5">
+    <a href="#" class="nav-item"><i class="fas fa-heartbeat w-4 text-center mr-1"></i>Performance</a>
+    <a href="#" class="nav-item"><i class="fas fa-user-graduate w-4 text-center mr-1"></i>Candidates</a>
+    <a href="#" class="nav-item"><i class="fas fa-file-invoice w-4 text-center mr-1"></i>Reports</a>
+  </nav>
+
+  <div class="mt-auto">
+    <div class="flex items-center gap-2.5 p-2.5 rounded-xl" style="background:var(--card2);border:1px solid var(--bd2)">
+      <div class="av-a w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0">S</div>
+      <div class="min-w-0 flex-1">
+        <div style="font-size:.75rem;font-weight:600;color:var(--t1)" class="truncate">Sarah Mitchell</div>
+        <div style="font-size:.65rem;color:var(--t3)" class="truncate">Senior Coach</div>
+      </div>
+      <div class="gd"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══════════ TOPBAR NAVBAR ══════════ -->
+<header id="tb" class="fixed top-0 left-56 right-0 h-14 z-30 flex items-center px-5 gap-3 glass" style="background:var(--surf);border-bottom:1px solid var(--bd2)">
+  <div>
+    <div style="font-size:.67rem;color:var(--t3)">Home / <span style="color:#b855f0">Dashboard</span></div>
+    <div style="font-size:.82rem;font-weight:600;color:var(--t1)">Good morning, Sarah 👋</div>
+  </div>
+
+  <div class="flex items-center gap-2 flex-1 max-w-xs ml-5 px-3 py-1.5 rounded-xl" style="background:var(--card);border:1px solid var(--bd2)">
+    <svg class="w-3.5 h-3.5 flex-shrink-0" style="color:var(--t3)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" placeholder="Search everything..." class="bg-transparent outline-none flex-1" style="font-size:.78rem;color:var(--t1);"/>
+    <span style="font-size:.62rem;background:var(--card2);color:var(--t3);padding:1px 6px;border-radius:5px">⌘K</span>
+  </div>
+
+  <div class="ml-auto flex items-center gap-2">
+    <select aria-label="Chart period" id="psel" onchange="updateCharts(this.value)" class="outline-none cursor-pointer px-3 py-1.5 rounded-xl bg-transparent" style="background:var(--card);border:1px solid var(--bd2);color:var(--t1);font-size:.75rem;font-family:'Poppins',sans-serif">
+      <option value="month">This Month</option>
+      <option value="quarter">Quarter</option>
+      <option value="year">Year</option>
+    </select>
+    <!-- Notifications button -->
+<button
+  type="button"
+  aria-label="Notifications"
+  class="relative w-8 h-8 rounded-xl flex items-center justify-center border transition-all"
+  style="background:var(--card);border-color:var(--bd2);color:var(--t2)"
+>
+  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+  </svg>
+
+  <span
+    class="absolute top-1 right-1 w-2 h-2 rounded-full"
+    style="background:#9b30d9;border:1.5px solid var(--surf)"
+  ></span>
+</button>
+
+<!-- Theme toggle -->
+<button
+  type="button"
+  onclick="toggleTheme()"
+  id="tbtn"
+  aria-label="Toggle theme"
+  class="w-8 h-8 rounded-xl flex items-center justify-center transition-all border"
+  style="background:var(--card);border-color:var(--bd2);color:var(--t2)"
+>
+  <!-- Moon icon -->
+  <svg id="mi" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+
+  <!-- Sun icon -->
+  <svg id="si" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="5"/>
+    <line x1="12" y1="1" x2="12" y2="3"/>
+    <line x1="12" y1="21" x2="12" y2="23"/>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+    <line x1="1" y1="12" x2="3" y2="12"/>
+    <line x1="21" y1="12" x2="23" y2="12"/>
+  </svg>
+</button>
+    <button onclick="alert('Logged out')" class="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-white font-bold transition-all hover:scale-105" style="background:linear-gradient(135deg,#9b30d9,#b855f0);font-size:.78rem;box-shadow:0 4px 16px rgba(155,48,217,.35)">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+  </div>
+</header>
+
+<!-- ══════════ MAIN WORKSPACE ══════════ -->
+<main id="mn" class="pt-20 min-h-screen p-5" style="margin-left:224px;">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Quick Actions Menu Row Layout -->
+    <div class="qaGrid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" style="animation:fu .4s ease both">
+<a href="calendar.html" class="qa w-full min-w-0"><span class="text-xl">📅</span>Calendar</a>
+<a href="chat-list.html" class="qa w-full min-w-0"><span class="text-xl">💬</span>Messages</a>
+<a href="badges.html" class="qa w-full min-w-0"><span class="text-xl">🏆</span>Badges</a>
+      <a href="tokens.html" class="qa w-full min-w-0"><span class="text-xl">🪙</span>Tokens</a>
+      <a href="points.html" class="qa w-full min-w-0"><span class="text-xl">💎</span>Points</a>
+      <a href="#sess" class="qa w-full min-w-0"><span class="text-xl">🎯</span>Sessions</a>
+    </div>
+
+    <!-- KPI Metric Cards Grid Panel Row -->
+    <div class="kpiGrid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="kpi d1">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(155,48,217,.15)">
+            <svg class="w-5 h-5" style="color:#b855f0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <span class="chip-up">↑ 12%</span>
+        </div>
+        <div class="text-3xl font-bold tg mb-0.5">142</div>
+        <div style="font-size:.75rem;color:var(--t2)">Total Sessions</div>
+        <div class="pbar mt-3"><div class="pf" style="width:71%"></div></div>
+      </div>
+      
+      <div class="kpi d2">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(34,197,94,.1)">
+            <svg class="w-5 h-5" style="color:#22c55e" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span class="chip-up">↑ 8%</span>
+        </div>
+        <div class="text-3xl font-bold mb-0.5" style="color:#22c55e">38</div>
+        <div style="font-size:.75rem;color:var(--t2)">Placements</div>
+        <div class="pbar mt-3"><div class="pf" style="width:38%;background:linear-gradient(90deg,#059669,#22c55e)"></div></div>
+      </div>
+      
+      <div class="kpi d3">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(59,130,246,.1)">
+            <svg class="w-5 h-5" style="color:#60a5fa" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <span class="chip-up">↑ 5</span>
+        </div>
+        <div class="text-3xl font-bold mb-0.5" style="color:#60a5fa">217</div>
+        <div style="font-size:.75rem;color:var(--t2)">Candidates</div>
+        <div class="pbar mt-3"><div class="pf" style="width:87%;background:linear-gradient(90deg,#1d4ed8,#60a5fa)"></div></div>
+      </div>
+      
+      <div class="kpi d4">
+        <div class="flex items-start justify-between mb-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(251,191,36,.1)">
+            <svg class="w-5 h-5" style="color:#fbbf24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01z"/></svg>
+          </div>
+          <span class="chip-up">↑ +0.1</span>
+        </div>
+        <div class="text-3xl font-bold mb-0.5" style="color:#fbbf24">4.9</div>
+        <div style="font-size:.75rem;color:var(--t2)">Avg Rating</div>
+        <div class="pbar mt-3"><div class="pf" style="width:98%;background:linear-gradient(90deg,#b45309,#fbbf24)"></div></div>
+      </div>
+    </div>
+
+    <!-- Charts Row 1 Asymmetric Analytics Panels Grid -->
+    <div class="chartsRow1 grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="card p-5 lg:col-span-2 d2" style="animation:fu .45s ease both">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <div style="font-weight:600;font-size:.88rem;color:var(--t1)">Sessions Overview</div>
+            <div style="font-size:.72rem;color:var(--t2);margin-top:2px">Monthly performance trend</div>
+          </div>
+          <div class="flex gap-1.5">
+            <button id="lineBtn" title="Show line chart" onclick="setView('line')" class="px-3 py-1 rounded-lg transition-all focus:outline-none" style="font-size:.72rem;font-weight:600;background:rgba(155,48,217,.15);color:#b855f0;border:none;cursor:pointer">Line</button>
+            <button id="barBtn" title="Show bar chart" onclick="setView('bar')" class="px-3 py-1 rounded-lg transition-all focus:outline-none" style="font-size:.72rem;font-weight:600;background:var(--card2);color:var(--t2);border:none;cursor:pointer">Bar</button>
+          </div>
+        </div>
+        <div style="height:200px;position:relative"><canvas id="sc"></canvas></div>
+        <div class="flex gap-4 mt-3">
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background:#9b30d9;display:inline-block"></span><span style="font-size:.72rem;color:var(--t2)">Sessions</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background:#22c55e;display:inline-block"></span><span style="font-size:.72rem;color:var(--t2)">Placements</span></div>
+        </div>
+      </div>
+
+      <div class="card p-5 d3" style="animation:fu .45s ease both">
+        <div class="mb-4">
+          <div style="font-weight:600;font-size:.88rem;color:var(--t1)">Token Earnings</div>
+          <div style="font-size:.72rem;color:var(--t2);margin-top:2px">Weekly breakdown</div>
+        </div>
+        <div style="height:180px;position:relative"><canvas id="ec"></canvas></div>
+        <div class="flex items-center justify-between mt-3 p-2.5 rounded-xl" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.18)">
+          <span style="font-size:.72rem;color:var(--t2)">Best day this week</span>
+          <span style="font-size:.78rem;font-weight:700;color:#22c55e">Friday — 120 tkn</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row 2 Distributions Grid Mapping Layout -->
+    <div class="chartsRow2 grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="card p-5 d4" style="animation:fu .45s ease both">
+        <div class="mb-4">
+          <div style="font-weight:600;font-size:.88rem;color:var(--t1)">Session Types</div>
+          <div style="font-size:.72rem;color:var(--t2);margin-top:2px">Distribution this month</div>
+        </div>
+        <div class="flex justify-center mb-4 relative">
+          <canvas id="dc" width="160" height="160"></canvas>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+            <div class="font-bold text-xl tg">24</div>
+            <div style="font-size:.65rem;color:var(--t2)">Total</div>
+          </div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between"><div class="flex items-center gap-2"><span style="width:9px;height:9px;border-radius:2px;background:#9b30d9;display:inline-block"></span><span style="font-size:.72rem;color:var(--t2)">Career</span></div><span style="font-size:.72rem;font-weight:600;color:var(--t1)">10</span></div>
+          <div class="flex items-center justify-between"><div class="flex items-center gap-2"><span style="width:9px;height:9px;border-radius:2px;background:#b855f0;display:inline-block"></span><span style="font-size:.72rem;color:var(--t2)">Interview</span></div><span style="font-size:.72rem;font-weight:600;color:var(--t1)">7</span></div>
+          <div class="flex items-center justify-between"><div class="flex items-center gap-2"><span style="width:9px;height:9px;border-radius:2px;background:#22c55e;display:inline-block"></span><span style="font-size:.72rem;color:var(--t2)">Resume</span></div><span style="font-size:.72rem;font-weight:600;color:var(--t1)">4</span></div>
+          <div class="flex items-center justify-between"><div class="flex items-center gap-2"><span style="width:9px;height:9px;border-radius:2px;background:#60a5fa;display:inline-block"></span><span style="font-size:.72rem;color:var(--t2)">Mock</span></div><span style="font-size:.72rem;font-weight:600;color:var(--t1)">3</span></div>
+        </div>
+      </div>
+
+      <div class="card p-5 d2" style="animation:fu .45s ease both">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <div style="font-weight:600;font-size:.88rem;color:var(--t1)">Coaching Radar</div>
+            <div style="font-size:.72rem;color:var(--t2);margin-top:2px">Skill performance profile</div>
+          </div>
+          <span class="chip-up">Top 1%</span>
+        </div>
+        <div style="height:220px"><canvas id="rc2"></canvas></div>
+      </div>
+
+      <div class="card p-5 d3" style="animation:fu .45s ease both">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <div style="font-weight:600;font-size:.88rem;color:var(--t1)">Activity Heatmap</div>
+            <div style="font-size:.72rem;color:var(--t2);margin-top:2px">Last 84 days of activity</div>
+          </div>
+          <div style="font-size:.72rem;font-weight:600;color:#b855f0">84 days</div>
+        </div>
+        <div id="hm" class="flex flex-wrap gap-1.5 mb-3"></div>
+        <div class="flex items-center gap-2 mt-1">
+          <span style="font-size:.62rem;color:var(--t3)">Less</span>
+          <div class="hmc hm0"></div><div class="hmc hm1"></div><div class="hmc hm2"></div><div class="hmc hm3"></div><div class="hmc hm4"></div>
+          <span style="font-size:.62rem;color:var(--t3)">More</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profiles, Ledger Activity Logs, and Mini Schedule Subgrid -->
+    <div class="profileRow grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4">
+      
+      <div class="flex flex-col gap-4">
+        <div class="card p-5 text-center d1" style="animation:fu .45s ease both">
+          <div class="relative inline-block mb-3">
+            <div class="av-a flex items-center justify-center text-white font-bold text-2xl rounded-2xl mx-auto" style="width:76px;height:76px;box-shadow:0 0 0 4px var(--surf),0 0 0 8px rgba(155,48,217,.2)">S</div>
+            <div class="gd absolute" style="bottom:-2px;right:-2px;border:2.5px solid var(--surf)"></div>
+          </div>
+          <div style="font-weight:700;font-size:.95rem;color:var(--t1)" class="mb-0.5">Sarah Mitchell</div>
+          <div style="font-size:.75rem;color:var(--t2)" class="mb-3">Senior Career Coach</div>
+          <div class="flex flex-wrap gap-1.5 justify-center mb-4">
+            <span class="tag" style="background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.22)">● Active</span>
+            <span class="tag" style="background:rgba(155,48,217,.14);color:#b855f0;border:1px solid rgba(155,48,217,.25)">⭐ Pro</span>
+            <span class="tag" style="background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.22)">📍 NY</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 mb-4">
+            <div class="py-2.5 rounded-xl card2"><div style="font-weight:700;font-size:1rem" class="tg">142</div><div style="font-size:.58rem;color:var(--t3)">Sessions</div></div>
+            <div class="py-2.5 rounded-xl card2"><div style="font-weight:700;font-size:1rem;color:#22c55e">38</div><div style="font-size:.58rem;color:var(--t3)">Placed</div></div>
+            <div class="py-2.5 rounded-xl card2"><div style="font-weight:700;font-size:1rem;color:#fbbf24">4.9</div><div style="font-size:.58rem;color:var(--t3)">Rating</div></div>
+          </div>
+          <button class="w-full py-2.5 rounded-xl text-white font-bold transition-all hover:scale-105 focus:outline-none" style="background:linear-gradient(135deg,#9b30d9,#b855f0);font-size:.78rem;box-shadow:0 4px 16px rgba(155,48,217,.3)">✏️ Edit Profile</button>
+        </div>
+
+        <div class="card p-4 d2" style="animation:fu .45s ease both">
+          <div class="slbl">Contact</div>
+          <div class="flex flex-col gap-2.5">
+            <div class="flex items-center gap-2.5"><div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style="background:var(--card2);font-size:.85rem">📧</div><div><div style="font-size:.62rem;color:var(--t3)">Email</div><div style="font-size:.72rem;font-weight:500;color:var(--t1)" class="truncate max-w-[150px]">sarah@prodash.io</div></div></div>
+            <div class="flex items-center gap-2.5"><div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style="background:var(--card2);font-size:.85rem">📱</div><div><div style="font-size:.62rem;color:var(--t3)">Phone</div><div style="font-size:.72rem;font-weight:500;color:var(--t1)">+1 (212) 555-0194</div></div></div>
+            <div class="flex items-center gap-2.5"><div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style="background:var(--card2);font-size:.85rem">💼</div><div><div style="font-size:.62rem;color:var(--t3)">LinkedIn</div><div style="font-size:.72rem;font-weight:500;color:var(--t1)">linkedin.com/in/sarahm</div></div></div>
+          </div>
+        </div>
+
+        <div class="card p-4 d3" style="animation:fu .45s ease both">
+          <div class="slbl">Wallet Balances</div>
+          <div class="grid grid-cols-2 gap-2 mb-3">
+            <a class="wt" href="tokens.html"><div class="text-xl mb-1">🪙</div><div style="font-weight:700;font-size:1.05rem;color:var(--t1)">2,840</div><div style="font-size:.62rem;color:var(--t3)">Tokens</div></a>
+            <a class="wt" href="points.html"><div class="text-xl mb-1">💎</div><div style="font-weight:700;font-size:1.05rem;color:var(--t1)">1,290</div><div style="font-size:.62rem;color:var(--t3)">Points</div></a>
+          </div>
+          <div class="p-2.5 rounded-xl" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.18)">
+            <div style="font-size:.65rem;color:var(--t2)">This Month Accumulation</div>
+            <div style="font-weight:700;font-size:1.1rem;color:#22c55e">+340 <span style="font-size:.75rem;font-weight:500">tokens</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <div class="card p-5 d2" id="sess" style="animation:fu .45s ease both">
+          <div class="flex items-center justify-between mb-3">
+            <div style="font-weight:600;font-size:.88rem;color:var(--t1)">Active Sessions</div>
+            <a href="calendar.html" style="font-size:.72rem;font-weight:600;color:#b855f0;text-decoration:none">View All Tracks →</a>
+          </div>
+          <div class="flex gap-0 mb-3" style="border-bottom:1px solid var(--bd2)">
+            <button class="stab on" onclick="switchTab(this,'today')">Today</button>
+            <button class="stab" onclick="switchTab(this,'upcoming')">Upcoming</button>
+            <button class="stab" onclick="switchTab(this,'past')">Past</button>
+          </div>
+          <div id="slist" class="flex flex-col gap-2"></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="card p-4 cursor-pointer d3" onclick="location.href='calendar.html'" style="animation:fu .45s ease both">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-xl flex items-center justify-center text-base" style="background:var(--card2)">📅</div>
+              <div><div style="font-weight:600;font-size:.82rem;color:var(--t1)">Calendar Preview</div><div style="font-size:.67rem;color:var(--t2)">This week logs</div></div>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg" style="background:var(--card2)"><div style="width:6px;height:6px;border-radius:50%;background:#fbbf24;flex-shrink:0"></div><div style="font-size:.72rem;flex:1;color:var(--t2)">Alex R.</div><div style="font-size:.65rem;color:var(--t3)">Mon 10AM</div></div>
+              <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg" style="background:var(--card2)"><div style="width:6px;height:6px;border-radius:50%;background:#9b30d9;flex-shrink:0"></div><div style="font-size:.72rem;flex:1;color:var(--t2)">Priya K.</div><div style="font-size:.65rem;color:var(--t3)">Wed 2PM</div></div>
+              <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg" style="background:var(--card2)"><div style="width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0"></div><div style="font-size:.72rem;flex:1;color:var(--t2)">James W.</div><div style="font-size:.65rem;color:var(--t3)">Fri 11AM</div></div>
+            </div>
+          </div>
+
+          <div class="card p-4 cursor-pointer d4" onclick="location.href='chat-list.html'" style="animation:fu .45s ease both">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-xl flex items-center justify-center text-base relative" style="background:var(--card2)">
+                💬<span class="absolute -top-1 -right-1 bg-purple-600 text-white font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center shadow-md">3</span>
+              </div>
+              <div><div style="font-weight:600;font-size:.82rem;color:var(--t1)">Ecosystem Messages</div><div style="font-size:.67rem;color:var(--t2)">3 unread threads</div></div>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg" style="background:var(--card2)"><div style="width:6px;height:6px;border-radius:50%;background:#9b30d9;flex-shrink:0"></div><div style="font-size:.72rem;flex:1;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Alex — Great session!</div><div style="font-size:.62rem;color:var(--t3)">5m</div></div>
+              <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg" style="background:var(--card2)"><div style="width:6px;height:6px;border-radius:50%;background:#60a5fa;flex-shrink:0"></div><div style="font-size:.72rem;flex:1;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Priya — Reschedule?</div><div style="font-size:.62rem;color:var(--t3)">1h</div></div>
+              <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg" style="background:var(--card2)"><div style="width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0"></div><div style="font-size:.72rem;flex:1;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">James — See you Friday!</div><div style="font-size:.62rem;color:var(--t3)">3h</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-5 d3" style="animation:fu .45s ease both">
+          <div class="flex items-center justify-between mb-4">
+            <div style="font-weight:600;font-size:.88rem;color:var(--t1)">Ecosystem Peer Reviews</div>
+            <a href="#" style="font-size:.72rem;font-weight:600;color:#b855f0;text-decoration:none">See All Metrics →</a>
+          </div>
+          <div class="flex items-center gap-4 mb-4 pb-4" style="border-bottom:1px solid var(--bd2)">
+            <div class="font-bold tg" style="font-size:2.8rem;line-height:1">4.9</div>
+            <div>
+              <div class="mb-1 text-sm text-yellow-500">★★★★★</div>
+              <div style="font-size:.72rem;color:var(--t2)">87 global endorsements</div>
+            </div>
+            <div class="ml-auto text-right">
+              <div style="font-size:.65rem;color:var(--t2)">Ecosystem Response</div>
+              <div style="font-weight:700;font-size:1rem;color:#22c55e">98%</div>
+            </div>
+          </div>
+          <div class="flex flex-col gap-3">
+            <div class="rc">
+              <div class="flex items-center gap-2 mb-2">
+                <div class="av-b flex items-center justify-center text-white font-bold rounded-lg flex-shrink-0" style="width:32px;height:32px;font-size:.72rem">AR</div>
+                <div style="flex:1"><div style="font-size:.78rem;font-weight:600;color:var(--t1)">Alex Rodriguez</div><div style="font-size:.65rem;color:var(--t3)">May 7, 2026</div></div>
+                <div class="text-xs text-yellow-500">★★★★★</div>
+              </div>
+              <div style="font-size:.75rem;line-height:1.55;color:var(--t2)" class="mb-2">Sarah completely transformed how I approach interview topologies. Landed my target deployment node slot inside 21 days!</div>
+              <div class="flex gap-2 text-xs font-semibold">
+                <button class="px-3 py-1 bg-purple-500/5 hover:bg-purple-500/10 border border-purple-500/10 text-purple-400 rounded-lg focus:outline-none">💬 Message</button>
+                <button class="px-3 py-1 bg-purple-500/5 hover:bg-purple-500/10 border border-purple-500/10 text-purple-400 rounded-lg focus:outline-none">📅 Schedule</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Professional Experience Timelines & Achievement Badges Matrix Block -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="card p-5 d3" style="animation:fu .45s ease both">
+        <div class="flex items-center justify-between mb-4">
+          <div style="font-weight:600;font-size:.88rem;color:var(--t1)">Career Track Experience</div>
+          <button class="px-3 py-1 bg-purple-500/5 hover:bg-purple-500/10 border border-purple-500/10 text-purple-500 font-bold text-xs rounded-lg focus:outline-none">+ Add Node</button>
+        </div>
+        <div class="space-y-4">
+          <div class="flex gap-3 pb-1">
+            <div class="flex flex-col items-center"><div style="width:11px;height:11px;border-radius:50%;background:#9b30d9;box-shadow:0 0 0 3px rgba(155,48,217,.2);margin-top:3px;flex-shrink:0"></div><div style="width:1px;flex:1;background:var(--bd2);margin-top:4px"></div></div>
+            <div><div style="font-size:.82rem;font-weight:600;color:var(--t1)">Senior Career Coach</div><div style="font-size:.72rem;font-weight:500;color:#b855f0;margin:2px 0">ProDash Platform</div><div style="font-size:.68rem;color:var(--t3)">2022 – Present · 4 yrs</div></div>
+          </div>
+          <div class="flex gap-3 pb-1">
+            <div class="flex flex-col items-center"><div style="width:11px;height:11px;border-radius:50%;background:#60a5fa;margin-top:3px;flex-shrink:0"></div><div style="width:1px;flex:1;background:var(--bd2);margin-top:4px"></div></div>
+            <div><div style="font-size:.82rem;font-weight:600;color:var(--t1)">Talent Acquisition Lead</div><div style="font-size:.72rem;font-weight:500;color:#60a5fa;margin:2px 0">TechHire Inc.</div><div style="font-size:.68rem;color:var(--t3)">2019 – 2022 · 3 yrs</div></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card p-5 d4" style="animation:fu .45s ease both">
+        <div class="flex items-center justify-between mb-4">
+          <div style="font-weight:600;font-size:.88rem;color:var(--t1)">Ecosystem Achievements</div>
+          <a href="badges.html" style="font-size:.72rem;font-weight:600;color:#b855f0;text-decoration:none">All Badges Matrix →</a>
+        </div>
+        <div class="flex gap-2 mb-4 flex-wrap">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl bg-purple-500/5 border border-purple-500/10">🏆</div>
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl bg-purple-500/5 border border-purple-500/10">⭐</div>
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl bg-purple-500/5 border border-purple-500/10">🎯</div>
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center font-bold" style="background:var(--card2);border:1px solid var(--bd2);color:#b855f0;font-size:.78rem">+12</div>
+        </div>
+        <div class="flex items-center gap-3 p-3 rounded-xl mb-4" style="background:var(--card2);border:1px solid var(--bd2)">
+          <div style="font-weight:800;font-size:1.6rem;color:#fbbf24">#4</div>
+          <div><div style="font-size:.82rem;font-weight:600;color:var(--t1)">Global Ranking Status</div><div style="font-size:.68rem;color:var(--t2)">Top 1% of distributed coaches</div></div>
+          <div style="margin-left:auto;font-size:1.5rem">🥇</div>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <div style="font-size:.72rem;color:var(--t2)">Progress Track to Diamond Coach Badge</div>
+            <div style="font-size:.72rem;font-weight:700;color:#b855f0">72%</div>
+          </div>
+          <div class="pbar"><div class="pf" style="width:72%"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ══════════ DATA ENGINE CONFIGURATIONS SCRIPTS ══════════ -->
+<script>
+  const htmlDoc = document.documentElement;
+
+  function toggleTheme(){
+    const isDark = htmlDoc.classList.contains('dark');
+    htmlDoc.className = isDark ? 'light' : 'dark';
+    
+    document.getElementById('mi').classList.toggle('hidden', isDark);
+    document.getElementById('si').classList.toggle('hidden', !isDark);
+    
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    rebuildCharts();
+  }
+
+  const isDarkEcosystem = () => htmlDoc.classList.contains('dark');
+  const getGridColorColors = () => isDarkEcosystem() ? 'rgba(255,255,255,0.05)' : 'rgba(150,0,182,0.06)';
+  const getTickColorColors = () => isDarkEcosystem() ? '#7a6b94' : '#5a4b73';
+  const getTooltipBackground = () => isDarkEcosystem() ? '#18132e' : '#ffffff';
+  const getTooltipTextColors = () => isDarkEcosystem() ? '#f0eeff' : '#1a0f2e';
+
+  const sd={
+    today:[
+      {av:'AR',avc:'av-b',n:'Alex Rodriguez',r:'Software Engineer',t:'10:00 AM',p:'Zoom',chip:'TODAY',cc:'#fbbf24',cb:'rgba(251,191,36,.12)'},
+      {av:'PK',avc:'av-c',n:'Priya Kapoor',r:'Product Manager',t:'2:00 PM',p:'Google Meet',chip:'TODAY',cc:'#fbbf24',cb:'rgba(251,191,36,.12)'}
+    ],
+    upcoming:[
+      {av:'JW',avc:'av-d',n:'James Wilson',r:'Data Scientist',t:'Fri 11:30 AM',p:'Zoom',chip:'NEXT',cc:'#b855f0',cb:'rgba(155,48,217,.15)'},
+      {av:'MC',avc:'av-e',n:'Maria Chen',r:'UX Designer',t:'Mon 3:00 PM',p:'Teams',chip:'UPCOMING',cc:'#60a5fa',cb:'rgba(59,130,246,.12)'}
+    ],
+    past:[
+      {av:'ET',avc:'av-c',n:'Emma Thompson',r:'Marketing Lead',t:'May 8, 9:00 AM',p:'Zoom',chip:'DONE',cc:'#22c55e',cb:'rgba(34,197,94,.12)'}
+    ]
+  };
+
+  function renderSess(tab){
+    const listElement = document.getElementById('slist');
+    if(!listElement) return;
+    listElement.innerHTML=sd[tab].map(s=>`
+      <div class="sr">
+        <div class="${s.avc} flex items-center justify-center text-white font-bold rounded-xl flex-shrink-0" style="width:38px;height:38px;font-size:.72rem">${s.av}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.82rem;font-weight:600;color:var(--t1)">${s.n}</div>
+          <div style="font-size:.7rem;color:var(--t2);margin-top:1px">${s.r} · ${s.p}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <span style="font-size:.65rem;font-weight:700;padding:2px 9px;border-radius:20px;background:${s.cb};color:${s.cc}">${s.chip}</span>
+          <span style="font-size:.68rem;color:var(--t3)">${s.t}</span>
+        </div>
+      </div>`).join('');
+  }
+
+    async function switchTab(el,tab){
+    document.querySelectorAll('.stab').forEach(b=>{b.classList.remove('on');});
+    el.classList.add('on');
+
+    // Try backend first; fall back to mock data.
+    await loadSessionsTab(tab);
+  }
+
+  async function loadSessionsTab(tab){
+    // map dashboard tabs to backend types (best-effort)
+    const typeMap = { today: 'today', upcoming: 'upcoming', past: 'past' };
+    const type = typeMap[tab] || tab;
+
+    const listElement = document.getElementById('slist');
+    if(!listElement) return;
+
+    const token = localStorage.getItem('token');
+    if(!token){
+      renderSess(tab);
+      return;
+    }
+
+    try {
+      const res = await fetch(window.apiUrl('/api/dashboard/sessions?type=' + encodeURIComponent(type) + '&limit=6'), {
+        method: 'GET',
+        headers: {
+          'Authorization': token
+        }
+      });
+      const data = await res.json();
+      if(!res.ok || data.error){
+        renderSess(tab);
+        return;
+      }
+
+      const sessions = data.sessions || [];
+      if(!sessions.length){
+        renderSess(tab);
+        return;
+      }
+
+      // Render minimal session cards
+      listElement.innerHTML = sessions.map(s => {
+        const status = (s.status || '').toLowerCase();
+        const chip = status === 'completed' ? 'DONE' : (tab === 'past' ? 'DONE' : (tab === 'upcoming' ? 'UPCOMING' : 'TODAY'));
+        const color = status === 'completed' ? '#22c55e' : (tab === 'upcoming' ? '#b855f0' : '#fbbf24');
+        const bg = status === 'completed' ? 'rgba(34,197,94,.12)' : (tab === 'upcoming' ? 'rgba(155,48,217,.15)' : 'rgba(251,191,36,.12)');
+        const name = s.matched_user_id ? ('User #' + s.matched_user_id) : (s.title || 'Session');
+        const role = s.skill || 'Track';
+        const p = 'Meet';
+        const t = s.scheduled_time ? new Date(s.scheduled_time).toLocaleString([], { weekday:'short', hour:'2-digit', minute:'2-digit' }) : '';
+
+        return `
+          <div class="sr">
+            <div class="hm0 flex items-center justify-center text-white font-bold rounded-xl flex-shrink-0" style="width:38px;height:38px;font-size:.72rem;background:${color}">${String(name).slice(0,2).toUpperCase()}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:.82rem;font-weight:600;color:var(--t1)">${name}</div>
+              <div style="font-size:.7rem;color:var(--t2);margin-top:1px">${role} · ${p}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+              <span style="font-size:.65rem;font-weight:700;padding:2px 9px;border-radius:20px;background:${bg};color:${color}">${chip}</span>
+              <span style="font-size:.68rem;color:var(--t3)">${t}</span>
+            </div>
+          </div>`;
+      }).join('');
+    } catch (e){
+      renderSess(tab);
+    }
+  }
+
+  const cd={
+    month:{labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],sessions:[8,12,10,15,18,14,20,16,24,19,22,28],placements:[2,3,2,4,5,3,6,4,8,5,7,9]},
+    quarter:{labels:['Q1','Q2','Q3','Q4'],sessions:[30,47,60,69],placements:[7,12,18,21]},
+    year:{labels:['2021','2022','2023','2024','2025','2026'],sessions:[40,75,98,120,135,142],placements:[10,20,28,35,38,45]}
+  };
+  let sc,ec,dc,rc2,curPeriod='month',curType='line';
+
+  const getTooltipOptions = () => ({
+    backgroundColor: getTooltipBackground(),
+    titleColor: getTooltipTextColors(),
+    bodyColor: getTickColorColors(),
+    borderColor: 'rgba(150, 0, 182, 0.25)',
+    borderWidth: 1,
+    cornerRadius: 12,
+    padding: 10,
+    font: { family: 'Poppins' }
+  });
+
+  function buildSess(period,type){
+    const d=cd[period];
+    const ctx=document.getElementById('sc').getContext('2d');
+    const g1=ctx.createLinearGradient(0,0,0,200);g1.addColorStop(0,'rgba(150,0,182,0.25)');g1.addColorStop(1,'rgba(150,0,182,0)');
+    const g2=ctx.createLinearGradient(0,0,0,200);g2.addColorStop(0,'rgba(34,197,94,0.15)');g2.addColorStop(1,'rgba(34,197,94,0)');
+    
+    sc=new Chart(ctx,{
+      type,
+      data:{labels:d.labels,datasets:[
+        {label:'Sessions',data:d.sessions,borderColor:'#9b30d9',backgroundColor:type==='line'?g1:'rgba(150,0,182,0.7)',borderWidth:2.5,tension:0.4,fill:type==='line',pointBackgroundColor:'#9b30d9',pointRadius:3,pointHoverRadius:5,borderRadius:type==='bar'?6:0,borderSkipped:false},
+        {label:'Placements',data:d.placements,borderColor:'#22c55e',backgroundColor:type==='line'?g2:'rgba(34,197,94,0.4)',borderWidth:2.5,tension:0.4,fill:type==='line',pointBackgroundColor:'#22c55e',pointRadius:3,pointHoverRadius:5,borderRadius:type==='bar'?6:0,borderSkipped:false}
+      ]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{...getTooltipOptions(),mode:'index',intersect:false}},
+        scales:{
+          x:{grid:{color:getGridColorColors()},ticks:{color:getTickColorColors(),font:{family:'Poppins',size:10}}},
+          y:{grid:{color:getGridColorColors()},ticks:{color:getTickColorColors(),font:{family:'Poppins',size:10}},beginAtZero:true}
+        }
+      }
+    });
+  }
+
+  function buildEarnings(){
+    const ctx=document.getElementById('ec').getContext('2d');
+    ec=new Chart(ctx,{
+      type:'bar',
+      data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[{label:'Tokens',data:[40,75,55,90,120,30,20],backgroundColor:(context)=>context.raw===120?'#b855f0':'#9b30d9',borderRadius:7,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...getTooltipOptions()}},scales:{x:{grid:{display:false},ticks:{color:getTickColorColors(),font:{family:'Poppins',size:10}}},y:{grid:{color:getGridColorColors()},ticks:{color:getTickColorColors(),font:{family:'Poppins',size:10}},beginAtZero:true}}}
+    });
+  }
+
+  function buildDonut(){
+    const ctx=document.getElementById('dc').getContext('2d');
+    dc=new Chart(ctx,{type:'doughnut',data:{labels:['Career','Interview','Resume','Mock'],datasets:[{data:[10,7,4,3],backgroundColor:['#9b30d9','#b855f0','#22c55e','#60a5fa'],borderWidth:0,hoverOffset:5}]},options:{responsive:false,plugins:{legend:{display:false},tooltip:{...getTooltipOptions()}},cutout:'68%'}});
+  }
+
+  function buildRadar(){
+    const ctx=document.getElementById('rc2').getContext('2d');
+    const g=ctx.createRadialGradient(100,100,0,100,100,100);
+    g.addColorStop(0,'rgba(150,0,182,0.2)');g.addColorStop(1,'rgba(150,0,182,0.02)');
+    
+    rc2=new Chart(ctx,{
+      type:'radar',
+      data:{labels:['Empathy','Clarity','Follow-up','Placement','Interview','Resume'],datasets:[{label:'Score',data:[95,88,80,92,78,85],borderColor:'#9b30d9',backgroundColor:g,borderWidth:2,pointBackgroundColor:'#b855f0',pointRadius:3}]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{...getTooltipOptions()}},
+        scales:{r:{grid:{color:getGridColorColors()},angleLines:{color:getGridColorColors()},ticks:{display:false},pointLabels:{color:getTickColorColors(),font:{family:'Poppins',size:9}}}}
+      }
+    });
+  }
+
+  function rebuildCharts(){
+    [sc,ec,dc,rc2].forEach(c=>{if(c)c.destroy();});
+    buildSess(curPeriod,curType);buildEarnings();buildDonut();buildRadar();
+  }
+
+  function updateCharts(period){
+    curPeriod=period;
+    if(sc){ sc.destroy(); buildSess(period,curType); }
+  }
+
+  function setView(type){
+    curType=type;
+    const lineBtn=document.getElementById('lineBtn');
+    const barBtn=document.getElementById('barBtn');
+    if(lineBtn){
+      lineBtn.style.background=type==='line'?'rgba(155,48,217,.15)':'var(--card2)';
+      lineBtn.style.color=type==='line'?'#b855f0':'var(--t2)';
+    }
+    if(barBtn){
+      barBtn.style.background=type==='bar'?'rgba(155,48,217,.15)':'var(--card2)';
+      barBtn.style.color=type==='bar'?'#b855f0':'var(--t2)';
+    }
+    if(sc){ sc.destroy(); buildSess(curPeriod,type); }
+  }
+
+  function __dashboard_init_guard(){
+    const scEl=document.getElementById('sc');
+    const ecEl=document.getElementById('ec');
+    const dcEl=document.getElementById('dc');
+    const rcEl=document.getElementById('rc2');
+    const hmEl=document.getElementById('hm');
+    if(!scEl || !ecEl || !dcEl || !rcEl || !hmEl) return false;
+    return true;
+  }
+
+  (async function initDashboard(){
+
+    if(!__dashboard_init_guard()) return;
+    
+    const activeTheme = localStorage.getItem('theme') || 'dark';
+    document.getElementById('mi').classList.toggle('hidden', activeTheme === 'light');
+    document.getElementById('si').classList.toggle('hidden', activeTheme === 'dark');
+
+    await loadSessionsTab('today');
+
+    const hmEl=document.getElementById('hm');
+    for(let i=0;i<84;i++){
+      const d=document.createElement('div');
+      d.className=`hmc hm${Math.floor(Math.random()*5)}`;
+      hmEl.appendChild(d);
+    }
+    
+    buildSess(curPeriod,curType);
+    buildEarnings();
+    buildDonut();
+    buildRadar();
+    setView(curType);
+  })();
+</script>
+</body>
+</html>

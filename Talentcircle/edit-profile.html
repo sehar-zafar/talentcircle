@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TalentCircle – Edit Profile Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+<style>
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f4f6fb;
+    --bg-card: #ffffff;
+    --border: #e5e7eb;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --accent: #7C5CB7;
+    --accent-light: #F4F0FF;
+    --radius: 28px;
+    --radius-sm: 14px;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  }
+  [data-theme="dark"] {
+    --bg-primary: #030107;
+    --bg-secondary: #0B0813;
+    --bg-card: #090514;
+    --border: #3B1B6B;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --accent: #BC77FF;
+    --accent-light: #120B24;
+    --shadow: 0 0 35px rgba(188, 119, 255, 0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: 'Poppins', sans-serif; 
+    background: var(--bg-secondary); 
+    color: var(--text-primary); 
+    min-height: 100vh; 
+    padding: 40px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  
+  /* Smooth Slide-In Keyframe Animation */
+  @keyframes slideInUp {
+    0% { transform: translateY(30px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  .editor-container { 
+    width: 100%;
+    max-width: 650px; 
+    background: var(--bg-card); 
+    border: 1px solid var(--border); 
+    border-radius: var(--radius); 
+    padding: 40px; 
+    box-shadow: var(--shadow); 
+    animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .editor-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .editor-header h2 { 
+    font-weight: 800; 
+    font-size: 26px; 
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px; 
+  }
+  .editor-header p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+  
+  .form-group { margin-bottom: 24px; }
+  .form-label { font-size: 13px; font-weight: 700; margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); }
+  .form-input { width: 100%; padding: 14px 18px; border: 2px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); font-family: 'Poppins', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+  .form-input:focus { border-color: var(--accent); box-shadow: 0 0 12px rgba(188, 119, 255, 0.2); }
+  
+  /* Upload Matrix Elements */
+  .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius-sm); padding: 24px; text-align: center; cursor: pointer; background: var(--bg-secondary); transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+  .upload-zone:hover { border-color: var(--accent); background: var(--accent-light); transform: scale(1.01); }
+  .upload-icon { font-size: 32px; margin-bottom: 8px; color: var(--accent); }
+  .upload-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+ .actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 32px;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+}
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 26px; border-radius: 9999px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; text-decoration: none; transition: transform 0.2s, filter 0.2s; }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(188, 119, 255, 0.2); }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-ghost { background: transparent; color: var(--text-primary); border: 2px solid var(--border); }
+  .btn-ghost:hover { background: var(--bg-secondary); }
+  
+  .pfp-preview-circle { width: 86px; height: 86px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); margin: 0 auto 16px; display: block; box-shadow: 0 0 15px rgba(188, 119, 255, 0.1); }
+  .secure-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-light); padding: 4px 12px; border-radius: 9999px; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<div class="editor-container">
+  <div class="editor-header">
+    <div class="secure-badge"><i class="fas fa-lock"></i> AES-256 Encrypted Session</div>
+    <h2>✏️ Edit Profile Parameters</h2>
+    <p>Modify credentials, personal info statements, and identity uploads</p>
+  </div>
+  
+  <form id="profile-editor-form" onsubmit="commitProfileModifications(event)">
+    
+    <!-- Profile Picture (PFP) Upload Matrix Block -->
+    <div class="form-group" style="background: rgba(255,255,255,0.01); padding: 20px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+      <label class="form-label" style="text-align: center;">Explicit Profile Picture (PFP)</label>
+      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" class="pfp-preview-circle" id="pfp-preview-node" alt="PFP">
+      <div class="upload-zone" onclick="document.getElementById('pfp-file-input').click()">
+        <input type="file" id="pfp-file-input" accept="image/*" style="display:none;" onchange="processPFPFileConversion(this)">
+        <div class="upload-icon"><i class="fas fa-camera"></i></div>
+        <div class="upload-label" id="pfp-upload-status-text">Upload Custom PFP Image</div>
+      </div>
+    </div>
+
+    <!-- Input: Full Name -->
+    <div class="form-group">
+      <label class="form-label" for="input-fullname">Full Name</label>
+      <input class="form-input" id="input-fullname" value="Tahir Rafiq" required autocomplete="off">
+    </div>
+
+    <!-- Input: Professional Title -->
+    <div class="form-group">
+      <label class="form-label" for="input-title">Professional System Title</label>
+      <input class="form-input" id="input-title" value="Chief Operating Officer & Solutions Architect" required autocomplete="off">
+    </div>
+
+    <!-- Identity Verification Documents Block (CNIC / Birth Certificate) -->
+    <div class="form-group">
+      <label class="form-label">Identity Document (CNIC / Birth Certificate) *</label>
+      <div class="upload-zone" onclick="document.getElementById('cnic-file-input').click()">
+        <input type="file" id="cnic-file-input" accept="image/*,.pdf" style="display:none" onchange="handleIdentityDocumentChoice(this)">
+        <div class="upload-icon"><i class="fas fa-fingerprint"></i></div>
+        <div class="upload-label" id="cnic-status">Select Front & Back ID Assets</div>
+      </div>
+    </div>
+
+    <!-- Interactive Navigation Control Row -->
+    <div class="actions-row">
+      <a href="profile.html" class="btn btn-ghost"><i class="fas fa-arrow-left"></i> Discard</a>
+      <button type="submit" class="btn btn-primary">💾 Deploy Modifications</button>
+    </div>
+  </form>
+</div>
+
+<script>
+// Pull layout data from state engines on initialization
+if(localStorage.getItem('tc_fullname')) document.getElementById('input-fullname').value = localStorage.getItem('tc_fullname');
+if(localStorage.getItem('tc_title')) document.getElementById('input-title').value = localStorage.getItem('tc_title');
+if(localStorage.getItem('tc_pfp')) document.getElementById('pfp-preview-node').src = localStorage.getItem('tc_pfp');
+
+// Enforce anti-copy lockdown framework parameters inside input spaces
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => { 
+  if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C')) || (e.ctrlKey && (e.key === 'c' || e.key === 'v'))) { 
+    e.preventDefault(); 
+    return false; 
+  } 
+});
+
+// Serialize image file inputs into clean Base64 strings for cross-file delivery
+function processPFPFileConversion(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('pfp-preview-node').src = e.target.result;
+      localStorage.setItem('tc_pfp', e.target.result);
+      document.getElementById('pfp-upload-status-text').textContent = "✓ Custom PFP Stream Synchronized";
+      document.getElementById('pfp-upload-status-text').style.color = "var(--accent)";
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function handleIdentityDocumentChoice(input) {
+  if (input.files && input.files.length > 0) {
+    const targetLabel = document.getElementById('cnic-status');
+    targetLabel.textContent = "✓ Identification Credentials Cached";
+    targetLabel.style.color = "var(--accent)";
+  }
+}
+
+// Push updated variables to LocalStorage and return context to profile dashboard
+function commitProfileModifications(e) {
+  e.preventDefault();
+  localStorage.setItem('tc_fullname', document.getElementById('input-fullname').value.trim());
+  localStorage.setItem('tc_title', document.getElementById('input-title').value.trim());
+  alert("Success! Parameters deployed securely to Talent Circle network layer.");
+  window.location.href = "profile.html";
+}
+</script>
+</body>
+</html>

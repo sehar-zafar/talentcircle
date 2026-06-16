@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sessions | Talent Circle</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+   <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'tc-black':   '#0a0a0f',
+            'tc-dark':    '#100f1a',
+            'tc-card':    '#15131f',
+            'tc-border':  '#2a2440',
+            'tc-purple':  '#9b30d9',
+            'tc-violet':  '#7b1fa2',
+            'tc-lavender':'#c05fe8',
+            'tc-soft':    '#d98bf5',
+            'tc-glow':    '#6a1699',
+            'tc-green':   '#22c55e',
+            'tc-red':     '#ef4444',
+            'tc-amber':   '#f59e0b',
+          },
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body: ['DM Sans', 'sans-serif'],
+          },
+          boxShadow: {
+            'purple-glow': '0 0 30px rgba(155,48,217,0.25)',
+            'purple-soft': '0 0 12px rgba(155,48,217,0.15)',
+            'green-soft':  '0 0 12px rgba(34,197,94,0.2)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: #0a0a0f; color: #e5e0f5; }
+    h1,h2,h3,h4,h5,h6,.font-display { font-family: 'Syne', sans-serif; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #100f1a; }
+    ::-webkit-scrollbar-thumb { background: #2a2440; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #9b30d9; }
+
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+
+    .orb { position:fixed; border-radius:50%; filter:blur(80px); pointer-events:none; z-index:0; }
+    .orb-1 { width:500px; height:500px; top:-200px; right:-100px; background:radial-gradient(circle, rgba(155,48,217,0.18) 0%, transparent 70%); }
+    .orb-2 { width:400px; height:400px; bottom:-100px; left:-100px; background:radial-gradient(circle, rgba(155,48,217,0.12) 0%, transparent 70%); }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(12px);} to { opacity:1; transform:translateY(0);} }
+    .fade-up { animation: fadeUp 0.4s ease forwards; }
+    .fade-up-delay-1 { animation-delay: 0.05s; opacity:0; }
+    .fade-up-delay-2 { animation-delay: 0.10s; opacity:0; }
+    .fade-up-delay-3 { animation-delay: 0.15s; opacity:0; }
+
+    @keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+    .pulse-dot { animation: pulse-dot 2s infinite; }
+
+    @keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+    .spin { animation: spin 0.8s linear infinite; }
+
+    @keyframes glow-pulse {
+      0%,100% { box-shadow: 0 0 12px rgba(34,197,94,0.3); }
+      50% { box-shadow: 0 0 24px rgba(34,197,94,0.6); }
+    }
+    .meet-active { animation: glow-pulse 2s ease-in-out infinite; }
+
+    .session-card { transition: all 0.2s ease; }
+    .session-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(155,48,217,0.15); }
+
+    .modal-backdrop { backdrop-filter: blur(6px); }
+
+    .tab-btn.active { background: rgba(155,48,217,0.2); color: #d98bf5; border-color: rgba(155,48,217,0.5); }
+
+    /* Google Sign-in button */
+    .google-btn {
+      background: #fff;
+      color: #3c4043;
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+    .google-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.2); background: #f8f9fa; }
+
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .status-dot.confirmed { background: #22c55e; }
+    .status-dot.pending   { background: #f59e0b; }
+    .status-dot.completed { background: #6b7280; }
+
+    /* Copy flash */
+    @keyframes copied { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+    .copied-flash { animation: copied 0.3s ease; }
+
+    .meet-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; padding: 3px 8px; border-radius: 6px;
+      background: rgba(34,197,94,0.12); color: #4ade80;
+      border: 1px solid rgba(34,197,94,0.25);
+    }
+    .meet-badge.pending-meet {
+      background: rgba(245,158,11,0.12); color: #fcd34d;
+      border: 1px solid rgba(245,158,11,0.25);
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.7);
+      cursor: pointer;
+    }
+
+    /* Force white text */
+    .app-root, .app-root * { color: #ffffff !important; }
+    .app-root input, .app-root select, .app-root textarea { color: #ffffff !important; }
+    .app-root ::placeholder { color: rgba(255,255,255,0.45) !important; }
+    .google-btn, .google-btn * { color: #3c4043 !important; }
+  </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden">
+
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="app-root relative z-10 flex h-screen overflow-hidden">
+
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="hidden md:flex w-64 flex-shrink-0 flex-col border-r border-tc-border bg-tc-dark/80 backdrop-blur-md">
+      <div class="px-4 py-4 border-b border-tc-border">
+        <img src="images/logo.png" alt="Talent Circle" class="h-12 w-auto object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+        <div style="display:none" class="items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-tc-purple to-tc-glow flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/></svg>
+          </div>
+          <span class="font-display font-700 text-white text-sm">Talent Circle</span>
+        </div>
+      </div>
+      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <div class="px-3 mb-3">
+          <p class="text-xs font-display font-600 text-tc-soft/40 uppercase tracking-widest">Menu</p>
+        </div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-tc-soft/60 hover:text-tc-soft hover:bg-white/5 transition-all text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Dashboard
+        </a>
+        <a href="calendar.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-tc-soft/60 hover:text-tc-soft hover:bg-white/5 transition-all text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          Calendar
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-tc-purple/20 text-tc-lavender border border-tc-purple/30 text-sm font-500">
+          <svg class="w-4 h-4 text-tc-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Sessions
+          <span class="ml-auto w-2 h-2 rounded-full bg-tc-purple pulse-dot"></span>
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-tc-soft/60 hover:text-tc-soft hover:bg-white/5 transition-all text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Progress
+        </a>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-tc-soft/60 hover:text-tc-soft hover:bg-white/5 transition-all text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+          Messages
+          <span class="ml-auto bg-tc-purple text-white text-xs px-1.5 py-0.5 rounded-full font-display">3</span>
+        </a>
+        <div class="px-3 mt-5 mb-3">
+          <p class="text-xs font-display font-600 text-tc-soft/40 uppercase tracking-widest">Settings</p>
+        </div>
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-tc-soft/60 hover:text-tc-soft hover:bg-white/5 transition-all text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Preferences
+        </a>
+      </nav>
+      <div class="px-4 py-4 border-t border-tc-border">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-tc-purple to-tc-glow flex items-center justify-center text-white font-display font-700 text-sm shadow-purple-soft">A</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-500 text-white truncate">Alex Rivera</p>
+            <p class="text-xs text-tc-soft/50 truncate">Full-Stack Dev</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ═══ MAIN ═══ -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+
+      <!-- Header -->
+      <header class="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-tc-border bg-tc-dark/60 backdrop-blur-md flex-shrink-0">
+        <div class="fade-up">
+          <h1 class="font-display text-2xl font-800 text-white tracking-tight">Sessions</h1>
+          <p class="text-sm text-tc-soft/50 mt-0.5">Manage & launch your skill-swap sessions with Google Meet</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- Google Auth Status -->
+          <div id="auth-status" class="flex items-center gap-2">
+            <button onclick="handleGoogleAuth()" id="google-auth-btn" class="google-btn">
+              <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+                <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+                <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z"/>
+              </svg>
+              Connect Google
+            </button>
+          </div>
+          <button onclick="openNewSessionModal()" class="flex items-center gap-2 px-4 py-2 bg-tc-purple hover:bg-tc-violet rounded-xl text-white text-sm font-display font-600 shadow-purple-glow transition-all hover:scale-105 active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            New Session
+          </button>
+        </div>
+      </header>
+
+      <!-- Stats bar -->
+      <div class="flex items-center gap-4 px-4 sm:px-8 py-3 border-b border-tc-border bg-tc-dark/40 overflow-x-auto flex-shrink-0 fade-up fade-up-delay-1">
+        <div class="flex items-center gap-2.5 flex-shrink-0">
+          <div class="w-2 h-2 rounded-full bg-green-400"></div>
+          <span class="text-xs text-tc-soft/60">Confirmed</span>
+          <span class="font-display font-700 text-sm text-white" id="stat-confirmed">0</span>
+        </div>
+        <div class="w-px h-4 bg-tc-border"></div>
+        <div class="flex items-center gap-2.5 flex-shrink-0">
+          <div class="w-2 h-2 rounded-full bg-amber-400"></div>
+          <span class="text-xs text-tc-soft/60">Pending</span>
+          <span class="font-display font-700 text-sm text-white" id="stat-pending">0</span>
+        </div>
+        <div class="w-px h-4 bg-tc-border"></div>
+        <div class="flex items-center gap-2.5 flex-shrink-0">
+          <div class="w-2 h-2 rounded-full bg-gray-500"></div>
+          <span class="text-xs text-tc-soft/60">Completed</span>
+          <span class="font-display font-700 text-sm text-white" id="stat-completed">0</span>
+        </div>
+        <div class="w-px h-4 bg-tc-border"></div>
+        <div class="flex items-center gap-2.5 flex-shrink-0">
+          <svg class="w-3 h-3" style="color:#4ade80" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
+          <span class="text-xs text-tc-soft/60">With Meet link</span>
+          <span class="font-display font-700 text-sm" style="color:#4ade80" id="stat-meet">0</span>
+        </div>
+      </div>
+
+      <!-- Filters + List -->
+      <div class="flex-1 overflow-hidden flex flex-col lg:flex-row">
+
+        <!-- Sessions List -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+
+          <!-- Filter bar -->
+          <div class="flex items-center justify-between px-4 sm:px-8 py-3 flex-shrink-0 gap-3 flex-wrap">
+            <div class="flex items-center gap-1 bg-tc-card border border-tc-border rounded-xl p-1">
+              <button class="tab-btn active px-3 py-1.5 rounded-lg text-xs font-display font-600 border border-transparent transition-all" data-filter="all" onclick="setFilter('all')">All</button>
+              <button class="tab-btn px-3 py-1.5 rounded-lg text-xs font-display font-600 border border-transparent text-tc-soft/50 transition-all" data-filter="upcoming" onclick="setFilter('upcoming')">Upcoming</button>
+              <button class="tab-btn px-3 py-1.5 rounded-lg text-xs font-display font-600 border border-transparent text-tc-soft/50 transition-all" data-filter="teaching" onclick="setFilter('teaching')">Teaching</button>
+              <button class="tab-btn px-3 py-1.5 rounded-lg text-xs font-display font-600 border border-transparent text-tc-soft/50 transition-all" data-filter="learning" onclick="setFilter('learning')">Learning</button>
+              <button class="tab-btn px-3 py-1.5 rounded-lg text-xs font-display font-600 border border-transparent text-tc-soft/50 transition-all" data-filter="completed" onclick="setFilter('completed')">Completed</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="text" id="search-input" placeholder="Search sessions…" oninput="renderSessions()" class="bg-tc-card border border-tc-border rounded-xl px-3 py-2 text-xs text-white placeholder-tc-soft/30 focus:outline-none focus:border-tc-purple/60 w-44 transition-all"/>
+            </div>
+          </div>
+
+          <!-- Sessions grid -->
+          <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-2 pb-6" id="sessions-list">
+            <!-- populated by JS -->
+          </div>
+        </div>
+
+        <!-- Right: Session Detail Panel -->
+        <aside class="hidden lg:flex w-80 flex-shrink-0 border-l border-tc-border bg-tc-dark/60 backdrop-blur-md flex-col overflow-hidden fade-up fade-up-delay-3" id="detail-panel">
+          <div class="px-5 pt-5 pb-3 border-b border-tc-border">
+            <p class="font-display font-700 text-sm text-white">Session Detail</p>
+          </div>
+          <div class="flex-1 flex items-center justify-center px-5" id="detail-content">
+            <div class="text-center">
+              <div class="w-16 h-16 rounded-2xl bg-tc-card border border-tc-border flex items-center justify-center mx-auto mb-4">
+                <svg class="w-7 h-7 text-tc-soft/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              </div>
+              <p class="text-sm text-tc-soft/40 font-display">Select a session<br/>to view details</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <!-- ═══ NEW SESSION MODAL ═══ -->
+  <div id="new-session-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop bg-black/60">
+    <div class="w-full max-w-lg mx-4 bg-tc-card border border-tc-border rounded-2xl shadow-2xl shadow-purple-glow overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-tc-border">
+        <h3 class="font-display font-700 text-white">Schedule New Session</h3>
+        <button onclick="closeNewSessionModal()" class="w-8 h-8 rounded-lg border border-tc-border hover:border-tc-purple/50 flex items-center justify-center text-tc-soft/50 hover:text-tc-soft transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
+        <div>
+          <label class="block text-xs font-display font-600 text-tc-soft/60 uppercase tracking-widest mb-1.5">Skill / Topic *</label>
+          <input type="text" id="ns-topic" placeholder="e.g. React Hooks, Python Basics…" class="w-full bg-tc-dark border border-tc-border rounded-xl px-4 py-2.5 text-sm text-white placeholder-tc-soft/30 focus:outline-none focus:border-tc-purple/60 transition-all"/>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-display font-600 text-tc-soft/60 uppercase tracking-widest mb-1.5">Date *</label>
+            <input type="date" id="ns-date" class="w-full bg-tc-dark border border-tc-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-tc-purple/60 transition-all"/>
+          </div>
+          <div>
+            <label class="block text-xs font-display font-600 text-tc-soft/60 uppercase tracking-widest mb-1.5">Time *</label>
+            <input type="time" id="ns-time" class="w-full bg-tc-dark border border-tc-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-tc-purple/60 transition-all"/>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-display font-600 text-tc-soft/60 uppercase tracking-widest mb-1.5">Session Type</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" id="type-teaching" onclick="selectModalType('teaching')" class="type-btn py-2.5 rounded-xl border border-tc-border text-sm text-tc-soft/60 font-display hover:border-tc-purple/40 hover:text-tc-lavender transition-all">🎓 Teaching</button>
+            <button type="button" id="type-learning" onclick="selectModalType('learning')" class="type-btn py-2.5 rounded-xl border border-tc-border text-sm text-tc-soft/60 font-display hover:border-tc-purple/40 hover:text-tc-lavender transition-all">📚 Learning</button>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-display font-600 text-tc-soft/60 uppercase tracking-widest mb-1.5">Partner Name</label>
+          <input type="text" id="ns-partner" placeholder="Search by name…" class="w-full bg-tc-dark border border-tc-border rounded-xl px-4 py-2.5 text-sm text-white placeholder-tc-soft/30 focus:outline-none focus:border-tc-purple/60 transition-all"/>
+        </div>
+        <div>
+          <label class="block text-xs font-display font-600 text-tc-soft/60 uppercase tracking-widest mb-1.5">Partner Email (for invite)</label>
+          <input type="email" id="ns-email" placeholder="partner@email.com" class="w-full bg-tc-dark border border-tc-border rounded-xl px-4 py-2.5 text-sm text-white placeholder-tc-soft/30 focus:outline-none focus:border-tc-purple/60 transition-all"/>
+        </div>
+        <div>
+          <label class="block text-xs font-display font-600 text-tc-soft/60 uppercase tracking-widest mb-1.5">Duration</label>
+          <select id="ns-duration" class="w-full bg-tc-dark border border-tc-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-tc-purple/60 transition-all">
+            <option value="30">30 minutes</option>
+            <option value="60" selected>60 minutes</option>
+            <option value="90">90 minutes</option>
+            <option value="120">2 hours</option>
+          </select>
+        </div>
+
+        <!-- Google Meet toggle -->
+        <div class="rounded-xl border border-tc-border bg-tc-dark/60 p-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="20" height="20" rx="4" fill="#1A73E8"/>
+                <path d="M11.5 10c0 .83-.67 1.5-1.5 1.5S8.5 10.83 8.5 10 9.17 8.5 10 8.5s1.5.67 1.5 1.5z" fill="white"/>
+                <path d="M13.33 7H6.67C5.75 7 5 7.75 5 8.67v2.67c0 .92.75 1.67 1.67 1.67h6.67c.92 0 1.67-.75 1.67-1.67V8.67C15 7.75 14.25 7 13.33 7zM15 9.17l1.5-1.5v4.67L15 10.83V9.17z" fill="white"/>
+              </svg>
+              <span class="text-sm font-display font-600 text-white">Auto-create Google Meet</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="ns-meet-toggle" class="sr-only peer" checked>
+              <div class="w-10 h-5 bg-tc-border peer-checked:bg-tc-purple rounded-full peer peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+            </label>
+          </div>
+          <p class="text-xs text-tc-soft/40" id="meet-toggle-note">A Google Meet link will be created and added to the session. Partner will be emailed the invite.</p>
+        </div>
+      </div>
+      <div class="px-6 pb-5 flex gap-3">
+        <button onclick="closeNewSessionModal()" class="flex-1 py-2.5 rounded-xl border border-tc-border text-sm font-display font-600 text-tc-soft/60 hover:border-tc-purple/40 hover:text-tc-soft transition-all">Cancel</button>
+        <button onclick="createSession()" id="create-btn" class="flex-1 py-2.5 rounded-xl bg-tc-purple hover:bg-tc-violet text-white text-sm font-display font-600 shadow-purple-soft transition-all hover:shadow-purple-glow flex items-center justify-center gap-2">
+          <span id="create-btn-text">Schedule + Meet</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ DETAIL MODAL (mobile) ═══ -->
+  <div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop bg-black/60 lg:hidden">
+    <div class="w-full max-w-sm mx-4 bg-tc-card border border-tc-border rounded-2xl shadow-2xl overflow-hidden">
+      <div id="detail-modal-content" class="p-6"></div>
+      <div class="px-6 pb-5">
+        <button onclick="document.getElementById('detail-modal').classList.replace('flex','hidden')" class="w-full py-2.5 rounded-xl border border-tc-border text-sm font-display font-600 text-tc-soft/60 hover:border-tc-purple/40 transition-all">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
+    <div class="bg-tc-card border border-tc-border rounded-xl px-4 py-3 flex items-center gap-3 shadow-2xl min-w-64">
+      <div id="toast-icon" class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"></div>
+      <p id="toast-msg" class="text-sm font-display font-600 text-white"></p>
+    </div>
+  </div>
+
+  <script>
+    // ══════════════════════════════════════════════════════
+    //  CONFIG — replace with your real OAuth client ID
+    // ══════════════════════════════════════════════════════
+    const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+    const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
+
+    // ══════════════════════════════════════════════════════
+    //  STATE
+    // ══════════════════════════════════════════════════════
+    let googleToken = null;
+    let selectedType = 'teaching';
+    let currentFilter = 'all';
+    let selectedSessionId = null;
+
+    const today = new Date();
+
+    let SESSIONS = [
+      { id:1,  topic:'React Hooks',       type:'teaching', partner:'Sam K.',    email:'sam@example.com',   date:'2026-05-05', time:'14:00', duration:60,  status:'completed', meetLink:'https://meet.google.com/abc-defg-hij', calendarEventId:'evt_001' },
+      { id:2,  topic:'Python Basics',     type:'learning',  partner:'Nadia R.',  email:'nadia@example.com', date:'2026-05-07', time:'10:00', duration:60,  status:'completed', meetLink:'https://meet.google.com/xyz-uvwx-yz1', calendarEventId:'evt_002' },
+      { id:3,  topic:'UI/UX Review',      type:'teaching', partner:'Jin L.',    email:'jin@example.com',   date:'2026-05-10', time:'15:30', duration:90,  status:'completed', meetLink:'https://meet.google.com/mno-pqrs-tuv', calendarEventId:'evt_003' },
+      { id:4,  topic:'SQL Queries',       type:'learning',  partner:'Carlos M.', email:'',                  date:'2026-05-10', time:'17:00', duration:60,  status:'completed', meetLink:null, calendarEventId:null },
+      { id:5,  topic:'Node.js APIs',      type:'teaching', partner:'Priya S.',  email:'priya@example.com', date:'2026-06-02', time:'14:00', duration:60,  status:'confirmed', meetLink:'https://meet.google.com/aaa-bbbb-ccc', calendarEventId:'evt_005' },
+      { id:6,  topic:'Git Workflows',     type:'learning',  partner:'Tom W.',    email:'tom@example.com',   date:'2026-06-04', time:'11:00', duration:30,  status:'confirmed', meetLink:'https://meet.google.com/ddd-eeee-fff', calendarEventId:'evt_006' },
+      { id:7,  topic:'CSS Animation',     type:'teaching', partner:'Fatima A.', email:'',                  date:'2026-06-07', time:'16:00', duration:60,  status:'pending',   meetLink:null, calendarEventId:null },
+      { id:8,  topic:'Vue.js Intro',      type:'learning',  partner:'Lee C.',    email:'lee@example.com',   date:'2026-06-10', time:'09:00', duration:90,  status:'pending',   meetLink:null, calendarEventId:null },
+      { id:9,  topic:'TypeScript',        type:'teaching', partner:'Marco B.',  email:'marco@example.com', date:'2026-06-15', time:'15:00', duration:60,  status:'confirmed', meetLink:'https://meet.google.com/ggg-hhhh-iii', calendarEventId:'evt_009' },
+      { id:10, topic:'Docker Basics',     type:'learning',  partner:'Sana Q.',   email:'sana@example.com',  date:'2026-06-18', time:'13:00', duration:60,  status:'pending',   meetLink:null, calendarEventId:null },
+    ];
+
+    // ══════════════════════════════════════════════════════
+    //  GOOGLE AUTH (OAuth2 implicit flow via GIS library)
+    // ══════════════════════════════════════════════════════
+    function loadGISScript() {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+
+    function handleGoogleAuth() {
+      if (googleToken) {
+        // Already connected — disconnect
+        googleToken = null;
+        updateAuthUI(false);
+        showToast('Disconnected from Google', 'info');
+        return;
+      }
+
+      // In a real deployment, use Google Identity Services:
+      // google.accounts.oauth2.initTokenClient({ ... }).requestAccessToken();
+      // For demo, we simulate a successful auth:
+      simulateGoogleAuth();
+    }
+
+    function simulateGoogleAuth() {
+      // Replace this with real GIS token client in production
+      googleToken = 'SIMULATED_TOKEN_' + Date.now();
+      updateAuthUI(true);
+      showToast('Connected to Google Calendar ✓', 'success');
+    }
+
+    function updateAuthUI(connected) {
+      const btn = document.getElementById('google-auth-btn');
+      if (connected) {
+        btn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+            <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z"/>
+          </svg>
+          <svg class="w-3.5 h-3.5" style="color:#22c55e" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          Google Connected`;
+        btn.style.borderColor = '#22c55e';
+        btn.style.background = '#f0fdf4';
+      } else {
+        btn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+            <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z"/>
+          </svg>
+          Connect Google`;
+        btn.style.borderColor = '#dadce0';
+        btn.style.background = '#fff';
+      }
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  GOOGLE CALENDAR API — Create event with Meet link
+    // ══════════════════════════════════════════════════════
+    async function createGoogleCalendarEvent(session) {
+      const startDT = new Date(`${session.date}T${session.time}:00`);
+      const endDT   = new Date(startDT.getTime() + session.duration * 60000);
+
+      const toISO = d => d.toISOString();
+
+      const body = {
+        summary: `[Talent Circle] ${session.topic} – ${session.type === 'teaching' ? 'Teaching' : 'Learning'} Session`,
+        description: `Talent Circle skill-swap session.\nPartner: ${session.partner}\nTopic: ${session.topic}`,
+        start: { dateTime: toISO(startDT), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+        end:   { dateTime: toISO(endDT),   timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+        conferenceData: {
+          createRequest: {
+            requestId: `tc-session-${Date.now()}`,
+            conferenceSolutionKey: { type: 'hangoutsMeet' }
+          }
+        },
+        attendees: session.email ? [{ email: session.email }] : [],
+        reminders: {
+          useDefault: false,
+          overrides: [
+            { method: 'email',  minutes: 60 },
+            { method: 'popup',  minutes: 15 }
+          ]
+        }
+      };
+
+      // Real API call — works when googleToken is a valid OAuth2 token
+      const res = await fetch(
+        'https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&sendUpdates=all',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${googleToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body)
+        }
+      );
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error?.message || 'Calendar API error');
+      }
+
+      const data = await res.json();
+      return {
+        eventId:  data.id,
+        meetLink: data.conferenceData?.entryPoints?.find(e => e.entryPointType === 'video')?.uri
+                  || data.hangoutLink
+                  || null
+      };
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  CREATE SESSION
+    // ══════════════════════════════════════════════════════
+    async function createSession() {
+      const topic    = document.getElementById('ns-topic').value.trim();
+      const date     = document.getElementById('ns-date').value;
+      const time     = document.getElementById('ns-time').value;
+      const partner  = document.getElementById('ns-partner').value.trim();
+      const email    = document.getElementById('ns-email').value.trim();
+      const duration = parseInt(document.getElementById('ns-duration').value);
+      const wantMeet = document.getElementById('ns-meet-toggle').checked;
+
+      if (!topic || !date || !time) {
+        showToast('Please fill in Topic, Date and Time', 'error'); return;
+      }
+
+      const btn = document.getElementById('create-btn');
+      const btnText = document.getElementById('create-btn-text');
+      btn.disabled = true;
+      btnText.innerHTML = `<svg class="w-4 h-4 spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Creating…`;
+
+      const newSession = {
+        id: Date.now(),
+        topic, date, time, duration,
+        type: selectedType,
+        partner: partner || 'TBD',
+        email,
+        status: 'pending',
+        meetLink: null,
+        calendarEventId: null
+      };
+
+      // Try to create Google Calendar event
+      if (wantMeet && googleToken) {
+        try {
+          const { eventId, meetLink } = await createGoogleCalendarEvent(newSession);
+          newSession.calendarEventId = eventId;
+          newSession.meetLink = meetLink;
+          newSession.status = 'confirmed';
+          showToast('Session + Meet link created! ✓', 'success');
+        } catch (e) {
+          // Fallback: generate a placeholder Meet-style link for demo
+          newSession.meetLink = generateDemoMeetLink();
+          newSession.status = 'confirmed';
+          showToast('Session created (demo Meet link)', 'info');
+        }
+      } else if (wantMeet && !googleToken) {
+        // Not authenticated — generate demo link
+        newSession.meetLink = generateDemoMeetLink();
+        newSession.status = 'confirmed';
+        showToast('Session created with demo Meet link. Connect Google for real links!', 'info');
+      } else {
+        showToast('Session scheduled (no Meet link)', 'success');
+      }
+
+      SESSIONS.unshift(newSession);
+      closeNewSessionModal();
+      renderSessions();
+      updateStats();
+
+      btn.disabled = false;
+      btnText.textContent = 'Schedule + Meet';
+    }
+
+    function generateDemoMeetLink() {
+      const chars = 'abcdefghijklmnopqrstuvwxyz';
+      const seg = n => Array.from({length:n}, () => chars[Math.floor(Math.random()*26)]).join('');
+      return `https://meet.google.com/${seg(3)}-${seg(4)}-${seg(3)}`;
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  ADD MEET LINK TO EXISTING SESSION
+    // ══════════════════════════════════════════════════════
+    async function addMeetToSession(id) {
+      const session = SESSIONS.find(s => s.id === id);
+      if (!session) return;
+
+      const btn = document.getElementById(`meet-btn-${id}`);
+      if (btn) { btn.disabled = true; btn.textContent = 'Creating…'; }
+
+      if (googleToken) {
+        try {
+          const { eventId, meetLink } = await createGoogleCalendarEvent(session);
+          session.calendarEventId = eventId;
+          session.meetLink = meetLink;
+          session.status = 'confirmed';
+          showToast('Meet link created! ✓', 'success');
+        } catch (e) {
+          session.meetLink = generateDemoMeetLink();
+          session.status = 'confirmed';
+          showToast('Demo Meet link added', 'info');
+        }
+      } else {
+        session.meetLink = generateDemoMeetLink();
+        session.status = 'confirmed';
+        showToast('Demo Meet link added. Connect Google for real links!', 'info');
+      }
+
+      renderSessions();
+      updateStats();
+      if (selectedSessionId === id) showDetail(id);
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  RENDER SESSIONS
+    // ══════════════════════════════════════════════════════
+    function getFilteredSessions() {
+      const todayStr = today.toISOString().split('T')[0];
+      const search = (document.getElementById('search-input')?.value || '').toLowerCase();
+      return SESSIONS.filter(s => {
+        const matchSearch = !search || s.topic.toLowerCase().includes(search) || s.partner.toLowerCase().includes(search);
+        const matchFilter =
+          currentFilter === 'all'       ? true :
+          currentFilter === 'upcoming'  ? s.date >= todayStr && s.status !== 'completed' :
+          currentFilter === 'teaching'  ? s.type === 'teaching' :
+          currentFilter === 'learning'  ? s.type === 'learning' :
+          currentFilter === 'completed' ? s.status === 'completed' : true;
+        return matchSearch && matchFilter;
+      }).sort((a,b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
+    }
+
+    function renderSessions() {
+      const list = document.getElementById('sessions-list');
+      const sessions = getFilteredSessions();
+      list.innerHTML = '';
+
+      if (!sessions.length) {
+        list.innerHTML = `<div class="flex flex-col items-center justify-center py-20 text-center">
+          <div class="w-16 h-16 rounded-2xl bg-tc-card border border-tc-border flex items-center justify-center mb-4">
+            <svg class="w-7 h-7 text-tc-soft/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <p class="text-sm text-tc-soft/30 font-display">No sessions found</p>
+        </div>`;
+        return;
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'space-y-3 py-2';
+
+      sessions.forEach(s => {
+        const card = buildSessionCard(s);
+        grid.appendChild(card);
+      });
+
+      list.appendChild(grid);
+    }
+
+    function buildSessionCard(s) {
+      const card = document.createElement('div');
+      const isTeaching = s.type === 'teaching';
+      const todayStr = today.toISOString().split('T')[0];
+      const isUpcoming = s.date >= todayStr && s.status !== 'completed';
+
+      const statusColors = {
+        confirmed: 'text-green-400',
+        pending:   'text-amber-400',
+        completed: 'text-gray-500'
+      };
+      const statusBg = {
+        confirmed: 'bg-green-400',
+        pending:   'bg-amber-400',
+        completed: 'bg-gray-500'
+      };
+
+      const fmtDate = d => {
+        const dt = new Date(d + 'T00:00:00');
+        return dt.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+      };
+      const fmtTime = t => {
+        const [h,m] = t.split(':');
+        const hr = parseInt(h);
+        return `${hr > 12 ? hr-12 : hr || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'}`;
+      };
+
+      card.className = `session-card rounded-xl border bg-tc-card/60 p-4 cursor-pointer ${selectedSessionId === s.id ? 'border-tc-purple/60 bg-tc-purple/5' : 'border-tc-border hover:border-tc-border/80'}`;
+      card.onclick = () => showDetail(s.id);
+
+      card.innerHTML = `
+        <div class="flex items-start gap-4">
+          <!-- Icon -->
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg ${isTeaching ? 'bg-tc-purple/20' : 'bg-tc-violet/15'}">
+            ${isTeaching ? '🎓' : '📚'}
+          </div>
+
+          <!-- Main info -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2 flex-wrap">
+              <div>
+                <h3 class="font-display font-700 text-white text-sm">${s.topic}</h3>
+                <p class="text-xs text-tc-soft/50 mt-0.5">${s.partner ? 'with ' + s.partner : 'No partner yet'}</p>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="flex items-center gap-1.5">
+                  <div class="status-dot ${s.status}"></div>
+                  <span class="text-xs font-display font-600 capitalize ${statusColors[s.status]}">${s.status}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 mt-2 flex-wrap">
+              <span class="text-xs text-tc-soft/50 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                ${fmtDate(s.date)}
+              </span>
+              <span class="text-xs text-tc-soft/50 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                ${fmtTime(s.time)} · ${s.duration} min
+              </span>
+              ${s.meetLink
+                ? `<span class="meet-badge">
+                    <svg width="10" height="10" viewBox="0 0 20 20" fill="none"><rect width="20" height="20" rx="4" fill="#1A73E8"/><path d="M11.5 10c0 .83-.67 1.5-1.5 1.5S8.5 10.83 8.5 10 9.17 8.5 10 8.5s1.5.67 1.5 1.5z" fill="white"/><path d="M13.33 7H6.67C5.75 7 5 7.75 5 8.67v2.67c0 .92.75 1.67 1.67 1.67h6.67c.92 0 1.67-.75 1.67-1.67V8.67C15 7.75 14.25 7 13.33 7zM15 9.17l1.5-1.5v4.67L15 10.83V9.17z" fill="white"/></svg>
+                    Meet ready
+                  </span>`
+                : isUpcoming
+                  ? `<button id="meet-btn-${s.id}" onclick="event.stopPropagation(); addMeetToSession(${s.id})" class="meet-badge pending-meet hover:opacity-80 transition-opacity">
+                      + Add Meet link
+                    </button>`
+                  : ''
+              }
+            </div>
+          </div>
+
+          <!-- Join button (upcoming + has link) -->
+          ${s.meetLink && isUpcoming
+            ? `<a href="${s.meetLink}" target="_blank" onclick="event.stopPropagation()" class="meet-active flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/30 rounded-lg text-xs font-display font-600 text-green-400 hover:bg-green-500/20 transition-all">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/></svg>
+                Join
+              </a>`
+            : ''
+          }
+        </div>
+      `;
+
+      return card;
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  DETAIL PANEL
+    // ══════════════════════════════════════════════════════
+    function showDetail(id) {
+      selectedSessionId = id;
+      const s = SESSIONS.find(s => s.id === id);
+      if (!s) return;
+
+      renderSessions(); // re-render to highlight selected card
+
+      const html = buildDetailHTML(s);
+      document.getElementById('detail-content').innerHTML = html;
+      document.getElementById('detail-modal-content').innerHTML = html;
+
+      // Show mobile modal on small screens
+      if (window.innerWidth < 1024) {
+        const dm = document.getElementById('detail-modal');
+        dm.classList.remove('hidden');
+        dm.classList.add('flex');
+      }
+    }
+
+    function buildDetailHTML(s) {
+      const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+      const fmtTime = t => { const [h,m] = t.split(':'); const hr=parseInt(h); return `${hr>12?hr-12:hr||12}:${m} ${hr>=12?'PM':'AM'}`; };
+      const todayStr = today.toISOString().split('T')[0];
+      const isUpcoming = s.date >= todayStr && s.status !== 'completed';
+
+      return `<div class="space-y-5 py-2">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${s.type==='teaching' ? 'bg-tc-purple/20' : 'bg-tc-violet/15'}">${s.type==='teaching'?'🎓':'📚'}</div>
+          <div>
+            <h3 class="font-display font-700 text-white">${s.topic}</h3>
+            <p class="text-xs text-tc-soft/50 capitalize">${s.type} session</p>
+          </div>
+        </div>
+
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-tc-soft/50">Partner</span>
+            <span class="font-display font-600 text-white">${s.partner || '—'}</span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-tc-soft/50">Date</span>
+            <span class="font-display font-600 text-white">${fmtDate(s.date)}</span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-tc-soft/50">Time</span>
+            <span class="font-display font-600 text-white">${fmtTime(s.time)}</span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-tc-soft/50">Duration</span>
+            <span class="font-display font-600 text-white">${s.duration} minutes</span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-tc-soft/50">Status</span>
+            <span class="font-display font-600 capitalize ${s.status==='confirmed'?'text-green-400':s.status==='pending'?'text-amber-400':'text-gray-400'}">${s.status}</span>
+          </div>
+        </div>
+
+        ${s.meetLink ? `
+          <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-3">
+            <div class="flex items-center gap-2 mb-2">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect width="20" height="20" rx="4" fill="#1A73E8"/><path d="M11.5 10c0 .83-.67 1.5-1.5 1.5S8.5 10.83 8.5 10 9.17 8.5 10 8.5s1.5.67 1.5 1.5z" fill="white"/><path d="M13.33 7H6.67C5.75 7 5 7.75 5 8.67v2.67c0 .92.75 1.67 1.67 1.67h6.67c.92 0 1.67-.75 1.67-1.67V8.67C15 7.75 14.25 7 13.33 7zM15 9.17l1.5-1.5v4.67L15 10.83V9.17z" fill="white"/></svg>
+              <span class="text-xs font-display font-700 text-green-400">Google Meet Link</span>
+            </div>
+            <p class="text-xs text-green-300/70 truncate mb-2">${s.meetLink}</p>
+            <div class="flex gap-2">
+              <button onclick="copyLink('${s.meetLink}')" class="flex-1 py-1.5 rounded-lg border border-green-500/30 text-xs font-display font-600 text-green-400 hover:bg-green-500/10 transition-all">Copy Link</button>
+              ${isUpcoming ? `<a href="${s.meetLink}" target="_blank" class="flex-1 py-1.5 rounded-lg bg-green-500/20 border border-green-500/30 text-xs font-display font-600 text-green-300 text-center hover:bg-green-500/30 transition-all">Join Now</a>` : ''}
+            </div>
+          </div>` :
+          isUpcoming ? `
+          <button onclick="addMeetToSession(${s.id})" class="w-full py-2.5 rounded-xl border border-tc-purple/40 text-sm font-display font-600 text-tc-lavender hover:bg-tc-purple/10 transition-all flex items-center justify-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect width="20" height="20" rx="4" fill="#1A73E8"/><path d="M11.5 10c0 .83-.67 1.5-1.5 1.5S8.5 10.83 8.5 10 9.17 8.5 10 8.5s1.5.67 1.5 1.5z" fill="white"/><path d="M13.33 7H6.67C5.75 7 5 7.75 5 8.67v2.67c0 .92.75 1.67 1.67 1.67h6.67c.92 0 1.67-.75 1.67-1.67V8.67C15 7.75 14.25 7 13.33 7zM15 9.17l1.5-1.5v4.67L15 10.83V9.17z" fill="white"/></svg>
+            Create Meet Link
+          </button>` : ''
+        }
+
+        ${s.calendarEventId ? `
+          <div class="rounded-xl border border-tc-border bg-tc-dark/60 p-3 flex items-center gap-2">
+            <svg class="w-3.5 h-3.5 text-tc-soft/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="text-xs text-tc-soft/40">Added to Google Calendar</span>
+          </div>` : ''}
+      </div>`;
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  HELPERS
+    // ══════════════════════════════════════════════════════
+    function copyLink(link) {
+      navigator.clipboard.writeText(link).then(() => showToast('Link copied to clipboard!', 'success'));
+    }
+
+    function updateStats() {
+      document.getElementById('stat-confirmed').textContent = SESSIONS.filter(s => s.status === 'confirmed').length;
+      document.getElementById('stat-pending').textContent   = SESSIONS.filter(s => s.status === 'pending').length;
+      document.getElementById('stat-completed').textContent = SESSIONS.filter(s => s.status === 'completed').length;
+      document.getElementById('stat-meet').textContent      = SESSIONS.filter(s => s.meetLink).length;
+    }
+
+    function setFilter(f) {
+      currentFilter = f;
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.classList.add('text-tc-soft/50');
+      });
+      const btn = document.querySelector(`.tab-btn[data-filter="${f}"]`);
+      if (btn) { btn.classList.add('active'); btn.classList.remove('text-tc-soft/50'); }
+      renderSessions();
+    }
+
+    function selectModalType(t) {
+      selectedType = t;
+      document.querySelectorAll('.type-btn').forEach(b => {
+        b.classList.remove('border-tc-purple','text-tc-lavender','bg-tc-purple/10','border-tc-violet','text-tc-soft','bg-tc-violet/10');
+        b.classList.add('border-tc-border','text-tc-soft/60');
+      });
+      const el = document.getElementById(`type-${t}`);
+      if (t === 'teaching') el.classList.add('border-tc-purple','text-tc-lavender','bg-tc-purple/10');
+      else el.classList.add('border-tc-violet','text-tc-soft','bg-tc-violet/10');
+      el.classList.remove('border-tc-border','text-tc-soft/60');
+    }
+
+    function openNewSessionModal() {
+      const m = document.getElementById('new-session-modal');
+      m.classList.remove('hidden'); m.classList.add('flex');
+      // Default date to today
+      document.getElementById('ns-date').value = today.toISOString().split('T')[0];
+    }
+    function closeNewSessionModal() {
+      const m = document.getElementById('new-session-modal');
+      m.classList.remove('flex'); m.classList.add('hidden');
+    }
+
+    document.getElementById('new-session-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeNewSessionModal();
+    });
+    document.getElementById('detail-modal').addEventListener('click', function(e) {
+      if (e.target === this) { this.classList.replace('flex','hidden'); }
+    });
+
+    // Meet toggle note
+    document.getElementById('ns-meet-toggle').addEventListener('change', function() {
+      document.getElementById('meet-toggle-note').textContent = this.checked
+        ? 'A Google Meet link will be created and added to the session. Partner will be emailed the invite.'
+        : 'Session will be created without a video call link.';
+      document.getElementById('create-btn-text').textContent = this.checked ? 'Schedule + Meet' : 'Schedule Session';
+    });
+
+    let toastTimer;
+    function showToast(msg, type = 'info') {
+      clearTimeout(toastTimer);
+      const toast = document.getElementById('toast');
+      const icon  = document.getElementById('toast-icon');
+      const text  = document.getElementById('toast-msg');
+      text.textContent = msg;
+      const icons = {
+        success: { bg: 'bg-green-500/20', svg: '<svg class="w-3.5 h-3.5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>' },
+        error:   { bg: 'bg-red-500/20',   svg: '<svg class="w-3.5 h-3.5 text-red-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>' },
+        info:    { bg: 'bg-blue-500/20',   svg: '<svg class="w-3.5 h-3.5 text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>' }
+      };
+      icon.className = `w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${icons[type].bg}`;
+      icon.innerHTML = icons[type].svg;
+      toast.classList.remove('hidden');
+      toastTimer = setTimeout(() => toast.classList.add('hidden'), 3500);
+    }
+
+    // ══════════════════════════════════════════════════════
+    //  INIT
+    // ══════════════════════════════════════════════════════
+    selectModalType('teaching');
+    renderSessions();
+    updateStats();
+    loadGISScript();
+  </script>
+</body>
+</html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TalentCircle – Matches</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet" />
+  
+  <style>
+    :root {
+      --p:        #9B30D9;
+      --p-lt:     #C06EF5;
+      --p-dk:     #6B1FA0;
+      --p-glow:   rgba(155,48,217,.30);
+      --p-dim:    rgba(155,48,217,.14);
+      --r:        18px;
+      --pill:     100px;
+      --ease:     .28s cubic-bezier(.4,0,.2,1);
+    }
+    [data-theme="dark"] {
+      --bg:       #080808;
+      --bg1:      #101010;
+      --bg2:      #181818;
+      --bg3:      #222222;
+      --b:        rgba(255,255,255,.07);
+      --b-h:      rgba(155,48,217,.5);
+      --t1:       #F2EEFF;
+      --t2:       #A89CC8;
+      --t3:       #5C5475;
+      --nav:      rgba(8,8,8,.88);
+      --inp:      #101010;
+    }
+    [data-theme="light"] {
+      --bg:       #F7F5FF;
+      --bg1:      #FFFFFF;
+      --bg2:      #EDE8F8;
+      --bg3:      #E0D9F2;
+      --b:        rgba(0,0,0,.07);
+      --b-h:      rgba(155,48,217,.4);
+      --t1:       #0D0018;
+      --t2:       #4A3E6A;
+      --t3:       #9B8FBB;
+      --nav:      rgba(247,245,255,.9);
+      --inp:      #FFFFFF;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--t1);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background var(--ease), color var(--ease);
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 50% 40% at 90% 5%,  rgba(155,48,217,.22), transparent 65%),
+        radial-gradient(ellipse 35% 30% at 5%  90%, rgba(155,48,217,.12), transparent 65%),
+        radial-gradient(ellipse 30% 20% at 50% 50%, rgba(155,48,217,.06), transparent 70%);
+    }
+
+    /* ── Navbar ── */
+    .nav {
+      position: sticky; top: 0; z-index: 200;
+      backdrop-filter: blur(22px) saturate(160%);
+      background: var(--nav);
+      border-bottom: 1px solid var(--b);
+      height: 64px; padding: 0 clamp(16px,5vw,52px);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+    .logo-gem {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, #000 0%, var(--p) 100%);
+      border: 1.5px solid var(--p);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; font-weight: 800; color: #fff; letter-spacing: -.5px;
+      box-shadow: 0 0 18px var(--p-glow);
+    }
+    .logo-name { font-size: 1.05rem; font-weight: 700; color: var(--t1); letter-spacing: -.4px; }
+    .logo-name span { color: var(--p-lt); }
+
+    .nav-pills {
+      display: flex; gap: 2px;
+      background: var(--bg2); border: 1px solid var(--b);
+      border-radius: var(--pill); padding: 4px;
+    }
+    .nav-pills a {
+      padding: 6px 18px; border-radius: var(--pill);
+      font-size: .8rem; font-weight: 500; color: var(--t2);
+      text-decoration: none; transition: all var(--ease);
+    }
+    .nav-pills a.active { background: var(--p); color: #fff; box-shadow: 0 2px 10px var(--p-glow); }
+    .nav-pills a:not(.active):hover { color: var(--t1); }
+    @media(max-width:580px){ .nav-pills { display:none; } }
+
+    .theme-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--bg2); border: 1px solid var(--b);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: .95rem; transition: all var(--ease); color: var(--t1);
+    }
+    .theme-btn:hover { background: var(--p); transform: rotate(18deg); }
+
+    /* ── Page ── */
+    .page { position: relative; z-index: 1; padding: clamp(32px,6vw,64px) clamp(16px,5vw,52px); }
+
+    /* ── Hero ── */
+    .hero { text-align: center; margin-bottom: 48px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--p-dim); border: 1px solid rgba(155,48,217,.3);
+      border-radius: var(--pill); padding: 5px 16px;
+      font-size: .68rem; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--p-lt); margin-bottom: 20px;
+    }
+    .eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--p-lt); animation: blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.65)} }
+
+    .hero h1 {
+      font-size: clamp(2rem,6vw,3.8rem);
+      font-weight: 800; line-height: 1.08; letter-spacing: -1.5px;
+      color: var(--t1); margin-bottom: 14px;
+    }
+    .hero h1 .purple { color: var(--p-lt); }
+    .hero p { color: var(--t2); font-size: .92rem; font-weight: 300; max-width: 440px; margin: 0 auto; line-height: 1.7; }
+
+    /* ── Divider ── */
+    .divider { display: flex; align-items: center; gap: 14px; max-width: 720px; margin: 0 auto 38px; }
+    .divider-line { flex: 1; height: 1px; background: var(--b); }
+    .divider-gem { width: 10px; height: 10px; background: var(--p); border-radius: 2px; transform: rotate(45deg); box-shadow: 0 0 10px var(--p-glow); }
+
+    /* ── Controls ── */
+    .controls { max-width: 720px; margin: 0 auto 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .srch-wrap { flex: 1; min-width: 200px; position: relative; }
+    .srch-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--t3); font-size: .95rem; pointer-events: none; }
+    .srch-input {
+      width: 100%; padding: 13px 16px 13px 44px;
+      background: var(--inp); border: 1px solid var(--b);
+      border-radius: var(--pill);
+      font-family: 'Poppins', sans-serif; font-size: .85rem; color: var(--t1);
+      outline: none; transition: all var(--ease);
+    }
+    .srch-input::placeholder { color: var(--t3); }
+    .srch-input:focus { border-color: var(--p); box-shadow: 0 0 0 3px var(--p-glow); }
+
+    .sort-sel {
+      padding: 13px 40px 13px 18px;
+      background: var(--inp); border: 1px solid var(--b);
+      border-radius: var(--pill);
+      font-family: 'Poppins', sans-serif; font-size: .85rem; color: var(--t1);
+      cursor: pointer; outline: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239B30D9' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center;
+      transition: all var(--ease);
+    }
+    .sort-sel:focus { border-color: var(--p); box-shadow: 0 0 0 3px var(--p-glow); }
+
+    /* ── Meta ── */
+    .meta { max-width: 720px; margin: 0 auto 32px; display: flex; justify-content: space-between; align-items: center; font-size: .78rem; color: var(--t3); }
+    .meta strong { color: var(--p-lt); font-weight: 700; }
+    .algo-badge { background: var(--bg2); border: 1px solid var(--b); border-radius: var(--pill); padding: 4px 12px; font-size: .7rem; color: var(--t3); display: flex; align-items: center; gap: 6px; }
+    .algo-badge b { color: var(--p-lt); font-weight: 700; }
+
+    /* ── Grid ── */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 18px; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--bg1); border: 1px solid var(--b); border-radius: 20px;
+      padding: 28px 18px 22px;
+      display: flex; flex-direction: column; align-items: center; gap: 9px;
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: transform var(--ease), box-shadow var(--ease), border-color var(--ease);
+      animation: rise .42s ease both;
+    }
+    @keyframes rise { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+    .card::before {
+      content:''; position:absolute; inset:0; border-radius:20px;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(155,48,217,.18), transparent 70%);
+      opacity:0; transition:opacity var(--ease);
+    }
+    .card::after {
+      content:''; position:absolute; top:0; left:0; right:0; height:2px; border-radius:20px 20px 0 0;
+      background: linear-gradient(90deg, transparent, var(--p), var(--p-lt), transparent);
+      opacity:0; transition:opacity var(--ease);
+    }
+    .card:hover { transform:translateY(-7px); border-color:var(--b-h); box-shadow:0 20px 52px rgba(0,0,0,.6), 0 0 0 1px var(--b-h), 0 0 40px var(--p-glow); }
+    .card:hover::before { opacity:1; }
+    .card:hover::after  { opacity:1; }
+
+    /* ── Avatar ── */
+    .ava { position:relative; z-index:1; width:82px; height:82px; border-radius:50%; padding:2.5px; background:conic-gradient(from 0deg, var(--p-dk), var(--p), var(--p-lt), var(--p), var(--p-dk)); box-shadow:0 4px 22px var(--p-glow); }
+    .ava-in { width:100%; height:100%; border-radius:50%; background:var(--bg2); display:flex; align-items:center; justify-content:center; font-size:1.4rem; font-weight:700; color:var(--p-lt); overflow:hidden; }
+    .ava-in img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+    .pip { position:absolute; bottom:4px; right:4px; width:13px; height:13px; border-radius:50%; background:#22C55E; border:2.5px solid var(--bg1); }
+
+    .c-name { font-size:.98rem; font-weight:700; color:var(--t1); text-align:center; position:relative; z-index:1; letter-spacing:-.2px; }
+    .c-sub  { font-size:.7rem; color:var(--t3); font-weight:300; text-align:center; position:relative; z-index:1; }
+
+    .chip { width:100%; padding:7px 14px; background:var(--p-dim); border:1px solid rgba(155,48,217,.3); border-radius:var(--pill); font-size:.71rem; font-weight:600; color:var(--p-lt); text-align:center; position:relative; z-index:1; }
+
+    .arc-wrap { position:relative; z-index:1; }
+
+    .pct { font-size:1.95rem; font-weight:800; color:var(--t1); text-align:center; letter-spacing:-1px; position:relative; z-index:1; line-height:1; }
+    .pct sup { font-size:.7rem; font-weight:500; color:var(--t2); vertical-align:super; }
+    .pct-label { font-size:.68rem; color:var(--t3); font-weight:400; text-align:center; position:relative; z-index:1; }
+
+    .cta { margin-top:4px; width:100%; padding:11px 0; border:none; border-radius:var(--pill); font-family:'Poppins',sans-serif; font-size:.82rem; font-weight:700; cursor:pointer; transition:all var(--ease); position:relative; z-index:1; letter-spacing:.4px; }
+    .cta.idle { background:linear-gradient(135deg, #000 0%, var(--p-dk) 40%, var(--p) 100%); color:#fff; border:1px solid var(--p); box-shadow:0 4px 18px var(--p-glow); }
+    .cta.idle:hover { transform:translateY(-2px) scale(1.02); box-shadow:0 8px 30px var(--p-glow); }
+    .cta.done { background:transparent; border:1.5px solid var(--p); color:var(--p-lt); }
+    .cta:active { transform:scale(.97); }
+
+    /* ── Empty ── */
+    .empty { grid-column:1/-1; text-align:center; padding:80px 20px; color:var(--t3); }
+    .empty .ico { font-size:2.6rem; margin-bottom:12px; }
+    .empty h3  { font-size:1.1rem; font-weight:700; color:var(--t2); margin-bottom:6px; }
+    .empty p   { font-size:.85rem; }
+
+    /* ── Toast ── */
+    .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(70px); background:var(--bg1); border:1px solid var(--b-h); color:var(--t1); padding:10px 22px; border-radius:var(--pill); font-size:.82rem; font-weight:500; box-shadow:0 8px 32px rgba(0,0,0,.5), 0 0 20px var(--p-glow); z-index:999; pointer-events:none; white-space:nowrap; transition:transform .4s cubic-bezier(.34,1.56,.64,1); display:flex; align-items:center; gap:8px; }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+    .toast-gem { width:8px; height:8px; border-radius:2px; background:var(--p); transform:rotate(45deg); box-shadow:0 0 6px var(--p-glow); flex-shrink:0; }
+
+    /* ── Footer ── */
+    footer { position:relative; z-index:1; text-align:center; padding:32px 20px; font-size:.72rem; color:var(--t3); border-top:1px solid var(--b); margin-top:60px; }
+    footer strong { color:var(--p-lt); }
+
+    .card:nth-child(1)  { animation-delay:.04s; }
+    .card:nth-child(2)  { animation-delay:.08s; }
+    .card:nth-child(3)  { animation-delay:.12s; }
+    .card:nth-child(4)  { animation-delay:.16s; }
+    .card:nth-child(5)  { animation-delay:.20s; }
+    .card:nth-child(6)  { animation-delay:.24s; }
+    .card:nth-child(7)  { animation-delay:.28s; }
+    .card:nth-child(8)  { animation-delay:.32s; }
+    .card:nth-child(9)  { animation-delay:.36s; }
+    .card:nth-child(10) { animation-delay:.40s; }
+    .card:nth-child(11) { animation-delay:.44s; }
+    .card:nth-child(12) { animation-delay:.48s; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="logo" href="#">
+    <div class="logo-gem">TC</div>
+    <span class="logo-name">Talent<span>Circle</span></span>
+  </a>
+  <div class="nav-pills">
+    <a href="#">Home</a>
+    <a href="#" class="active">Matches</a>
+    <a href="#">Profile</a>
+    <a href="#">Messages</a>
+  </div>
+  <button class="theme-btn" id="themeBtn">🌙</button>
+</nav>
+
+<main class="page">
+  <header class="hero">
+    <div class="eyebrow"><div class="eyebrow-dot"></div>Linear Search · O(n)</div>
+    <h1>Your Skill <span class="purple">Matches</span></h1>
+    <p>Discover people you can teach — and learn from. Every connection is a two-way exchange.</p>
+  </header>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-gem"></div><div class="divider-line"></div></div>
+
+  <div class="controls">
+    <div class="srch-wrap">
+      <span class="srch-icon">🔍</span>
+      <input class="srch-input" id="searchInput" type="search" placeholder="Search by name or skill…" autocomplete="off" />
+    </div>
+  <select class="sort-sel" id="sortSelect" aria-label="Sort results">
+  <option value="default">Best Match</option>
+  <option value="asc">Match ↑ Low → High</option>
+  <option value="desc">Match ↓ High → Low</option>
+  <option value="name">Name A → Z</option>
+</select>
+  </div>
+
+  <div class="meta">
+    <span>Showing <strong id="cnt">0</strong> matches</span>
+    <div class="algo-badge"><b>O(n)</b> Linear Search</div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</main>
+
+<div class="toast" id="toast"><div class="toast-gem"></div><span id="toastTxt"></span></div>
+
+<footer>© 2025 <strong>TalentCircle</strong> · Exchanging skills, building futures</footer>
+
+<script>
+const DATA = [
+  { id:1,  name:"Malik",  online:true,  match:68, skills:["UI/UX Design (Figma, Sketch)"] },
+  { id:2,  name:"Aisha",  online:false, match:82, skills:["React.js", "TypeScript"] },
+  { id:3,  name:"Jordan", online:true,  match:75, skills:["Python", "Machine Learning"] },
+  { id:4,  name:"Priya",  online:true,  match:91, skills:["Branding", "Illustration"] },
+  { id:5,  name:"Carlos", online:false, match:58, skills:["SEO", "Content Strategy"] },
+  { id:6,  name:"Hana",   online:true,  match:88, skills:["Motion Design", "After Effects"] },
+  { id:7,  name:"Dev",    online:false, match:63, skills:["Node.js", "MongoDB"] },
+  { id:8,  name:"Fatima", online:true,  match:79, skills:["Product Management", "Agile"] },
+  { id:9,  name:"Leo",    online:true,  match:55, skills:["3D Modeling", "Blender"] },
+  { id:10, name:"Zara",   online:false, match:95, skills:["iOS Development", "Swift"] },
+  { id:11, name:"Omar",   online:true,  match:72, skills:["Data Visualization", "D3.js"] },
+  { id:12, name:"Soren",  online:false, match:66, skills:["Copywriting", "Brand Voice"] },
+];function linearSearch(q, data) {
+  const lq = q.trim().toLowerCase();
+  if (!lq) return data.slice();
+  const out = [];
+  for (let i = 0; i < data.length; i++) {
+    const p = data[i];
+    if (p.name.toLowerCase().includes(lq)) { out.push(p); continue; }
+    for (let j = 0; j < p.skills.length; j++) {
+      if (p.skills[j].toLowerCase().includes(lq)) { out.push(p); break; }
+    }
+  }
+  return out;
+}
+
+function doSort(arr, mode) {
+  const a = arr.slice();
+  if (mode==='asc')  return a.sort((x,y)=>x.match-y.match);
+  if (mode==='desc') return a.sort((x,y)=>y.match-x.match);
+  if (mode==='name') return a.sort((x,y)=>x.name.localeCompare(y.name));
+  return a.sort((x,y)=>y.match-x.match);
+}
+
+function initials(n) { return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+
+function arcSVG(pct) {
+  const r=26, cx=32, cy=32, circ=2*Math.PI*r;
+  const dash=(pct/100)*circ;
+  const col = pct>=85 ? '#C06EF5' : pct>=70 ? '#9B30D9' : '#6B1FA0';
+  return `<svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--bg3)" stroke-width="5"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="5"
+      stroke-dasharray="${dash.toFixed(1)} ${circ.toFixed(1)}"
+      stroke-dashoffset="${(circ*.25).toFixed(1)}" stroke-linecap="round"/>
+  </svg>`;
+}
+
+const grid  = document.getElementById('grid');
+const cntEl = document.getElementById('cnt');
+const matched = new Set();
+
+function render() {
+  const q    = document.getElementById('searchInput').value;
+  const mode = document.getElementById('sortSelect').value;
+  const list = doSort(linearSearch(q, DATA), mode);
+  cntEl.textContent = list.length;
+  grid.innerHTML = '';
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty"><div class="ico">🔭</div><h3>No matches found</h3><p>Try a different name or skill keyword.</p></div>`;
+    return;
+  }
+
+  list.forEach((p, i) => {
+    const done = matched.has(p.id);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.animationDelay = `${i * 0.055}s`;
+    card.innerHTML = `
+      <div class="ava" style="position:relative">
+        <div class="ava-in">${initials(p.name)}</div>
+        ${p.online ? '<div class="pip"></div>' : ''}
+      </div>
+      <div class="c-name">${p.name}</div>
+      <div class="c-sub">${p.name} can teach you</div>
+      ${p.skills.map(s=>`<div class="chip">${s}</div>`).join('')}
+      <div class="arc-wrap">${arcSVG(p.match)}</div>
+      <div class="pct">${p.match}<sup>%</sup></div>
+      <div class="pct-label">Match Score</div>
+      <button class="cta ${done?'done':'idle'}" data-id="${p.id}">${done?'✓ Connected':'Connect'}</button>`;
+    grid.appendChild(card);
+  });
+
+  grid.querySelectorAll('.cta').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id   = +btn.dataset.id;
+      const name = DATA.find(p=>p.id===id)?.name;
+      if (matched.has(id)) {
+        matched.delete(id);
+        btn.textContent = 'Connect'; btn.className = 'cta idle';
+        showToast(`Removed ${name}`);
+      } else {
+        matched.add(id);
+        btn.textContent = '✓ Connected'; btn.className = 'cta done';
+        showToast(`Connected with ${name}! 🎉`);
+      }
+    });
+  });
+}
+
+const toastEl  = document.getElementById('toast');
+const toastTxt = document.getElementById('toastTxt');
+let tt;
+function showToast(msg) {
+  toastTxt.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(tt);
+  tt = setTimeout(()=>toastEl.classList.remove('show'), 2800);
+}
+
+document.getElementById('searchInput').addEventListener('input', render);
+document.getElementById('sortSelect').addEventListener('change', render);
+render();
+
+const html=document.documentElement, btn=document.getElementById('themeBtn');
+if (window.matchMedia('(prefers-color-scheme: light)').matches) { html.setAttribute('data-theme','light'); btn.textContent='☀️'; }
+btn.addEventListener('click', ()=>{
+  const dark=html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme', dark?'light':'dark');
+  btn.textContent = dark?'☀️':'🌙';
+});
+</script>
+</body>
+</html>

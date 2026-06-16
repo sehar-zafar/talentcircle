@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In - Talent Circle</title>
+
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.className = savedTheme;
+    })();
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="./src/nav-common.js"></script>
+  <script src="./src/api-base.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            purple: {
+              50: '#fdf2ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe',
+              400: '#b300ff', 500: '#9600B6', 600: '#7a0094', 700: '#5a0072',
+              800: '#3a0050', 900: '#1a0f2e', 950: '#0f0a1a',
+            }
+          },
+          animation: {
+            'float': 'float 4s ease-in-out infinite',
+            'glow': 'glow 2s ease-in-out infinite alternate',
+            'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+          },
+          keyframes: {
+            float: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-12px)' } },
+            glow: {
+              '0%': { boxShadow: '0 0 15px rgba(150, 0, 182, 0.3)' },
+              '100%': { boxShadow: '0 0 30px rgba(179, 0, 255, 0.5), 0 0 50px rgba(150, 0, 182, 0.3)' },
+            },
+            slideUp: { '0%': { opacity: '0', transform: 'translateY(30px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+          }
+        }
+      }
+    }
+  </script>
+
+<style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    /* =============================================
+       DARK THEME (default)
+       ============================================= */
+    .dark body,
+    body.dark-body {
+      background-color: #0f0a1a;
+      color: #ffffff;
+    }
+
+    /* =============================================
+       LIGHT THEME — full override
+       ============================================= */
+    .light body,
+    html.light body {
+      background-color: #f8f4ff;
+      color: #1a0030;
+    }
+
+    /* Glass card */
+    .glass {
+      backdrop-filter: blur(20px);
+      transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
+    }
+    .dark .glass {
+      background: rgba(20, 10, 40, 0.55);
+      border: 1px solid rgba(179, 0, 255, 0.15);
+      box-shadow: 0 8px 40px rgba(150, 0, 182, 0.15);
+    }
+    .light .glass {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(150, 0, 182, 0.18);
+      box-shadow: 0 8px 40px rgba(150, 0, 182, 0.10);
+    }
+
+    /* Page background gradient */
+    .dark #page-bg {
+      background: linear-gradient(135deg, #0f0a1a 0%, #000000 50%, #1a0030 100%);
+    }
+    .light #page-bg {
+      background: linear-gradient(135deg, #fdf2ff 0%, #f3e8ff 50%, #ede0ff 100%);
+    }
+
+    /* Background texture */
+    .dark #page-tex { opacity: 0.08; }
+    .light #page-tex { opacity: 0.03; }
+
+    /* Nav */
+    .dark #mainNav {
+      background: rgba(10, 5, 20, 0.75);
+      border-bottom-color: rgba(179, 0, 255, 0.12);
+    }
+    .light #mainNav {
+      background: rgba(255, 255, 255, 0.80);
+      border-bottom-color: rgba(150, 0, 182, 0.12);
+    }
+
+    /* Nav links */
+    .dark .nav-link { color: #e2d4f0; }
+    .light .nav-link { color: #3a0050; }
+    .nav-link:hover { color: #b300ff !important; }
+
+    /* Mobile nav panel */
+    .dark #mobileNav { background: rgba(15, 10, 26, 0.97); }
+    .light #mobileNav { background: rgba(253, 242, 255, 0.97); }
+
+    /* Body text colors */
+    .dark .body-text { color: #d1b3e8; }
+    .light .body-text { color: #5a0072; }
+
+    .dark .muted-text { color: #9370b0; }
+    .light .muted-text { color: #7a4090; }
+
+    .dark .label-text { color: #8860a0; }
+    .light .label-text { color: #8040a0; }
+
+    /* Input fields */
+    .dark .form-input {
+      background: rgba(0, 0, 0, 0.45);
+      border-color: rgba(179, 0, 255, 0.2);
+      color: #ffffff;
+    }
+    .light .form-input {
+      background: rgba(150, 0, 182, 0.04);
+      border-color: rgba(150, 0, 182, 0.22);
+      color: #1a0030;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: rgba(150, 0, 182, 0.5) !important;
+      box-shadow: 0 0 0 2px rgba(150, 0, 182, 0.4),
+                  0 0 0 3px rgba(150, 0, 182, 0.12);
+    }
+    .dark .form-input::placeholder { color: transparent; }
+    .light .form-input::placeholder { color: transparent; }
+
+    /* Floating label */
+    .label-float {
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      position: absolute;
+      left: 1rem;
+      top: 1rem;
+      font-size: 1rem;
+      /* Added padding and negative margin to create a mask width */
+      padding: 0 0.35rem;
+      margin-left: -0.35rem;
+      border-radius: 4px;
+    }
+    .dark .label-float { color: #8860a0; }
+    .light .label-float { color: #8040a0; }
+
+    input:focus ~ .label-float,
+    input:not(:placeholder-shown) ~ .label-float {
+      transform: translateY(-24px) scale(0.82);
+      transform-origin: left top;
+      color: #b300ff;
+    }
+
+    /* Added background colors when floating to hide the border line */
+    .dark input:focus ~ .label-float,
+    .dark input:not(:placeholder-shown) ~ .label-float {
+      background-color: #160c28; /* Blends with the dark glass */
+    }
+    .light input:focus ~ .label-float,
+    .light input:not(:placeholder-shown) ~ .label-float {
+      background-color: #f6f0ff; /* Blends with the light glass from your screenshot */
+    }
+
+    /* Divider "or continue with" */
+    .dark .divider-bg { background: #110c1e; color: #6b5080; }
+    .light .divider-bg { background: #fdf2ff; color: #9060a8; }
+
+    /* Phone button */
+    .dark .phone-btn {
+      border-color: rgba(179, 0, 255, 0.2);
+      background: rgba(179, 0, 255, 0.04);
+      color: #e2d4f0;
+    }
+    .light .phone-btn {
+      border-color: rgba(150, 0, 182, 0.22);
+      background: rgba(150, 0, 182, 0.04);
+      color: #3a0050;
+    }
+    .phone-btn:hover {
+      border-color: #b300ff !important;
+      background: rgba(179, 0, 255, 0.10) !important;
+    }
+
+    /* Remember me label */
+    .dark .remember-label { color: #c0a0d8; }
+    .light .remember-label { color: #5a3070; }
+
+    /* Forgot password */
+    .dark .forgot-link { color: #b300ff; }
+    .light .forgot-link { color: #7a0094; }
+
+    /* Sign up link */
+    .dark .signup-link { color: #b300ff; }
+    .light .signup-link { color: #7a0094; }
+
+    /* "Don't have account" text */
+    .dark .no-account-text { color: #8860a0; }
+    .light .no-account-text { color: #7a4090; }
+
+    /* Card border bottom */
+    .dark .card-border-b { border-color: rgba(179, 0, 255, 0.1); }
+    .light .card-border-b { border-color: rgba(150, 0, 182, 0.12); }
+
+    /* 3D canvas caption */
+    .dark .canvas-caption { color: rgba(179, 0, 255, 0.45); }
+    .light .canvas-caption { color: rgba(90, 0, 114, 0.45); }
+
+    /* Main gradient heading */
+    .dark .hero-heading {
+      background: linear-gradient(135deg, #b300ff 0%, #d580ff 50%, #f0c0ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .light .hero-heading {
+      background: linear-gradient(135deg, #5a0072 0%, #8b0099 50%, #b300ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Modal */
+    .dark #phoneModal { background: rgba(5, 0, 15, 0.75); }
+    .light #phoneModal { background: rgba(90, 0, 114, 0.25); }
+
+    .dark .modal-title { color: #d580ff; }
+    .light .modal-title { color: #7a0094; }
+
+    .dark .modal-hint { color: #8860a0; }
+    .light .modal-hint { color: #7a4090; }
+
+    .dark .otp-input {
+      background: rgba(0, 0, 0, 0.45);
+      border-color: rgba(179, 0, 255, 0.2);
+      color: #d580ff;
+    }
+    .light .otp-input {
+      background: rgba(150, 0, 182, 0.04);
+      border-color: rgba(150, 0, 182, 0.22);
+      color: #7a0094;
+    }
+
+    .dark .back-btn { color: #8860a0; }
+    .light .back-btn { color: #7a4090; }
+    .back-btn:hover { color: #b300ff !important; }
+
+    .dark .modal-close-btn { color: #8860a0; }
+    .light .modal-close-btn { color: #9060a8; }
+
+    /* Theme toggle */
+    .dark #themeToggle {
+      background: rgba(20, 10, 40, 0.6);
+      border-color: rgba(179, 0, 255, 0.2);
+    }
+    .light #themeToggle {
+      background: rgba(255, 255, 255, 0.7);
+      border-color: rgba(150, 0, 182, 0.2);
+    }
+
+    /* 3D canvas container */
+    #canvas3d-container {
+      position: relative; width: 100%; height: 100%; min-height: 420px;
+    }
+    #object3d-canvas {
+      width: 100%; height: 100%; display: block; outline: none; cursor: grab;
+    }
+    #object3d-canvas:active { cursor: grabbing; }
+
+    /* Mobile hamburger */
+    .dark .mobile-btn-text { color: #d1b3e8; }
+    .light .mobile-btn-text { color: #5a0072; }
+  </style>
+</head>
+
+<body class="overflow-x-hidden min-h-screen flex flex-col">
+
+  <div class="fixed inset-0 z-0 pointer-events-none">
+    <div id="page-bg" class="absolute inset-0 transition-all duration-500"></div>
+    <div id="page-tex" class="absolute inset-0 bg-[url('images/bg1.png')] bg-cover bg-center transition-opacity duration-500 animate-pulse"></div>
+  </div>
+
+  <nav id="mainNav" class="relative z-30 w-full flex items-center justify-between px-6 md:px-12 lg:px-16 py-5 border-b backdrop-blur-md transition-all duration-400">
+    <a href="home.html" class="block">
+      <img src="images/logo.png" id="navLogo" class="h-9 md:h-11 object-contain transition-all duration-300" alt="Talent Circle Logo">
+    </a>
+
+    <ul class="hidden md:flex space-x-8 lg:space-x-12 text-base font-medium">
+      <li><a href="home.html" class="nav-link transition-colors duration-300">Home</a></li>
+      <li><a href="about.html" class="nav-link transition-colors duration-300">About</a></li>
+      <li><a href="features.html" class="nav-link transition-colors duration-300">Features</a></li>
+      <li><a href="certificates.html" class="nav-link transition-colors duration-300">Certificates</a></li>
+      <li><a href="get-started.html" class="nav-link transition-colors duration-300">Get Started</a></li>
+    </ul>
+
+    <div class="flex items-center space-x-4 ml-auto lg:ml-0">
+      <button id="themeToggle" class="p-2.5 rounded-xl border hover:scale-110 active:scale-95 text-xl focus:outline-none transition-all duration-300" aria-label="Toggle Theme">
+        🌓
+      </button>
+      <div id="authContainer" class="flex items-center space-x-2"></div>
+      <button id="mobileBtn" class="md:hidden text-2xl focus:outline-none mobile-btn-text">☰</button>
+    </div>
+  </nav>
+
+  <div id="mobileNav" class="md:hidden fixed top-20 left-0 right-0 backdrop-blur-xl z-40 p-8 text-center space-y-4 border-b border-purple-500/10 hidden transition-all duration-300">
+    <a href="home.html" class="block py-3 text-lg font-medium nav-link hover:text-purple-400">Home</a>
+    <a href="about.html" class="block py-3 text-lg font-medium nav-link hover:text-purple-400">About</a>
+    <a href="features.html" class="block py-3 text-lg font-medium nav-link hover:text-purple-400">Features</a>
+    <a href="certificates.html" class="block py-3 text-lg font-medium nav-link hover:text-purple-400">Certificates</a>
+    <a href="get-started.html" class="block py-3 text-lg font-medium nav-link hover:text-purple-400">Get Started</a>
+  </div>
+
+  <main class="relative z-10 flex-grow flex items-center justify-center py-12 px-4 md:px-8 lg:px-16">
+    <div class="max-w-6xl w-full mx-auto flex flex-col lg:flex-row items-center lg:items-stretch gap-8 lg:gap-12 min-h-[600px]">
+
+      <div class="w-full lg:w-1/2 flex flex-col justify-between relative glass rounded-3xl p-8 overflow-hidden min-h-[440px] lg:min-h-auto">
+        <div class="relative z-10 text-center lg:text-left">
+          <h1 class="hero-heading text-4xl md:text-5xl font-extrabold tracking-tight mb-2">
+            Welcome Back
+          </h1>
+          <p class="body-text text-base md:text-lg max-w-sm mx-auto lg:mx-0 leading-relaxed font-light">
+            Connect to the distributed ledger. Learn, teach, and trade value securely.
+          </p>
+        </div>
+
+        <div id="canvas3d-container" class="flex-grow my-2">
+          <canvas id="object3d-canvas"></canvas>
+        </div>
+
+        <div class="relative z-10 text-center lg:text-left canvas-caption text-xs tracking-wider uppercase font-medium">
+          P2P Ledger Model • Hover or Drag to Tilt Nodes
+        </div>
+
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      </div>
+
+      <div class="w-full lg:w-1/2 flex items-center justify-center animate-slide-up">
+        <div class="w-full max-w-md glass rounded-3xl p-8 md:p-10 shadow-2xl">
+
+          <form id="emailForm" class="space-y-5">
+      <div class="relative mt-4 w-full">
+  <input type="email" id="email" required autocomplete="email"
+    class="form-input block w-full min-w-0 px-4 py-4 border rounded-xl placeholder-transparent transition-all duration-300 peer truncate"
+    placeholder=" ">
+  <label for="email" class="label-float peer-focus:!text-purple-500">
+    Email Address
+  </label>
+</div>
+
+<div class="relative w-full mt-5">
+  <input type="password" id="password" required autocomplete="current-password"
+    class="form-input block w-full min-w-0 px-4 py-4 border rounded-xl placeholder-transparent transition-all duration-300 peer truncate"
+    placeholder=" ">
+  <label for="password" class="label-float peer-focus:!text-purple-500">
+    Password
+  </label>
+</div>
+
+            <div class="flex items-center justify-between text-sm">
+              <label for="remember-me" class="flex items-center space-x-2 cursor-pointer group">
+                <input type="checkbox" id="remember-me" class="rounded border-purple-500/30 accent-purple-600 w-4 h-4 focus:ring-0">
+                <span class="remember-label group-hover:opacity-80 transition-opacity">Remember me</span>
+              </label>
+              <a href="forgot-password.html" class="forgot-link hover:underline font-medium transition-all">Forgot Password?</a>
+            </div>
+
+            <button type="submit"
+              class="w-full bg-gradient-to-r from-purple-700 to-purple-500 text-white text-base font-semibold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99] hover:shadow-lg hover:shadow-purple-500/25">
+              Sign In
+            </button>
+          </form>
+
+          <div class="relative my-5">
+            <div class="absolute inset-0 flex items-center">
+              <span class="w-full border-t border-purple-500/15"></span>
+            </div>
+            <div class="relative flex justify-center text-xs uppercase tracking-wider">
+              <span class="divider-bg px-3 rounded-full">or continue with</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <div id="g_id_signin" class="w-full overflow-hidden rounded-xl transition-all border border-transparent hover:border-purple-500/30"></div>
+
+            <button id="phoneLoginBtn"
+              class="phone-btn w-full py-3.5 px-4 border rounded-xl transition-all duration-300 flex items-center justify-center text-sm font-medium">
+              <svg class="w-4 h-4 mr-2.5 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" clip-rule="evenodd"></path>
+              </svg>
+              Continue with Phone Number
+            </button>
+          </div>
+
+          <p class="no-account-text text-center pt-5 mt-5 text-sm border-t card-border-b">
+            Don't have an account?
+            <a href="signup.html" class="signup-link font-semibold hover:underline ml-1">Sign up</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="phoneModal" class="fixed inset-0 backdrop-blur-md z-50 hidden items-center justify-center p-4 transition-all duration-300">
+  <div class="glass rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-slide-up">
+      <button onclick="closePhoneModal()" class="modal-close-btn absolute top-4 right-5 text-2xl hover:text-purple-500 focus:outline-none transition-colors">&times;</button>
+      <h2 id="phoneTitle" class="modal-title text-2xl font-bold mb-6 text-center">Enter Phone Number</h2>
+
+      <div id="phoneStep1" class="space-y-4">
+        <div class="relative mt-4">
+          <input type="tel" id="phoneInput" placeholder=" "
+            class="form-input w-full px-4 py-4 border rounded-xl transition-all peer truncate">
+          <label class="label-float peer-focus:!text-purple-500">Phone Number</label>
+        </div>
+        <button onclick="sendPhoneOTP()"
+          class="w-full bg-gradient-to-r from-purple-700 to-purple-500 text-white py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300">
+          Send Verification Code
+        </button>
+      </div>
+
+      <div id="otpStep" class="space-y-4 hidden">
+        <p class="modal-hint text-center text-sm">Enter the 6-digit code transmitted to your device</p>
+        <input type="text" id="otpInput" maxlength="6" pattern="[0-9]*" inputmode="numeric"
+          class="otp-input w-full px-4 py-4 border rounded-xl text-center text-3xl font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-all"
+          placeholder="000000">
+        <button onclick="verifyPhoneOTP()"
+          class="w-full bg-gradient-to-r from-purple-700 to-purple-500 text-white py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300">
+          Verify &amp; Sign In
+        </button>
+        <button onclick="backToPhone()"
+          class="back-btn w-full py-2 text-sm transition-all focus:outline-none">
+          Modify Contact Number
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // Theme management
+    // ==========================================
+
+    function getRoleRedirect(user) {
+      const role = user?.role;
+      return role === 'admin' ? 'admin-panel.html' : 'user-profile.html';
+    }
+
+    async function loginWithEmailPassword() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!email) {
+        alert('Enter your email');
+        return;
+      }
+      if (!password) {
+        alert('Enter your password');
+        return;
+      }
+
+      const res = await fetch(window.apiUrl('/api/login'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error || !data.token) {
+        alert(data.error || 'Invalid credentials');
+        return;
+      }
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user || {}));
+      window.location.href = getRoleRedirect(data.user || {});
+    }
+
+    document.getElementById('emailForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      loginWithEmailPassword();
+    });
+
+
+    // ==========================================
+    const CONFIG_3D = {
+      theme: localStorage.getItem('theme') || 'dark',
+      colors: {
+        dark:  { tokenBg: 0x1a0030, line: 0x7a0094, nodes: 0xb300ff, flow: 0x00ffff },
+        light: { tokenBg: 0xedd5ff, line: 0x9600B6, nodes: 0x5a0072, flow: 0x7a0094 }
+    }};
+
+    const htmlDoc = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    const mobileBtn = document.getElementById('mobileBtn');
+    const mobileNav = document.getElementById('mobileNav');
+    const navLogo   = document.getElementById('navLogo');
+
+    function applyThemeExtras(mode) {
+      if (mode === 'light') {
+        navLogo.style.filter = 'invert(1) brightness(0.3) contrast(1.8)';
+      } else {
+        navLogo.style.filter = '';
+      }
+    }
+    // Apply on load
+    applyThemeExtras(CONFIG_3D.theme);
+
+    themeToggle.addEventListener('click', () => {
+      const next = htmlDoc.classList.contains('dark') ? 'light' : 'dark';
+      htmlDoc.className = next;
+      localStorage.setItem('theme', next);
+      CONFIG_3D.theme = next;
+      applyThemeExtras(next);
+      if (window.syncTheme3D) window.syncTheme3D(next);
+    });
+
+    if (mobileBtn && mobileNav) {
+      mobileBtn.addEventListener('click', () => mobileNav.classList.toggle('hidden'));
+    }
+    window.toggleMenu = () => document.getElementById("mobileMenu")?.classList.toggle("hidden");
+
+    // ==========================================================
+    // 3D P2P Token Ledger Visualization
+    // ==========================================================
+    (function initP2PLedger3D() {
+      const container = document.getElementById('canvas3d-container');
+      const canvas = document.getElementById('object3d-canvas');
+      if (!canvas || !container || typeof THREE === 'undefined') return;
+
+      const scene    = new THREE.Scene();
+      const camera   = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 500);
+      camera.position.set(0, 0, 75);
+
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      const ledgerGroup = new THREE.Group();
+      scene.add(ledgerGroup);
+
+      let colors = CONFIG_3D.colors[CONFIG_3D.theme];
+
+      const tokenMeshGeo = new THREE.CylinderGeometry(11, 11, 1.8, 24);
+      const tokenMeshMat = new THREE.MeshBasicMaterial({ color: colors.tokenBg, transparent: true, opacity: 0.65 });
+      const centerTokenMesh = new THREE.Mesh(tokenMeshGeo, tokenMeshMat);
+      centerTokenMesh.rotation.x = Math.PI / 2;
+      ledgerGroup.add(centerTokenMesh);
+
+      const tokenWireMat = new THREE.LineBasicMaterial({ color: colors.line, transparent: true, opacity: 0.45 });
+      const tokenWireGeo = new THREE.EdgesGeometry(tokenMeshGeo);
+      const tokenWireframe = new THREE.LineSegments(tokenWireGeo, tokenWireMat);
+      centerTokenMesh.add(tokenWireframe);
+
+      const peerCount = 14;
+      const peerPositions = [];
+      const peerPositionsArray = new Float32Array(peerCount * 3);
+
+      for (let i = 0; i < peerCount; i++) {
+        const angle  = (i / peerCount) * Math.PI * 2;
+        const radius = 22 + Math.random() * 4;
+        const x = radius * Math.cos(angle);
+        const y = radius * Math.sin(angle);
+        const z = (Math.random() - 0.5) * 6;
+        peerPositions.push(new THREE.Vector3(x, y, z));
+        peerPositionsArray[i * 3]     = x;
+        peerPositionsArray[i * 3 + 1] = y;
+        peerPositionsArray[i * 3 + 2] = z;
+      }
+
+      const peerGeometry = new THREE.BufferGeometry();
+      peerGeometry.setAttribute('position', new THREE.BufferAttribute(peerPositionsArray, 3));
+
+      function generateNodeGlowTexture(colorHex) {
+        const c = document.createElement('canvas');
+        c.width = 16; c.height = 16;
+        const ctx = c.getContext('2d');
+        const grad = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.4, colorHex);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 16, 16);
+        return new THREE.CanvasTexture(c);
+      }
+
+      const nodeGlowColor = () => CONFIG_3D.theme === 'dark' ? '#b300ff' : '#5a0072';
+      const flowGlowColor = () => CONFIG_3D.theme === 'dark' ? '#00ffff' : '#9600B6';
+
+      const nodePointsMat = new THREE.PointsMaterial({
+        size: 2.5, map: generateNodeGlowTexture(nodeGlowColor()),
+        transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+      });
+      ledgerGroup.add(new THREE.Points(peerGeometry, nodePointsMat));
+
+      const networkLinePositions = [];
+      peerPositions.forEach(p => { networkLinePositions.push(0, 0, 0, p.x, p.y, p.z); });
+      for (let i = 0; i < peerCount; i++) {
+        const n = (i + 1) % peerCount;
+        networkLinePositions.push(peerPositions[i].x, peerPositions[i].y, peerPositions[i].z,
+                                   peerPositions[n].x, peerPositions[n].y, peerPositions[n].z);
+      }
+
+      const networkLineGeo = new THREE.BufferGeometry();
+      networkLineGeo.setAttribute('position', new THREE.Float32BufferAttribute(networkLinePositions, 3));
+      const networkLinesMat = new THREE.LineBasicMaterial({ color: colors.line, transparent: true, opacity: 0.15 });
+      ledgerGroup.add(new THREE.LineSegments(networkLineGeo, networkLinesMat));
+
+      const flowCount = 60;
+      const flowGeo   = new THREE.BufferGeometry();
+      const flowArr   = new Float32Array(flowCount * 3);
+      const flowMeta  = [];
+
+      for (let i = 0; i < flowCount; i++) {
+        flowMeta.push({ peerIndex: Math.floor(Math.random() * peerCount), progress: Math.random(), speed: Math.random() * 0.012 + 0.006, direction: Math.random() > 0.4 ? 1 : -1 });
+      }
+
+      flowGeo.setAttribute('position', new THREE.BufferAttribute(flowArr, 3));
+      const flowMat = new THREE.PointsMaterial({
+        size: 1.5, map: generateNodeGlowTexture(flowGlowColor()),
+        transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+      });
+      ledgerGroup.add(new THREE.Points(flowGeo, flowMat));
+
+      let isInteracting = false, rotX = 0.4, rotY = -0.3, prevX = 0, prevY = 0;
+      canvas.addEventListener('mousedown', e => { isInteracting = true; prevX = e.clientX; prevY = e.clientY; });
+      window.addEventListener('mouseup',   () => isInteracting = false);
+      window.addEventListener('mousemove', e => {
+        if (!isInteracting) return;
+        rotY += (e.clientX - prevX) * 0.005;
+        rotX += (e.clientY - prevY) * 0.005;
+        prevX = e.clientX; prevY = e.clientY;
+      });
+
+      function frame() {
+        requestAnimationFrame(frame);
+        const t = Date.now() * 0.001;
+        if (!isInteracting) { rotY += 0.002; ledgerGroup.position.y = Math.sin(t * 1.5) * 1.2; centerTokenMesh.rotation.z = t * 0.15; }
+        ledgerGroup.rotation.x += (rotX - ledgerGroup.rotation.x) * 0.08;
+        ledgerGroup.rotation.y += (rotY - ledgerGroup.rotation.y) * 0.08;
+
+        const pos = flowGeo.attributes.position.array;
+        for (let i = 0; i < flowCount; i++) {
+          const p = flowMeta[i];
+          p.progress += p.speed;
+          if (p.progress > 1) { p.progress = 0; p.peerIndex = Math.floor(Math.random() * peerCount); }
+          const peer = peerPositions[p.peerIndex];
+          const t2 = p.direction === 1 ? p.progress : 1 - p.progress;
+          pos[i*3] = peer.x * t2; pos[i*3+1] = peer.y * t2; pos[i*3+2] = peer.z * t2;
+        }
+        flowGeo.attributes.position.needsUpdate = true;
+        renderer.render(scene, camera);
+      }
+      frame();
+
+      window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+      });
+
+      window.syncTheme3D = function(mode) {
+        colors = CONFIG_3D.colors[mode];
+        tokenMeshMat.color.setHex(colors.tokenBg);
+        tokenWireMat.color.setHex(colors.line);
+        networkLinesMat.color.setHex(colors.line);
+        nodePointsMat.map = generateNodeGlowTexture(nodeGlowColor());
+        nodePointsMat.needsUpdate = true;
+        flowMat.map = generateNodeGlowTexture(flowGlowColor());
+        flowMat.needsUpdate = true;
+      };
+    })();
+
+    // ============================
+    // Phone OTP Flow
+    // ============================
+    let currentPhone = '';
+
+    document.getElementById('phoneLoginBtn').addEventListener('click', () => {
+      document.getElementById('phoneModal').classList.remove('hidden');
+    });
+
+    function closePhoneModal() {
+      document.getElementById('phoneModal').classList.add('hidden');
+      document.getElementById('phoneStep1').classList.remove('hidden');
+      document.getElementById('otpStep').classList.add('hidden');
+      document.getElementById('phoneInput').value = '';
+      document.getElementById('otpInput').value = '';
+      document.getElementById('phoneTitle').textContent = 'Enter Phone Number';
+    }
+
+    function sendPhoneOTP() {
+      const phone = document.getElementById('phoneInput').value.trim();
+      if (!phone || !/^\+?\d{10,15}$/.test(phone.replace(/[^\d]/g, ''))) {
+        alert('Enter a valid phone number'); return;
+      }
+      currentPhone = phone;
+
+      fetch(window.apiUrl('/api/otp/send'), {
+
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      }).then(r => r.json()).then(data => {
+        if (data.success) {
+          document.getElementById('phoneStep1').classList.add('hidden');
+          document.getElementById('otpStep').classList.remove('hidden');
+          document.getElementById('phoneTitle').textContent = `Code sent to ${phone}`;
+          document.getElementById('otpInput').focus();
+        } else { alert(data.message || 'Failed to send code'); }
+      });
+    }
+
+    function verifyPhoneOTP() {
+      const otp = document.getElementById('otpInput').value.trim();
+      if (otp.length !== 6) { alert('Enter a 6-digit code'); return; }
+fetch(window.apiUrl('/api/otp/verify'), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: currentPhone, code: otp })
+      }).then(r => r.json()).then(data => {
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          window.location.href = data.user.role === 'admin' ? 'admin-panel.html' : 'user-panel.html';
+        } else { alert(data.error || 'Token rejected'); }
+      });
+    }
+
+    function backToPhone() {
+      document.getElementById('phoneStep1').classList.remove('hidden');
+      document.getElementById('otpStep').classList.add('hidden');
+      document.getElementById('otpInput').value = '';
+      document.getElementById('phoneTitle').textContent = 'Enter Phone Number';
+    }
+
+    document.getElementById('phoneModal').addEventListener('click', e => { if (e.target.id === 'phoneModal') closePhoneModal(); });
+    document.getElementById('otpInput').addEventListener('input', e => { if (e.target.value.trim().length === 6) verifyPhoneOTP(); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TalentCircle – Dashboard & Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f4f6fb;
+    --bg-card: #ffffff;
+    --border: #e5e7eb;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    --accent: #7C5CB7;
+    --accent-light: #F4F0FF;
+    --accent-2: #06b6d4;
+    --success: #10b981;
+    --success-light: #d1fae5;
+    --warning: #f59e0b;
+    --warning-light: #fef3c7;
+    --danger: #ef4444;
+    --shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    --shadow-md: 0 10px 25px -5px rgba(124, 92, 183, 0.1);
+    --radius: 24px;
+    --radius-sm: 14px;
+    --radius-full: 9999px;
+  }
+  [data-theme="dark"] {
+    --bg-primary: #030107;
+    --bg-secondary: #0B0813;
+    --bg-card: #090514;
+    --border: #3B1B6B;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent: #BC77FF;
+    --accent-light: #120B24;
+    --accent-2: #22d3ee;
+    --success: #34d399;
+    --success-light: #064e3b;
+    --warning: #fbbf24;
+    --warning-light: #451a03;
+    --danger: #f87171;
+    --shadow: 0 0 20px rgba(188, 119, 255, 0.1);
+    --shadow-md: 0 0 35px rgba(188, 119, 255, 0.2);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow-x: hidden;
+  }
+
+  /* Core Micro-Animations */
+  @keyframes floatUp {
+    0% { transform: translateY(15px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes pulseGlow {
+    0%, 100% { filter: drop-shadow(0 0 5px var(--accent)); }
+    50% { filter: drop-shadow(0 0 15px var(--accent)); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .animate-fade-up { animation: floatUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .logo-glow { animation: pulseGlow 3s infinite ease-in-out; }
+  .secure-lockdown { animation: flashRed 0.3s ease-out; }
+  @keyframes flashRed { 0%, 100% { background-color: transparent; } 50% { background-color: rgba(239, 68, 68, 0.1); } }
+
+  nav {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    height: 76px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+    width: 100%;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; max-height: 50px; }
+  .nav-logo object, .nav-logo img { height: 44px; width: auto; object-fit: contain; }
+  .nav-center { flex: 1; display: flex; justify-content: center; }
+  .nav-search { display: flex; align-items: center; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-full); padding: 8px 18px; gap: 10px; width: min(380px, 100%); }
+  .nav-search input { background: transparent; border: none; outline: none; font-size: 13px; color: var(--text-primary); width: 100%; }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .theme-btn { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text-secondary); transition: transform 0.2s; }
+  .theme-btn:hover { transform: rotate(15deg); }
+  
+  .nav-avatar-container { display: flex; align-items: center; gap: 8px; position: relative; }
+  .nav-pfp { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
+  .nav-avatar { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; position: absolute; bottom: -2px; right: -2px; border: 2px solid var(--bg-card); }
+
+  /* Grid Layout Configuration without Horizontal Overflow */
+  .layout {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr) 310px;
+    gap: 24px;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 24px;
+    width: 100%;
+  }
+  @media (max-width: 1280px) { .layout { grid-template-columns: 280px minmax(0, 1fr); } .right-panel { display: none; } }
+  @media (max-width: 968px) { .layout { grid-template-columns: minmax(0, 1fr); padding: 16px; } .left-panel { display: none; } }
+
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; width: 100%; margin-bottom: 24px; transition: box-shadow 0.3s ease; }
+  .card:hover { box-shadow: var(--shadow-md); }
+  .card-pad { padding: 24px; }
+  .card-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-weight: 700; font-size: 15px; color: var(--text-primary); letter-spacing: -0.02em; }
+
+  .left-panel { display: flex; flex-direction: column; }
+  .profile-card { text-align: center; }
+  .profile-cover { height: 100px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%); }
+  
+  .user-identity-stack { position: relative; display: inline-block; margin-top: -45px; }
+  .profile-pfp-container { width: 94px; height: 94px; border-radius: 50%; border: 4px solid var(--bg-card); overflow: hidden; background: #fff; box-shadow: var(--shadow); }
+  .profile-pfp-container img { width: 100%; height: 100%; object-fit: cover; }
+  .profile-avatar-overlay { width: 34px; height: 34px; border-radius: 50%; border: 2.5px solid var(--bg-card); position: absolute; bottom: 0; right: 0; overflow: hidden; background: var(--bg-secondary); }
+  .profile-avatar-overlay img { width: 100%; height: 100%; object-fit: cover; }
+  
+  .profile-name { font-weight: 700; font-size: 21px; margin: 12px 0 2px; letter-spacing: -0.03em; }
+  .profile-title { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500; }
+  .profile-loc { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; justify-content: center; gap: 4px; }
+  
+  /* Ranking Placement Styling Rules */
+  .rank-badge-container { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: linear-gradient(90deg, rgba(188,119,255,0.1), rgba(6,182,214,0.1)); border: 1px solid var(--border); border-radius: var(--radius-full); margin-top: 14px; font-size: 12px; font-weight: 800; color: var(--accent); }
+  .rank-badge-container i { color: #F59E0B; }
+
+  .profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--border); margin-top: 20px; }
+  .stat { padding: 16px 4px; }
+  .stat-val { font-weight: 800; font-size: 19px; color: var(--text-primary); }
+  .stat-label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+
+  .sidebar-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 14px; }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .skill-tag { font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: var(--radius-full); background: var(--accent-light); color: var(--accent); transition: transform 0.2s; }
+  .skill-tag:hover { transform: scale(1.03); }
+  .skill-tag.verified { background: var(--success-light); color: var(--success); }
+
+  /* Achievement Badges Collection Deck */
+  .badge-showcase-deck { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 4px; text-align: left; }
+  .earned-badge-item { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-secondary); font-size: 11px; font-weight: 700; transition: transform 0.2s; }
+  .earned-badge-item:hover { transform: translateY(-2px); }
+  .earned-badge-item i { font-size: 14px; color: var(--warning); text-shadow: 0 0 8px rgba(245,158,11,0.4); }
+  .badge-meta { display: flex; flex-direction: column; }
+  .badge-title { color: var(--text-primary); }
+  .badge-date { font-size: 9px; color: var(--text-muted); font-weight: 500; }
+
+  .avatar-gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 16px; padding: 24px; }
+  .avatar-option-card { border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); background: var(--bg-secondary); }
+  .avatar-option-card:hover { border-color: var(--accent); transform: scale(1.03); }
+  .avatar-option-card.selected { border-color: var(--accent); background: var(--accent-light); box-shadow: 0 0 15px rgba(188, 119, 255, 0.2); }
+  .avatar-option-card img { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; margin: 0 auto 8px; }
+  .avatar-meta-tag { font-size: 11px; font-weight: 700; color: var(--text-muted); }
+
+  .verify-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; padding: 24px; }
+  .verify-item { border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 18px; display: flex; flex-direction: column; gap: 10px; background: var(--bg-secondary); }
+  .verify-icon { font-size: 26px; }
+  .verify-name { font-size: 14px; font-weight: 700; }
+  .verify-status { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; margin-top: auto; }
+  .verify-status .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .verified .verify-status { color: var(--success); }
+  .verified .dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
+  .unverified .verify-status { color: var(--text-muted); }
+  .unverified .dot { background: var(--text-muted); }
+
+  .skill-tests-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; padding: 24px; }
+  .skill-test-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 20px; display: flex; flex-direction: column; gap: 12px; background: var(--bg-card); }
+  .st-header { display: flex; justify-content: space-between; align-items: flex-start; }
+  .st-icon { width: 44px; height: 44px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 22px; background: var(--bg-secondary); }
+  .st-score { font-size: 24px; font-weight: 800; color: var(--accent); }
+  .st-name { font-weight: 700; font-size: 14px; }
+  .st-meta { font-size: 12px; color: var(--text-muted); }
+  .st-bar-wrap { background: var(--bg-secondary); border-radius: var(--radius-full); height: 8px; overflow: hidden; }
+  .st-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0; }
+  .take-test-card { border: 2px dashed var(--border); border-radius: var(--radius-sm); padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: pointer; text-align: center; min-height: 170px; background: rgba(255,255,255,0.01); }
+  .take-test-card:hover { border-color: var(--accent); background: var(--accent-light); }
+  .take-test-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--accent); }
+
+  /* Leaderboard Ranking System Card layout */
+  .leaderboard-list { display: flex; flex-direction: column; }
+  .leaderboard-row { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--border); transition: background 0.2s; }
+  .leaderboard-row:hover { background: var(--bg-secondary); }
+  .leaderboard-row:last-child { border-bottom: none; }
+  .rank-num { font-size: 14px; font-weight: 800; width: 24px; text-align: center; color: var(--text-muted); }
+  .rank-num.top-three { color: #F59E0B; font-size: 16px; }
+  .rank-pfp { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
+  .rank-info { flex: 1; min-width: 0; }
+  .rank-name { font-weight: 700; font-size: 13px; color: var(--text-primary); }
+ .rank-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+  .rank-score { font-size: 13px; font-weight: 800; color: var(--accent); text-align: right; }
+
+  .tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 24px; background: rgba(255,255,255,0.01); }
+  .tab { padding: 16px 20px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--text-muted); border-bottom: 3px solid transparent; transition: color 0.2s; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: var(--radius-full); font-size: 13px; font-weight: 700; cursor: pointer; border: none; text-decoration: none; transition: transform 0.2s, filter 0.2s; }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(188, 119, 255, 0.2); }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-outline { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(3, 1, 7, 0.8); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); width: min(600px, 100%); max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow); }
+  .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-close { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-secondary); border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
+  .modal-body { padding: 24px; }
+
+  .quiz-q { font-size: 16px; font-weight: 700; margin-bottom: 20px; color: var(--text-primary); line-height: 1.5; }
+  .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+  .quiz-option { padding: 14px 18px; border: 2px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; background: var(--bg-secondary); transition: all 0.15s; color: var(--text-secondary); }
+  .quiz-option:hover { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+  .quiz-option.selected { border-color: var(--accent); background: var(--accent-light); color: var(--accent); font-weight: 700; }
+  .quiz-option.correct { border-color: var(--success); background: var(--success-light); color: var(--success); font-weight: 700; }
+  .quiz-option.wrong { border-color: var(--danger); background: rgba(239, 68, 68, 0.08); color: var(--danger); }
+  .quiz-timer-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 12px 14px; background: rgba(239, 68, 68, 0.06); border-radius: var(--radius-sm); border: 1px solid rgba(239, 68, 68, 0.15); }
+  .quiz-timer { font-size: 14px; font-weight: 800; color: var(--danger); }
+  .accuracy-warning { background: var(--warning-light); border: 1px solid var(--warning); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; color: var(--warning); font-weight: 500; line-height: 1.5; }
+  .right-panel { display: flex; flex-direction: column; }
+</style>
+</head>
+<body class="animate-fade-up">
+
+<nav>
+  <!-- Brand logo elements replacing older text layouts cleanly -->
+ <a href="profile.html" class="nav-logo logo-glow" aria-label="Go to profile page">
+
+  <object 
+    data="images/logo.html" 
+    type="text/html" 
+    class="h-11 w-auto pointer-events-none" 
+    id="logo-object-node"
+    aria-label="TalentCircle Logo">
+
+    <img 
+      src="images/logo.png" 
+      alt="TalentCircle Logo"
+      onerror="this.src='https://placehold.co/120x40/090514/BC77FF?text=TC'">
+
+  </object>
+
+</a>
+  
+  <div class="nav-center">
+    <div class="nav-search">
+      <span>🔍</span>
+      <input placeholder="Search leadership ranks, skills, system assets...">
+    </div>
+  </div>
+  
+  <div class="nav-right">
+    <button class="theme-btn" onclick="togglePlatformTheme()" id="theme-btn">☀️</button>
+    <a href="edit-profile.html" class="btn btn-primary btn-sm">✏️ Edit Profile</a>
+    <div class="nav-avatar-container">
+      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" class="nav-pfp" id="nav-pfp-img" alt="PFP">
+      <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Tahir" class="nav-avatar" id="nav-avatar-img" alt="Avatar">
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+  
+  <!-- LEFT COLUMN -->
+  <aside class="left-panel">
+    <div class="card profile-card">
+      <div class="profile-cover"></div>
+      <div class="card-pad" style="padding-top:0">
+        <div class="user-identity-stack">
+          <div class="profile-pfp-container" id="profile-pfp-box">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="PFP">
+          </div>
+          <div class="profile-avatar-overlay" id="profile-avatar-box">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Tahir" alt="Avatar">
+          </div>
+        </div>
+        
+        <div class="profile-name" id="display-name">Tahir Rafiq</div>
+        <div class="profile-title" id="display-title">Chief Operating Officer & Solutions Architect</div>
+        <div class="profile-loc">📍 Sialkot, Punjab, Pakistan</div>
+        
+        <!-- Live Ranking Badge -->
+        <div class="rank-badge-container">
+          <i class="fas fa-crown"></i> Rank: <span id="live-rank-text">#12 Global</span>
+        </div>
+
+        <div class="profile-stats">
+          <div class="stat"><div class="stat-val" id="trust-val-display">94</div><div class="stat-label">Trust Score</div></div>
+          <div class="stat"><div class="stat-val">38</div><div class="stat-label">Deployments</div></div>
+          <div class="stat"><div class="stat-val">5.0</div><div class="stat-label">Rating</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievement Badges Earned Container Section -->
+    <div class="card card-pad">
+      <div class="sidebar-label">Earned Achievements</div>
+      <div class="badge-showcase-deck" id="profile-badges-deck">
+        <div class="earned-badge-item" title="Identity verified securely">
+          <i class="fas fa-shield-halved"></i>
+          <div class="badge-meta">
+            <span class="badge-title">ID Verified</span>
+            <span class="badge-date">Passed 2026</span>
+          </div>
+        </div>
+        <div class="earned-badge-item" title="Top tier architecture evaluation passed">
+          <i class="fas fa-award"></i>
+          <div class="badge-meta">
+            <span class="badge-title">Laravel Master</span>
+            <span class="badge-date">Score: 96%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-pad">
+      <div class="sidebar-label">Expertise Deck</div>
+      <div class="skill-tags" id="deck-skill-tags">
+        <span class="skill-tag verified">Laravel</span>
+        <span class="skill-tag verified">WordPress</span>
+        <span class="skill-tag verified">Tailwind CSS</span>
+        <span class="skill-tag">UI/UX Design</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CENTRAL PANEL WINDOW -->
+  <main class="main-content">
+    
+    <!-- AVATAR SELECTION ENGINE -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🎭 Select Portrait Vector Avatar</span>
+        <span class="text-xs text-muted">Choose your custom dashboard decoration identity profile layer</span>
+      </div>
+      <div class="avatar-gallery-grid">
+        <div class="avatar-option-card selected" onclick="switchIdentityAvatarAsset('Tahir', this)">
+          <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Tahir" alt="M1">
+          <div class="avatar-meta-tag">Female Alpha</div>
+        </div>
+        <div class="avatar-option-card" onclick="switchIdentityAvatarAsset('Amir', this)">
+          <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Amir" alt="M2">
+          <div class="avatar-meta-tag">Female Beta</div>
+        </div>
+        <div class="avatar-option-card" onclick="switchIdentityAvatarAsset('Sara', this)">
+          <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Sara" alt="F1">
+          <div class="avatar-meta-tag">Male Alpha</div>
+        </div>
+        <div class="avatar-option-card" onclick="switchIdentityAvatarAsset('Fatima', this)">
+          <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Fatima" alt="F2">
+          <div class="avatar-meta-tag">Male Beta</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN PROFILE DATA NAVIGATOR TABS -->
+    <div class="card">
+      <div class="tabs" id="identity-tabs">
+        <div class="tab active" onclick="switchTab('verify','identity-tabs')">🛡 Identity Validation</div>
+        <div class="tab" onclick="switchTab('tests','identity-tabs')">📊 Realtime Skill Tests</div>
+      </div>
+
+      <div class="tab-content active" id="tab-verify">
+        <div class="verify-grid">
+          <div class="verify-item verified">
+            <div class="verify-icon">📧</div>
+            <div class="verify-name">Corporate Route</div>
+            <div class="verify-status"><div class="dot"></div>Verified</div>
+          </div>
+          <div class="verify-item unverified">
+            <div class="verify-icon">🪪</div>
+            <div class="verify-name">CNIC / ID</div>
+            <div class="verify-status"><div class="dot"></div>Unverified</div>
+          </div>
+        </div>
+        <div style="padding:0 24px 24px">
+          <div class="accuracy-warning">⚠️ Head to the standalone Edit Profile page to upload verification documents, PFP updates, or credentials safely.</div>
+        </div>
+      </div>
+
+      <!-- Skill Tests Complete Category Coverage Block Layout Grid -->
+      <div class="tab-content" id="tab-tests">
+        <div class="skill-tests-grid" id="platform-tests-grid">
+          <div class="take-test-card" onclick="openModal('test-modal')">
+            <div class="take-test-icon">+</div>
+            <div class="take-test-label">Run Verification Quiz</div>
+            <div style="font-size:11px;color:var(--text-muted)">Covers Arts, Tech, Languages, Health, Marketing, and Career soft-skills.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT PANEL COMPONENT COLUMN -->
+  <aside class="right-panel">
+    
+    <!-- Global Leaderboard Rankings Card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🏆 Global Leaderboard Ranks</span>
+      </div>
+      <div class="leaderboard-list">
+        <div class="leaderboard-row">
+          <span class="rank-num top-three">1</span>
+          <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Sara" class="rank-pfp" alt="R1">
+          <div class="rank-info">
+            <div class="rank-name">Sara Raza</div>
+            <div class="rank-title">Product Designer</div>
+          </div>
+          <span class="rank-score">2,450</span>
+        </div>
+        <div class="leaderboard-row">
+          <span class="rank-num top-three">2</span>
+          <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Amir" class="rank-pfp" alt="R2">
+          <div class="rank-info">
+            <div class="rank-name">Habiba Shehbaz</div>
+            <div class="rank-title">Project Manager</div>
+          </div>
+          <span class="rank-score">2,100</span>
+        </div>
+        <!-- Active User Position -->
+        <div class="leaderboard-row" style="background: var(--accent-light);">
+          <span class="rank-num" id="live-rank-side">12</span>
+          <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Tahir" class="rank-pfp" id="leaderboard-self-avatar" alt="RSelf">
+          <div class="rank-info">
+            <div class="rank-name" style="color: var(--accent); font-weight:800;">Tahir Rafiq (You)</div>
+            <div class="rank-title">Solutions Architect</div>
+          </div>
+          <span class="rank-score" id="leaderboard-score-display">1,840</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Collaborators Target Deck Card -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">🎯 Quick Networks</span></div>
+      <div class="match-card">
+        <div class="match-avatar" style="background:linear-gradient(135deg,#7C5CB7,#818cf8)">KS</div>
+        <div style="font-size:13px; font-weight:700;">Kousar Shabir</div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- SECURE ANTI-CHEAT ENGINE MODAL BOX WINDOW -->
+<div class="modal-overlay" id="test-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="test-modal-title">📊 Select Domain Challenge</div>
+      <button class="modal-close" onclick="closeModal('test-modal');abortTestingEngineState()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="selection-deck-view">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="quiz-categories-injection-grid"></div>
+      </div>
+      <div id="testing-viewport-view" style="display:none">
+        <div class="quiz-timer-box">
+          <span style="font-size:11px; font-weight:700; color:var(--danger)">🔒 ANTI-CHEAT TIMEOUT SECURED</span>
+          <div class="quiz-timer">Timer: <span id="clock-countdown-element">30</span>s</div>
+        </div>
+        <div class="quiz-q" id="question-text-element"></div>
+        <div class="quiz-options" id="options-buttons-element"></div>
+        <div style="margin-top:20px; display:flex; justify-content:flex-end;">
+          <button class="btn btn-primary btn-sm" id="next-step-btn" onclick="submitActiveQuestionCalculation()" disabled>Submit Answer →</button>
+        </div>
+      </div>
+      <div id="analytics-result-view" style="display:none; text-align:center; padding:10px;">
+        <div style="font-size:50px;" id="result-badge-icon">🏆</div>
+        <div style="font-size:22px; font-weight:800; color:var(--accent); margin:10px 0;" id="result-score-title">Passed</div>
+        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:20px;" id="result-message-summary"></p>
+        <button class="btn btn-primary" onclick="applyEarnedVerificationBadgeToLayout()">Claim Expert Badge & Rank Points</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Global Category Mapping Configurations Array Lists
+const globalComprehensiveCategoriesPool = {
+  "creative---arts": { name: "Creative & Arts", icon: "🎨", q: "Which property configurations reserve visual layout regions dynamically across components?", opts: ["A) Explicit aspect-ratio setups", "B) Float mapping variables", "C) Element scaling vectors"], ans: "A", badge: "Design Leader", scoreAwarded: 120 },
+  "tech---development": { name: "Tech & Development", icon: "💻", q: "What design paradigm separates style dependencies directly inside isolated child components?", opts: ["A) Server-side routing loops", "B) Atomic / Atomic CSS class utilities", "C) Context State injections"], ans: "B", badge: "Core Architect", scoreAwarded: 150 },
+  "language---comm": { name: "Language & Comm", icon: "🗣️", q: "Which core format identifies conversational patterns during direct client interfaces?", opts: ["A) Chronological metrics summaries", "B) Active listening conversion structures", "C) Passive tracking logs"], ans: "B", badge: "Orator Master", scoreAwarded: 110 }
+};
+
+let selectedCatKeyRef = null;
+let countdownTimerIntervalRef = null;
+let timerSecondsCount = 30;
+let userGlobalRankScorePoints = 1840;
+
+// Strict Anti-Copy Lockdown Protections Engine
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => { if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C')) || (e.ctrlKey && (e.key === 'c' || e.key === 'v'))) { e.preventDefault(); document.body.classList.add('secure-lockdown'); setTimeout(() => document.body.classList.remove('secure-lockdown'), 300); } });
+document.addEventListener('copy', e => e.preventDefault());
+document.addEventListener('paste', e => e.preventDefault());
+
+function togglePlatformTheme() {
+  const element = document.documentElement;
+  const target = element.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  element.setAttribute('data-theme', target);
+  document.getElementById('theme-btn').textContent = target === 'dark' ? '☀️' : '🌙';
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if(id === 'test-modal') renderCategoriesSelectionGrid();
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function switchTab(id, parent) {
+  document.getElementById(parent).parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(parent).parentElement.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+window.addEventListener('pageshow', () => {
+  if(localStorage.getItem('tc_fullname')) document.getElementById('display-name').textContent = localStorage.getItem('tc_fullname');
+  if(localStorage.getItem('tc_title')) document.getElementById('display-title').textContent = localStorage.getItem('tc_title');
+  if(localStorage.getItem('tc_pfp')) {
+    const customSrc = localStorage.getItem('tc_pfp');
+    document.getElementById('nav-pfp-img').src = customSrc;
+    document.getElementById('profile-pfp-box').innerHTML = `<img src="${customSrc}" alt="PFP">`;
+  }
+});
+
+function switchIdentityAvatarAsset(seed, cardDOM) {
+  document.querySelectorAll('.avatar-option-card').forEach(c => c.classList.remove('selected'));
+  cardDOM.classList.add('selected');
+  const path = `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}`;
+  document.getElementById('nav-avatar-img').src = path;
+  document.getElementById('profile-avatar-box').innerHTML = `<img src="${path}" alt="Avatar">`;
+  document.getElementById('leaderboard-self-avatar').src = path;
+}
+
+function renderCategoriesSelectionGrid() {
+  const container = document.getElementById('quiz-categories-injection-grid');
+  container.innerHTML = '';
+  Object.entries(globalComprehensiveCategoriesPool).forEach(([key, schema]) => {
+    const item = document.createElement('div');
+    item.className = 'skill-test-card';
+    item.style.cssText = 'cursor:pointer; background:rgba(255,255,255,0.01); border:1px solid var(--border);';
+    item.onclick = () => launchSecureChallenge(key);
+    item.innerHTML = `<div class="st-header"><div class="st-icon">${schema.icon}</div></div><div class="st-name">${schema.name}</div><div class="st-meta">Gain +${schema.scoreAwarded} Points</div>`;
+    container.appendChild(item);
+  });
+}
+
+function launchSecureChallenge(keyStr) {
+  selectedCatKeyRef = keyStr;
+  timerSecondsCount = 30;
+  document.getElementById('selection-deck-view').style.display = 'none';
+  document.getElementById('testing-viewport-view').style.display = 'block';
+  
+  const activeQuiz = globalComprehensiveCategoriesPool[keyStr];
+  document.getElementById('question-text-element').textContent = activeQuiz.q;
+  
+  const optionsBox = document.getElementById('options-buttons-element');
+  optionsBox.innerHTML = '';
+  activeQuiz.opts.forEach(opt => {
+    const btn = document.createElement('div');
+    btn.className = 'quiz-option';
+    btn.textContent = opt;
+    btn.onclick = () => {
+      document.querySelectorAll('.quiz-option').forEach(x => x.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('next-step-btn').disabled = false;
+    };
+    optionsBox.appendChild(btn);
+  });
+  
+  clearInterval(countdownTimerIntervalRef);
+  countdownTimerIntervalRef = setInterval(() => {
+    timerSecondsCount--;
+    document.getElementById('clock-countdown-element').textContent = timerSecondsCount;
+    if(timerSecondsCount <= 0) { clearInterval(countdownTimerIntervalRef); alert("Timeout limit hit!"); abortTestingEngineState(); }
+  }, 1000);
+}
+
+function submitActiveQuestionCalculation() {
+  clearInterval(countdownTimerIntervalRef);
+  const quiz = globalComprehensiveCategoriesPool[selectedCatKeyRef];
+  const selectedNode = document.querySelector('.quiz-option.selected');
+  const answerLetter = selectedNode.textContent.charAt(0);
+  
+  document.querySelectorAll('.quiz-option').forEach(n => {
+    if(n.textContent.charAt(0) === quiz.ans) n.className = 'quiz-option correct';
+    else if(n.classList.contains('selected')) n.className = 'quiz-option wrong';
+  });
+
+  setTimeout(() => {
+    document.getElementById('testing-viewport-view').style.display = 'none';
+    document.getElementById('analytics-result-view').style.display = 'block';
+    
+    if(answerLetter === quiz.ans) {
+      document.getElementById('result-score-title').textContent = "Passed (100%)";
+      document.getElementById('result-message-summary').textContent = `Success! The platform verified your proficiency metrics inside ${quiz.name}. Unlocked +${quiz.scoreAwarded} rank points.`;
+      document.getElementById('result-badge-icon').textContent = "🏆";
+    } else {
+      document.getElementById('result-score-title').textContent = "Failed (0%)";
+      document.getElementById('result-message-summary').textContent = "Incorrect evaluation choice. Review standard parameter sets and re-verify later.";
+      document.getElementById('result-badge-icon').textContent = "📚";
+    }
+  }, 800);
+}
+
+function applyEarnedVerificationBadgeToLayout() {
+  const quiz = globalComprehensiveCategoriesPool[selectedCatKeyRef];
+  if(document.getElementById('result-score-title').textContent.includes("Passed")) {
+    // Inject Achievement Badge
+    const deck = document.getElementById('profile-badges-deck');
+    const badge = document.createElement('div');
+    badge.className = 'earned-badge-item';
+    badge.innerHTML = `<i class="fas fa-medal"></i> <div class="badge-meta"><span class="badge-title">${quiz.badge}</span><span class="badge-date">Earned Just Now</span></div>`;
+    deck.appendChild(badge);
+    
+    // Increment Score and Shift Leaderboard Rank position parameters
+    userGlobalRankScorePoints += quiz.scoreAwarded;
+    document.getElementById('leaderboard-score-display').textContent = userGlobalRankScorePoints;
+    document.getElementById('trust-val-display').textContent = "100";
+    
+    if (userGlobalRankScorePoints >= 1950) {
+      document.getElementById('live-rank-text').textContent = "#7 Global";
+      document.getElementById('live-rank-side').textContent = "7";
+    }
+  }
+  closeModal('test-modal');
+  abortTestingEngineState();
+}
+
+function abortTestingEngineState() {
+  clearInterval(countdownTimerIntervalRef);
+  document.getElementById('selection-deck-view').style.display = 'block';
+  document.getElementById('testing-viewport-view').style.display = 'none';
+  document.getElementById('analytics-result-view').style.display = 'none';
+  document.getElementById('test-modal-title').textContent = "📊 Select Domain Challenge";
+}
+</script>
+</body>
+</html>

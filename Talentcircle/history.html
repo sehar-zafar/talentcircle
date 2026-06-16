@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>History — TalentCircle</title>
+   <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--s0:#0d0916;--s1:#110d1c;--s2:#191226;--s3:#231a34;--s4:#2d2240;--b0:#2a1f3d;--b1:#3d2d58;--t0:#f0ecff;--t1:#c4b8e8;--t2:#8878b8;--t3:#5a4d80;--a:#b300ff;--a-l:rgba(179,0,255,.10);--a-b:rgba(179,0,255,.28);--a-m:rgba(179,0,255,.16);--gn:#3daf68;--gn-l:rgba(61,175,104,.09);--gn-b:rgba(61,175,104,.26);--rd:#f2566a;--rd-l:rgba(242,86,106,.09);--rd-b:rgba(242,86,106,.26);--am:#e8853a;--am-l:rgba(232,133,58,.09);--am-b:rgba(232,133,58,.26);--tl:#2dc4b8;--tl-l:rgba(45,196,184,.09);--tl-b:rgba(45,196,184,.26);--r2:8px;--r3:12px;--r4:16px;--r5:24px;--ff:system-ui,-apple-system,Segoe UI,Roboto,Arial;--mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;--shadow:0 12px 40px rgba(0,0,0,.45)}
+    html,body{height:100%;background:var(--s0);color:var(--t0);font-family:var(--ff)}
+    .wrap{max-width:1050px;margin:0 auto;padding:22px 16px 60px}
+    header{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:18px}
+    h1{font-size:20px;letter-spacing:-.02em}
+    .sub{color:var(--t2);font-size:13px;margin-top:4px}
+    .card{background:var(--s1);border:1px solid var(--b0);border-radius:var(--r4);box-shadow:var(--shadow);overflow:hidden}
+    .toolbar{padding:12px 14px;border-bottom:1px solid var(--b0);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .tabs{display:flex;gap:8px;background:var(--s0);border:1px solid var(--b0);padding:3px;border-radius:999px}
+    .tab{border:none;background:transparent;color:var(--t2);padding:6px 12px;border-radius:999px;font-weight:700;font-size:12px;cursor:pointer}
+    .tab.on{background:linear-gradient(135deg,#1a0f2e,#3a0050);color:var(--a);border:1px solid var(--a-m)}
+    .actions{display:flex;gap:10px;align-items:center}
+    .pill{font-family:var(--mono);font-size:12px;color:var(--t3);background:var(--s2);border:1px solid var(--b0);padding:6px 10px;border-radius:999px}
+    .btn{border:none;cursor:pointer;border-radius:10px;padding:8px 12px;font-weight:800;background:rgba(179,0,255,.16);color:var(--a);border:1px solid var(--a-b)}
+
+    .content{padding:14px 14px 18px}
+    .loading{padding:18px 0;color:var(--t2);font-weight:700}
+    table{width:100%;border-collapse:collapse}
+    thead th{position:sticky;top:0;background:var(--s1);border-bottom:1px solid var(--b0);padding:10px 10px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);text-align:left;white-space:nowrap}
+    thead th:last-child{text-align:right}
+    tbody td{padding:12px 10px;border-bottom:1px solid rgba(61,45,88,.6);color:var(--t1);font-size:13px;vertical-align:middle}
+    tbody td:last-child{text-align:right}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap}
+    .earned{background:var(--gn-l);border:1px solid var(--gn-b);color:var(--gn)}
+    .spent{background:var(--rd-l);border:1px solid var(--rd-b);color:var(--rd)}
+    .bonus{background:var(--a-l);border:1px solid var(--a-b);color:var(--a)}
+    .daily{background:var(--am-l);border:1px solid var(--am-b);color:var(--am)}
+    .amt{font-family:var(--mono);font-weight:900}
+    .amt.pos{color:var(--gn)}.amt.neg{color:var(--rd)}
+    .empty{padding:22px 0;color:var(--t2);font-weight:800;text-align:center}
+    .toast{position:fixed;bottom:18px;right:18px;background:var(--s4);border:1px solid var(--b1);color:var(--t0);padding:10px 14px;border-radius:12px;box-shadow:var(--shadow);font-weight:900;opacity:0;transform:translateY(10px);transition:.25s ease;pointer-events:none}
+    .toast.on{opacity:1;transform:translateY(0)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Transaction History</h1>
+        <div class="sub">Shows wallet token events (earned / bonus / daily / spent).</div>
+      </div>
+      <div class="actions">
+        <div class="pill" id="balance-pill">Balance: —</div>
+        <button class="btn" id="refresh-btn" type="button">Refresh</button>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="toolbar">
+        <div class="tabs">
+          <button class="tab on" data-filter="all" type="button">All</button>
+          <button class="tab" data-filter="earned" type="button">Earned</button>
+          <button class="tab" data-filter="bonus" type="button">Bonus</button>
+          <button class="tab" data-filter="daily" type="button">Daily</button>
+          <button class="tab" data-filter="spent" type="button">Spent</button>
+        </div>
+        <div class="pill" id="count-pill">Transactions: —</div>
+      </div>
+
+      <div class="content">
+        <div class="loading" id="loading">Loading…</div>
+        <div class="empty" id="empty" style="display:none">No transactions found.</div>
+        <table style="display:none" id="tx-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Date</th>
+              <th style="text-align:right">Amount</th>
+              <th style="text-align:right">Balance</th>
+            </tr>
+          </thead>
+          <tbody id="tx-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Saved</div>
+
+  <script>
+    let TXNS = [];
+    let curFilter = 'all';
+
+    const META = {
+      earned: {label: 'Earned', e: '📥'},
+      spent: {label: 'Spent', e: '📤'},
+      bonus: {label: 'Bonus', e: '⚡'},
+      daily: {label: 'Daily', e: '🔥'}
+    };
+
+    function showToast(msg){
+      const t=document.getElementById('toast');
+      t.textContent=msg;
+      t.classList.add('on');
+      setTimeout(()=>t.classList.remove('on'), 2200);
+    }
+
+    function setBalanceText(n){
+      document.getElementById('balance-pill').textContent = 'Balance: ' + (Number(n).toLocaleString());
+    }
+
+    function setCountText(n){
+      document.getElementById('count-pill').textContent = 'Transactions: ' + n;
+    }
+
+    function render(){
+      const loading = document.getElementById('loading');
+      const empty = document.getElementById('empty');
+      const table = document.getElementById('tx-table');
+      const body = document.getElementById('tx-body');
+
+      body.innerHTML='';
+
+      const filtered = curFilter === 'all' ? TXNS : TXNS.filter(t => t.type === curFilter);
+      setCountText(filtered.length);
+
+      loading.style.display='none';
+      if(!filtered.length){
+        empty.style.display='block';
+        table.style.display='none';
+        return;
+      }
+      empty.style.display='none';
+      table.style.display='table';
+
+      for(const tx of filtered){
+        const meta = META[tx.type] || META.earned;
+        const isPos = tx.amount > 0;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span class="chip ${tx.type}">${meta.e} ${meta.label}</span></td>
+          <td>${tx.desc ?? ''}</td>
+          <td>${tx.date ?? ''}</td>
+          <td style="text-align:right"><span class="amt ${isPos?'pos':'neg'}">${isPos?'+':''}${tx.amount}</span></td>
+          <td style="text-align:right">${Math.abs(tx.balance ?? 0)}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    async function apiGet(path){
+      const token = localStorage.getItem('token');
+      const headers = {};
+      if(token) headers['Authorization'] = token;
+      const res = await fetch(path, {headers});
+      const data = await res.json().catch(()=>null);
+      if(!res.ok){
+        const msg = data && data.error ? data.error : ('Request failed ' + res.status);
+        throw new Error(msg);
+      }
+      return data;
+    }
+
+    async function load(){
+      const loading = document.getElementById('loading');
+      loading.style.display='block';
+      document.getElementById('empty').style.display='none';
+      document.getElementById('tx-table').style.display='none';
+
+      try{
+        const summary = await apiGet('/backend/api/tokens/summary');
+        if(summary && typeof summary.token_balance === 'number'){
+          setBalanceText(summary.token_balance);
+        }
+
+        const txData = await apiGet('/backend/api/tokens/transactions');
+        TXNS = (txData && Array.isArray(txData.transactions)) ? txData.transactions : [];
+        render();
+      }catch(e){
+        TXNS = [];
+        setBalanceText('0');
+        document.getElementById('empty').style.display='block';
+        document.getElementById('tx-table').style.display='none';
+        document.getElementById('loading').style.display='none';
+        setCountText(0);
+        showToast('Failed to load history');
+        console.warn('history load failed:', e.message || e);
+      }
+    }
+
+    document.querySelectorAll('.tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+        curFilter = btn.getAttribute('data-filter') || 'all';
+        render();
+      });
+    });
+
+    document.getElementById('refresh-btn').addEventListener('click', load);
+    load();
+  </script>
+</body>
+</html>
+
+

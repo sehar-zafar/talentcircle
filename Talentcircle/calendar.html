@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calendar | Talent Circle</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+   <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'tc-black':   '#0a0a0f',
+            'tc-dark':    '#100f1a',
+            'tc-card':    '#15131f',
+            'tc-border':  '#2a2440',
+            'tc-purple':  '#9b30d9',
+            'tc-violet':  '#7b1fa2',
+            'tc-lavender':'#c05fe8',
+            'tc-soft':    '#d98bf5',
+            'tc-glow':    '#6a1699',
+            
+            // Light variant colors
+            'tcl-bg':      '#f8f9fa',
+            'tcl-sidebar': '#ffffff',
+            'tcl-card':    '#ffffff',
+            'tcl-border':  '#e2e8f0',
+            'tcl-text':    '#0f172a',
+            'tcl-muted':   '#64748b'
+          },
+          fontFamily: {
+            display: ['Poppins', 'sans-serif'],
+            body: ['Poppins', 'sans-serif'],
+          },
+          boxShadow: {
+            'purple-glow': '0 0 30px rgba(155,48,217,0.25)',
+            'purple-soft': '0 0 12px rgba(155,48,217,0.15)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Poppins', sans-serif; transition: background-color 0.3s, color 0.3s; }
+    h1,h2,h3,h4,h5,h6,.font-display { font-family: 'Poppins', sans-serif; }
+ 
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    .dark ::-webkit-scrollbar-track { background: #100f1a; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    .dark ::-webkit-scrollbar-thumb { background: #2a2440; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #9b30d9; }
+ 
+    /* Noise texture overlay */
+    .noise-overlay::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+ 
+    /* Glow orbs */
+    .orb { position:fixed; border-radius:50%; filter:blur(80px); pointer-events:none; z-index:0; }
+    .orb-1 { width:500px; height:500px; top:-200px; right:-100px; background:radial-gradient(circle, rgba(155,48,217,0.15) 0%, transparent 70%); }
+    .orb-2 { width:400px; height:400px; bottom:-100px; left:-100px; background:radial-gradient(circle, rgba(155,48,217,0.1) 0%, transparent 70%); }
+ 
+    /* Day cell hover */
+    .day-cell { transition: all 0.2s ease; cursor: pointer; }
+    .day-cell:hover { border-color: rgba(155,48,217,0.5) !important; background: rgba(155,48,217,0.08); }
+ 
+    /* Event pill */
+    .event-pill {
+      font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .event-pill:hover { opacity: 0.8; }
+ 
+    /* Sidebar event card */
+    .event-card { transition: all 0.2s ease; border-left: 3px solid; }
+    .event-card:hover { transform: translateX(3px); }
+ 
+    /* Custom Active states */
+    .tab-btn.active { background: rgba(155,48,217,0.15); color: #9b30d9; border-color: rgba(155,48,217,0.4); }
+    .view-btn.active { background: #9b30d9; color: #ffffff !important; }
+ 
+    /* Fade-in */
+    @keyframes fadeUp { from { opacity:0; transform:translateY(12px);} to { opacity:1; transform:translateY(0);} }
+    .fade-up { animation: fadeUp 0.4s ease forwards; }
+    .fade-up-delay-1 { animation-delay: 0.05s; opacity:0; }
+    .fade-up-delay-2 { animation-delay: 0.10s; opacity:0; }
+    .fade-up-delay-3 { animation-delay: 0.15s; opacity:0; }
+ 
+    /* Modal backdrop */
+    .modal-backdrop { backdrop-filter: blur(6px); }
+ 
+    /* Pulse dot */
+    @keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+    .pulse-dot { animation: pulse-dot 2s infinite; }
+  </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden noise-overlay bg-tcl-bg text-tcl-text dark:bg-tc-black dark:text-gray-100">
+ 
+  <!-- Background orbs visible primarily in dark mode -->
+  <div class="orb orb-1 opacity-60 dark:opacity-100"></div>
+  <div class="orb orb-2 opacity-60 dark:opacity-100"></div>
+ 
+  <!-- App Shell Wrapper -->
+  <div class="relative z-10 flex h-screen overflow-hidden">
+ 
+    <!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+    <aside class="hidden md:flex w-64 flex-shrink-0 flex-col border-r border-tcl-border bg-tcl-sidebar dark:border-tc-border dark:bg-tc-dark/80 backdrop-blur-md">
+ 
+      <!-- Branding Area with Asset Logo -->
+      <div class="px-4 py-4 border-b border-tcl-border dark:border-tc-border flex items-center justify-start">
+        <img src="images/logo.png" alt="Talent Circle Logo" class="h-10 w-auto max-w-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+        <!-- Semantic structural text fallback display element if raw file asset fails to resolve paths -->
+        <div class="hidden items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-tc-purple flex items-center justify-center text-white font-bold font-display">T</div>
+          <span class="font-display font-800 tracking-tight text-lg text-tcl-text dark:text-white">Talent Circle</span>
+        </div>
+      </div>
+ 
+      <!-- Nav Menu Links -->
+      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <div class="px-3 mb-3">
+          <p class="text-xs font-semibold text-tcl-muted dark:text-tc-soft/40 uppercase tracking-widest">Menu</p>
+        </div>
+ 
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-tcl-muted hover:text-tcl-text hover:bg-slate-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 transition-all text-sm group">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Dashboard
+        </a>
+ 
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-tc-purple/10 text-tc-purple dark:bg-tc-purple/20 dark:text-tc-lavender border border-tc-purple/20 dark:border-tc-purple/30 text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          Calendar
+          <span class="ml-auto w-2 h-2 rounded-full bg-tc-purple pulse-dot"></span>
+        </a>
+ 
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-tcl-muted hover:text-tcl-text hover:bg-slate-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 transition-all text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Sessions
+        </a>
+ 
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-tcl-muted hover:text-tcl-text hover:bg-slate-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 transition-all text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Progress
+        </a>
+ 
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-tcl-muted hover:text-tcl-text hover:bg-slate-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 transition-all text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+          Messages
+          <span class="ml-auto bg-tc-purple text-white text-xs px-1.5 py-0.5 rounded-full font-display">3</span>
+        </a>
+ 
+        <div class="px-3 mt-5 mb-3">
+          <p class="text-xs font-semibold text-tcl-muted dark:text-tc-soft/40 uppercase tracking-widest">Settings</p>
+        </div>
+ 
+        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-tcl-muted hover:text-tcl-text hover:bg-slate-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5 transition-all text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Preferences
+        </a>
+      </nav>
+ 
+      <!-- User Profile Box -->
+      <div class="px-4 py-4 border-t border-tcl-border dark:border-tc-border bg-slate-50 dark:bg-transparent">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-tc-purple to-tc-glow flex items-center justify-center text-white font-display font-bold text-sm shadow-purple-soft">A</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-tcl-text dark:text-white truncate">Alex Rivera</p>
+            <p class="text-xs text-tcl-muted dark:text-tc-soft/50 truncate">Full-Stack Dev</p>
+          </div>
+          <button title="Sign out" class="text-tcl-muted hover:text-tcl-text dark:text-tc-soft/40 dark:hover:text-tc-soft transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+ 
+    <!-- ═══════════════════ MAIN CONTENT AREA ═══════════════════ -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+ 
+      <!-- Main Dashboard Top Header -->
+      <header class="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-tcl-border bg-tcl-sidebar/80 dark:border-tc-border dark:bg-tc-dark/60 backdrop-blur-md flex-shrink-0">
+        <div class="fade-up">
+          <h1 class="font-display text-2xl font-800 text-tcl-text dark:text-white tracking-tight">Calendar</h1>
+          <p class="text-sm text-tcl-muted dark:text-tc-soft/50 mt-0.5">Manage your skill sessions & availability</p>
+        </div>
+ 
+        <div class="flex items-center gap-3">
+          <!-- Theme Toggle Switcher -->
+          <button type="button" onclick="toggleThemeMode()" class="p-2 rounded-xl border border-tcl-border bg-tcl-card text-tcl-muted hover:text-tc-purple dark:border-tc-border dark:bg-tc-card dark:text-tc-soft/60 dark:hover:text-white transition-all" title="Toggle Theme View Mode">
+            <svg id="theme-sun-icon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+            <svg id="theme-moon-icon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+          </button>
+
+          <!-- View Toggle Filters -->
+          <div class="flex items-center gap-1 bg-slate-100 dark:bg-tc-card border border-tcl-border dark:border-tc-border rounded-xl p-1">
+            <button type="button" onclick="setView('month')" id="view-month" class="view-btn active px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">Month</button>
+            <button type="button" onclick="setView('week')" id="view-week" class="view-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-tcl-muted dark:text-tc-soft/50 hover:text-tc-purple dark:hover:text-tc-soft transition-all">Week</button>
+            <button type="button" onclick="setView('day')" id="view-day" class="view-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-tcl-muted dark:text-tc-soft/50 hover:text-tc-purple dark:hover:text-tc-soft transition-all">Day</button>
+          </div>
+ 
+          <!-- Schedule Trigger Button -->
+          <button type="button" onclick="openModal()" class="flex items-center gap-2 px-4 py-2 bg-tc-purple hover:bg-tc-purple/95 rounded-xl text-white text-sm font-semibold shadow-purple-glow transition-all hover:scale-105 active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            <span class="hidden sm:inline">New Session</span>
+          </button>
+        </div>
+      </header>
+ 
+      <!-- Split Body Architecture -->
+      <div class="flex-1 flex overflow-hidden flex-col lg:flex-row">
+ 
+        <!-- ─── Dynamic Calendar Grid ─── -->
+        <div class="flex-1 flex flex-col overflow-hidden p-3 sm:p-6">
+ 
+          <!-- Month Control Header Row -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5 fade-up fade-up-delay-1">
+            <div class="flex items-center gap-2">
+              <button type="button" title="Previous month" onclick="changeMonth(-1)" class="w-9 h-9 rounded-xl border border-tcl-border bg-tcl-card dark:border-tc-border dark:bg-tc-card hover:border-tc-purple/50 dark:hover:bg-tc-purple/10 flex items-center justify-center text-tcl-muted dark:text-tc-soft/60 hover:text-tc-purple dark:hover:text-tc-lavender transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+              </button>
+              <h2 id="month-label" class="font-display text-lg sm:text-xl font-700 text-tcl-text dark:text-white min-w-40 sm:min-w-48 text-center"></h2>
+              <button type="button" title="Next month" onclick="changeMonth(1)" class="w-9 h-9 rounded-xl border border-tcl-border bg-tcl-card dark:border-tc-border dark:bg-tc-card hover:border-tc-purple/50 dark:hover:bg-tc-purple/10 flex items-center justify-center text-tcl-muted dark:text-tc-soft/60 hover:text-tc-purple dark:hover:text-tc-lavender transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </button>
+              <button type="button" title="Go to today" onclick="goToToday()" class="ml-2 px-3 py-1.5 rounded-lg border border-tcl-border bg-tcl-card dark:border-tc-border dark:bg-tc-card hover:border-tc-purple dark:text-tc-soft/60 dark:hover:text-tc-lavender text-xs font-semibold transition-all">Today</button>
+            </div>
+ 
+            <!-- Filter Tabs -->
+            <div class="flex items-center gap-1 bg-slate-100 dark:bg-tc-card border border-tcl-border dark:border-tc-border rounded-xl p-1">
+              <button type="button" class="tab-btn active px-3 py-1.5 rounded-lg text-xs font-semibold border border-transparent transition-all" data-filter="all" onclick="filterEvents('all')">All</button>
+              <button type="button" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-transparent text-tcl-muted dark:text-tc-soft/50 hover:text-tc-purple transition-all" data-filter="teaching" onclick="filterEvents('teaching')">Teaching</button>
+              <button type="button" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-transparent text-tcl-muted dark:text-tc-soft/50 hover:text-tc-purple transition-all" data-filter="learning" onclick="filterEvents('learning')">Learning</button>
+            </div>
+          </div>
+ 
+          <!-- Weekday Labels -->
+          <div class="grid grid-cols-7 gap-1 mb-2 text-center">
+            <div class="text-xs font-semibold text-tcl-muted dark:text-tc-soft/40 uppercase tracking-widest py-1">Sun</div>
+            <div class="text-xs font-semibold text-tcl-muted dark:text-tc-soft/40 uppercase tracking-widest py-1">Mon</div>
+            <div class="text-xs font-semibold text-tcl-muted dark:text-tc-soft/40 uppercase tracking-widest py-1">Tue</div>
+            <div class="text-xs font-semibold text-tcl-muted dark:text-tc-soft/40 uppercase tracking-widest py-1">Wed</div>
+            <div class="text-xs font-semibold text-tcl-muted dark:text-tc-soft/40 uppercase tracking-widest py-1">Thu</div>
+            <div class="text-xs font-semibold text-tcl-muted dark:text-tc-soft/40 uppercase tracking-widest py-1">Fri</div>
+            <div class="text-xs font-semibold text-tcl-muted dark:text-tc-soft/40 uppercase tracking-widest py-1">Sat</div>
+          </div>
+ 
+          <!-- Target Grid Injector Node -->
+          <div id="calendar-grid" class="grid grid-cols-7 gap-1 flex-1 overflow-y-auto fade-up fade-up-delay-2 min-h-[340px]"></div>
+        </div>
+ 
+        <!-- ─── Right Metrics Dashboard Summary Sidebar ─── -->
+        <aside class="w-full lg:w-72 flex-shrink-0 border-t lg:border-t-0 lg:border-l border-tcl-border bg-tcl-sidebar dark:border-tc-border dark:bg-tc-dark/60 backdrop-blur-md flex flex-col overflow-hidden fade-up fade-up-delay-3">
+ 
+          <div class="px-5 pt-5 pb-3 border-b border-tcl-border dark:border-tc-border">
+            <div class="flex items-center justify-between mb-2">
+              <p class="font-display font-700 text-sm text-tcl-text dark:text-white">Upcoming Sessions</p>
+              <span id="upcoming-badge" class="text-xs bg-tc-purple/10 text-tc-purple dark:bg-tc-purple/20 dark:text-tc-lavender px-2 py-0.5 rounded-full border border-tc-purple/20 dark:border-tc-purple/30 font-display">0 this week</span>
+            </div>
+          </div>
+ 
+          <!-- Target Element Context for Event Cards Array -->
+          <div class="flex-1 overflow-y-auto px-4 py-4 space-y-3" id="upcoming-list"></div>
+ 
+          <!-- Availability Settings Box section -->
+          <div class="p-4 border-t border-tcl-border dark:border-tc-border bg-slate-50 dark:bg-transparent">
+            <p class="font-display font-700 text-sm text-tcl-text dark:text-white mb-3">My Availability</p>
+            <div class="space-y-2 text-sm" id="availability-slots">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-tcl-muted dark:text-tc-soft/60">Mon – Wed</span>
+                <span class="text-tc-purple dark:text-tc-lavender font-medium">2:00 – 6:00 PM</span>
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-tcl-muted dark:text-tc-soft/60">Fri</span>
+                <span class="text-tc-purple dark:text-tc-lavender font-medium">10:00 AM – 1:00 PM</span>
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-tcl-muted dark:text-tc-soft/40">Weekends</span>
+                <span class="text-slate-400 dark:text-tc-soft/40 font-medium">Unavailable</span>
+              </div>
+            </div>
+            <button class="mt-4 w-full py-2 rounded-lg border border-tc-purple/30 text-tc-purple hover:bg-tc-purple/10 text-xs font-semibold transition-all">
+              Edit Availability
+            </button>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+ 
+  <!-- ═══════════════════ MODAL CONTAINER ═══════════════════ -->
+  <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop bg-black/50 dark:bg-black/70">
+    <div class="w-full max-w-md mx-4 bg-white dark:bg-tc-card border border-tcl-border dark:border-tc-border rounded-2xl shadow-2xl overflow-hidden">
+      
+      <!-- Modal Header -->
+     <div class="flex items-center justify-between px-6 py-4 border-b border-tcl-border dark:border-tc-border">
+  
+  <h3 class="font-display font-bold text-tcl-text dark:text-white">
+    Schedule New Session
+  </h3>
+  <button
+  type="button"
+  onclick="closeModal()"
+  class="w-8 h-8 rounded-lg border border-tcl-border dark:border-tc-border flex items-center justify-center text-tcl-muted hover:text-tcl-text dark:text-tc-soft/50 dark:hover:text-white transition-all"
+>
+  ✕
+</button>
+
+</div>
+      <!-- Modal Fields Form Container layout -->
+      <form id="sessionForm" onsubmit="handleFormSubmission(event)" class="px-6 py-5 space-y-4">
+        <div>
+          <label class="block text-[10px] font-semibold text-tcl-muted dark:text-tc-soft/60 uppercase tracking-widest mb-1.5">Skill / Topic</label>
+          <input type="text" id="m-topic" required placeholder="e.g. React Hooks, Python Basics…" class="w-full bg-slate-50 border border-tcl-border dark:bg-tc-dark dark:border-tc-border rounded-xl px-4 py-2.5 text-sm text-tcl-text dark:text-white focus:outline-none focus:border-tc-purple transition-all"/>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] font-semibold text-tcl-muted dark:text-tc-soft/60 uppercase tracking-widest mb-1.5">Date</label>
+            <input type="date" id="m-date" required class="w-full bg-slate-50 border border-tcl-border dark:bg-tc-dark dark:border-tc-border rounded-xl px-4 py-2.5 text-sm text-tcl-text dark:text-white focus:outline-none focus:border-tc-purple transition-all"/>
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-tcl-muted dark:text-tc-soft/60 uppercase tracking-widest mb-1.5">Time</label>
+            <input type="time" id="m-time" required class="w-full bg-slate-50 border border-tcl-border dark:bg-tc-dark dark:border-tc-border rounded-xl px-4 py-2.5 text-sm text-tcl-text dark:text-white focus:outline-none focus:border-tc-purple transition-all"/>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-semibold text-tcl-muted dark:text-tc-soft/60 uppercase tracking-widest mb-1.5">Session Type</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" id="type-teaching" onclick="setModalType('teaching')" class="py-2.5 rounded-xl border border-tc-purple bg-tc-purple/10 text-tc-purple text-sm font-semibold transition-all">
+              🎓 Teaching
+            </button>
+            <button type="button" id="type-learning" onclick="setModalType('learning')" class="py-2.5 rounded-xl border border-tcl-border text-tcl-muted text-sm font-semibold dark:border-tc-border hover:border-tc-purple transition-all">
+              📚 Learning
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-semibold text-tcl-muted dark:text-tc-soft/60 uppercase tracking-widest mb-1.5">Partner Name</label>
+          <input type="text" id="m-partner" required placeholder="Search or type name…" class="w-full bg-slate-50 border border-tcl-border dark:bg-tc-dark dark:border-tc-border rounded-xl px-4 py-2.5 text-sm text-tcl-text dark:text-white focus:outline-none focus:border-tc-purple transition-all"/>
+        </div>
+<div>
+  <label
+    for="m-duration"
+    class="block text-[10px] font-semibold text-tcl-muted dark:text-tc-soft/60 uppercase tracking-widest mb-1.5"
+  >
+    Duration
+  </label>
+
+  <select
+    id="m-duration"
+    class="w-full bg-slate-50 border border-tcl-border dark:bg-tc-dark dark:border-tc-border rounded-xl px-4 py-2.5 text-sm text-tcl-text dark:text-white focus:outline-none focus:border-tc-purple transition-all"
+  >
+    <option value="30">30 minutes</option>
+    <option value="60" selected>60 minutes</option>
+    <option value="90">90 minutes</option>
+    <option value="120">2 hours</option>
+  </select>
+</div>
+
+        <!-- Submit Footer Controls Row inside card wrapper -->
+        <div class="pt-2 flex gap-3">
+          <button type="button" onclick="closeModal()" class="flex-1 py-2.5 rounded-xl border border-tcl-border dark:border-tc-border text-sm font-semibold text-tcl-muted hover:text-tcl-text dark:hover:text-white transition-all">Cancel</button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-tc-purple hover:bg-tc-purple/95 text-white text-sm font-semibold shadow-purple-soft transition-all">Schedule</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+ 
+  <!-- ═══════════════════ JS APPLICATION ENGINE ═══════════════════ -->
+  <script>
+    const today = new Date();
+    let currentYear = today.getFullYear();
+    let currentMonth = today.getMonth();
+    let currentFilter = 'all';
+    let selectedModalType = 'teaching';
+
+    // Seed mock data store array parameters
+    let EVENTS = [
+      { id: 101, date: `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-12`, title: 'React Advanced Hooks', type: 'learning', time: '2:00 PM', partner: 'Sarah Jenkins' },
+      { id: 102, date: `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-15`, title: 'Tailwind Theme Integration', type: 'teaching', time: '10:30 AM', partner: 'Marcus Aurelius' },
+      { id: 103, date: `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-15`, title: 'SQL Advanced Window Queries', type: 'learning', time: '4:00 PM', partner: 'David Miller' },
+      { id: 104, date: `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-20`, title: 'Python Framework Systems', type: 'teaching', time: '1:00 PM', partner: 'Elena Rostova' }
+    ];
+ 
+    const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+ 
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!localStorage.getItem('theme-preference')) {
+        localStorage.setItem('theme-preference', 'dark');
+      }
+      applyThemePreference();
+      renderCalendar();
+    });
+
+    // Dark/Light view theme switching processing logic operations 
+    function toggleThemeMode() {
+      const isDarkNow = document.documentElement.classList.contains('dark');
+      const nextTheme = isDarkNow ? 'light' : 'dark';
+      localStorage.setItem('theme-preference', nextTheme);
+      applyThemePreference();
+    }
+
+    function applyThemePreference() {
+      const theme = localStorage.getItem('theme-preference') || 'dark';
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+
+    function getEventsForDate(dateStr) {
+      const base = EVENTS.filter(e => e.date === dateStr);
+      if (currentFilter === 'all') return base;
+      return base.filter(e => e.type === currentFilter);
+    }
+ 
+    function renderCalendar() {
+      const grid = document.getElementById('calendar-grid');
+      const label = document.getElementById('month-label');
+      if(!grid || !label) return;
+
+      label.textContent = `${MONTH_NAMES[currentMonth]} ${currentYear}`;
+      grid.innerHTML = '';
+ 
+      const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+ 
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+ 
+      // Padding generation from previous trailing boundary cell limits
+      for (let i = firstDay - 1; i >= 0; i--) {
+        const d = daysInPrevMonth - i;
+        const cell = document.createElement('div');
+        cell.className = 'day-cell rounded-xl border border-slate-200/40 bg-slate-100/20 dark:border-tc-border/40 dark:bg-tc-card/30 p-2 min-h-20 opacity-30 pointer-events-none';
+        cell.innerHTML = `<span class="text-xs font-semibold text-slate-400 dark:text-tc-soft/40">${d}</span>`;
+        grid.appendChild(cell);
+      }
+ 
+      // Current target calendar cell mapping generation loop
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isToday = dateStr === todayStr;
+        const events = getEventsForDate(dateStr);
+ 
+        const cell = document.createElement('div');
+        cell.className = `day-cell rounded-xl border p-2 min-h-20 flex flex-col justify-between ${isToday ? 'bg-tc-purple/5 border-tc-purple dark:bg-tc-purple/10' : 'border-slate-200 dark:border-tc-border bg-white/70 dark:bg-tc-card/50'}`;
+        cell.onclick = () => selectDay(dateStr);
+ 
+        let innerHTMLContent = `<div>
+          <div class="flex items-start justify-between mb-1">
+            <span class="text-xs font-bold ${isToday ? 'w-6 h-6 bg-tc-purple text-white rounded-full flex items-center justify-center' : 'text-slate-700 dark:text-tc-soft/70'}">${d}</span>
+            ${events.length > 0 ? `<span class="text-[10px] px-1.5 py-0.2 bg-slate-100 dark:bg-slate-800 rounded-md text-tcl-muted dark:text-tc-soft/40">${events.length}</span>` : ''}
+          </div>
+          <div class="space-y-1">`;
+ 
+        events.slice(0, 2).forEach(ev => {
+          const pillColors = ev.type === 'teaching' 
+            ? 'bg-purple-100 text-purple-700 border border-purple-200 dark:bg-tc-purple/30 dark:text-tc-lavender dark:border-tc-purple/40' 
+            : 'bg-indigo-100 text-indigo-700 border border-indigo-200 dark:bg-tc-violet/20 dark:text-tc-soft dark:border-tc-violet/30';
+          innerHTMLContent += `<div class="event-pill ${pillColors} font-semibold truncate" title="${ev.title} at ${ev.time}">${ev.title}</div>`;
+        });
+
+        if (events.length > 2) {
+          innerHTMLContent += `<div class="text-[10px] text-tcl-muted dark:text-tc-soft/40 pl-1 font-medium">+${events.length - 2} more</div>`;
+        }
+ 
+        innerHTMLContent += `</div></div>`;
+        cell.innerHTML = innerHTMLContent;
+        grid.appendChild(cell);
+      }
+ 
+      // Next padding trailing tail cell generation 
+      const totalCells = firstDay + daysInMonth;
+      const remainingPaddingCells = (7 - (totalCells % 7)) % 7;
+      for (let d = 1; d <= remainingPaddingCells; d++) {
+        const cell = document.createElement('div');
+        cell.className = 'day-cell rounded-xl border border-slate-200/40 bg-slate-100/20 dark:border-tc-border/40 dark:bg-tc-card/30 p-2 min-h-20 opacity-30 pointer-events-none';
+        cell.innerHTML = `<span class="text-xs font-semibold text-slate-400 dark:text-tc-soft/40">${d}</span>`;
+        grid.appendChild(cell);
+      }
+ 
+      renderUpcomingListPanel();
+    }
+ 
+    function renderUpcomingListPanel() {
+      const listContainer = document.getElementById('upcoming-list');
+      const badgeCount = document.getElementById('upcoming-badge');
+      if(!listContainer) return;
+
+      listContainer.innerHTML = '';
+      
+      const targetQueryFormat = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+      let upcomingEvents = EVENTS.filter(e => e.date >= targetQueryFormat).sort((a,b) => a.date.localeCompare(b.date));
+      
+      if (currentFilter !== 'all') {
+        upcomingEvents = upcomingEvents.filter(e => e.type === currentFilter);
+      }
+      
+      if(badgeCount) {
+        badgeCount.textContent = `${upcomingEvents.length} upcoming`;
+      }
+
+      if(upcomingEvents.length === 0) {
+        listContainer.innerHTML = `<p class="text-xs text-tcl-muted dark:text-tc-soft/40 text-center py-4">No scheduled events discovered.</p>`;
+        return;
+      }
+
+      upcomingEvents.slice(0, 5).forEach(ev => {
+        const parsingDateInstance = new Date(ev.date + 'T00:00:00');
+        const formattedDisplayShortLabel = parsingDateInstance.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+        const isTeachingType = ev.type === 'teaching';
+ 
+        const cardNode = document.createElement('div');
+        cardNode.className = `event-card rounded-xl p-3 bg-white border border-slate-100 shadow-sm dark:bg-tc-dark/60 dark:border-tc-border/60 ${isTeachingType ? 'border-l-tc-purple' : 'border-l-indigo-500'}`;
+        cardNode.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold text-tcl-text dark:text-white truncate">${ev.title}</p>
+              <p class="text-[11px] text-tcl-muted dark:text-tc-soft/50 mt-0.5">${ev.time} · ${ev.partner}</p>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <p class="text-[11px] font-semibold text-tc-purple dark:text-tc-lavender">${formattedDisplayShortLabel}</p>
+              <span class="text-xs" title="${ev.type}">${isTeachingType ? '🎓' : '📚'}</span>
+            </div>
+          </div>
+        `;
+        listContainer.appendChild(cardNode);
+      });
+    }
+ 
+    function changeMonth(dir) {
+      currentMonth += dir;
+      if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+      if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+      renderCalendar();
+    }
+ 
+    function goToToday() {
+      currentMonth = today.getMonth();
+      currentYear = today.getFullYear();
+      renderCalendar();
+    }
+ 
+    function setView(viewMode) {
+      document.querySelectorAll('.view-btn').forEach(button => {
+        button.classList.remove('active');
+      });
+      const activeBtn = document.getElementById(`view-${viewMode}`);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+ 
+    function filterEvents(type) {
+      currentFilter = type;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      const activeFilterBtn = document.querySelector(`.tab-btn[data-filter="${type}"]`);
+      if (activeFilterBtn) activeFilterBtn.classList.add('active');
+      renderCalendar();
+    }
+ 
+    function selectDay(dateStr) {
+      console.log("Selected Date: ", dateStr);
+    }
+ 
+    function openModal() {
+      const modalWindow = document.getElementById('modal');
+      if(!modalWindow) return;
+      
+      const defaultDateStringISO = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+      document.getElementById('m-date').value = defaultDateStringISO;
+      document.getElementById('m-time').value = "14:00";
+      
+      modalWindow.classList.remove('hidden');
+      modalWindow.classList.add('flex');
+    }
+ 
+    function closeModal() {
+      const modalWindow = document.getElementById('modal');
+      if(!modalWindow) return;
+      modalWindow.classList.add('hidden');
+      modalWindow.classList.remove('flex');
+      document.getElementById('sessionForm').reset();
+    }
+
+    function setModalType(type) {
+      selectedModalType = type;
+      const teachingBtn = document.getElementById('type-teaching');
+      const learningBtn = document.getElementById('type-learning');
+      
+      if(type === 'teaching') {
+        teachingBtn.className = "py-2.5 rounded-xl border border-tc-purple bg-tc-purple/10 text-tc-purple text-sm font-semibold transition-all";
+        learningBtn.className = "py-2.5 rounded-xl border border-slate-200 text-tcl-muted text-sm font-semibold dark:border-tc-border hover:border-tc-purple transition-all";
+      } else {
+        learningBtn.className = "py-2.5 rounded-xl border border-tc-purple bg-tc-purple/10 text-tc-purple text-sm font-semibold transition-all";
+        teachingBtn.className = "py-2.5 rounded-xl border border-slate-200 text-tcl-muted text-sm font-semibold dark:border-tc-border hover:border-tc-purple transition-all";
+      }
+    }
+
+    function handleFormSubmission(event) {
+      event.preventDefault();
+      
+      const titleInputValue = document.getElementById('m-topic').value;
+      const dateInputValue = document.getElementById('m-date').value;
+      const timeRawValue = document.getElementById('m-time').value;
+      const partnerInputValue = document.getElementById('m-partner').value;
+      
+      let displayTimeStr = timeRawValue;
+      try {
+        const [hoursStr, minutesStr] = timeRawValue.split(':');
+        const numHours = parseInt(hoursStr);
+        const ampmSuffix = numHours >= 12 ? 'PM' : 'AM';
+        const displayHours = numHours % 12 || 12;
+        displayTimeStr = `${displayHours}:${minutesStr} ${ampmSuffix}`;
+      } catch(e) {}
+
+      const constructedNewPayload = {
+        id: Date.now(),
+        date: dateInputValue,
+        title: titleInputValue,
+        type: selectedModalType,
+        time: displayTimeStr,
+        partner: partnerInputValue
+      };
+
+      EVENTS.push(constructedNewPayload);
+      closeModal();
+      renderCalendar();
+    }
+  </script>
+</body>
+</html>

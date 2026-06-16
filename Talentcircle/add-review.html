@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Write a Review | Talent Circle</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
+   <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root[data-theme="dark"] {
+      --bg:           #09090f;
+      --bg-2:         #111019;
+      --bg-card:      #15131f;
+      --bg-card2:     #1c1a2b;
+      --bg-input:     #0f0e18;
+      --border:       #252236;
+      --border-2:     #2e2a45;
+      --text:         #f0ecff;
+      --text-2:       #a89dc8;
+      --text-3:       #5e5680;
+      --purple:       #9b30d9;
+      --purple-2:     #7b1fa2;
+      --purple-hl:    #c05fe8;
+      --purple-soft:  #d98bf5;
+      --star:         #f0b429;
+      --star-dim:     #2a2440;
+      --glow:         rgba(155,48,217,0.28);
+      --glow-sm:      rgba(155,48,217,0.14);
+      --tag-bg:       rgba(155,48,217,0.12);
+      --tag-border:   rgba(155,48,217,0.28);
+      --tag-text:     #c05fe8;
+      --tag-active-bg:rgba(155,48,217,0.28);
+      --tag-active-bd:rgba(155,48,217,0.65);
+      --tag-active-tx:#d98bf5;
+      --nav-active-bg:rgba(155,48,217,0.18);
+      --nav-active-bd:rgba(155,48,217,0.4);
+      --success:      #22c55e;
+      --orb-1:        rgba(155,48,217,0.14);
+      --orb-2:        rgba(155,48,217,0.07);
+      --scrollbar-track:#111019;
+      --scrollbar-thumb:#252236;
+      --shadow:       rgba(0,0,0,0.45);
+      --track-bg:     #1c1a2b;
+      --toggle-off:   #252236;
+      --toggle-on:    var(--purple);
+    }
+
+    :root[data-theme="light"] {
+      --bg:           #f1eefb;
+      --bg-2:         #e8e4f6;
+      --bg-card:      #ffffff;
+      --bg-card2:     #f8f6ff;
+      --bg-input:     #f4f2fa;
+      --border:       #ddd8f0;
+      --border-2:     #ccc5e8;
+      --text:         #1a1530;
+      --text-2:       #5a4f7a;
+      --text-3:       #a898c8;
+      --purple:       #8521c8;
+      --purple-2:     #6b18a0;
+      --purple-hl:    #a03fd8;
+      --purple-soft:  #b855e8;
+      --star:         #d4920e;
+      --star-dim:     #e0d8f0;
+      --glow:         rgba(133,33,200,0.2);
+      --glow-sm:      rgba(133,33,200,0.1);
+      --tag-bg:       rgba(133,33,200,0.07);
+      --tag-border:   rgba(133,33,200,0.22);
+      --tag-text:     #8521c8;
+      --tag-active-bg:rgba(133,33,200,0.15);
+      --tag-active-bd:rgba(133,33,200,0.5);
+      --tag-active-tx:#7010b0;
+      --nav-active-bg:rgba(133,33,200,0.09);
+      --nav-active-bd:rgba(133,33,200,0.32);
+      --success:      #16a34a;
+      --orb-1:        rgba(133,33,200,0.09);
+      --orb-2:        rgba(133,33,200,0.05);
+      --scrollbar-track:#e8e4f6;
+      --scrollbar-thumb:#ccc5e8;
+      --shadow:       rgba(60,30,100,0.12);
+      --track-bg:     #f0edf9;
+      --toggle-off:   #ddd8f0;
+      --toggle-on:    var(--purple);
+    }
+
+    html, body { height: 100%; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+    h1,h2,h3,h4,h5,h6 { font-family: 'Poppins', sans-serif; }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--purple); }
+
+    /* ── ORBS ── */
+    .orb { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; transition: background 0.4s; }
+    .orb-1 { width: 480px; height: 480px; top: -160px; right: -80px; background: radial-gradient(circle, var(--orb-1) 0%, transparent 70%); }
+    .orb-2 { width: 380px; height: 380px; bottom: -100px; left: -60px; background: radial-gradient(circle, var(--orb-2) 0%, transparent 70%); }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 28px; border-bottom: 1px solid var(--border);
+      background: var(--bg-2); backdrop-filter: blur(12px);
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+    .brand { display: flex; align-items: center; gap: 9px; font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 15px; color: var(--text); text-decoration: none; }
+    .logo-mark { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--purple), var(--purple-2)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .logo-mark svg { width: 15px; height: 15px; fill: white; }
+    .divider-v { width: 1px; height: 22px; background: var(--border); }
+    .page-title { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 600; color: var(--text-2); }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .theme-toggle {
+      width: 36px; height: 36px; border-radius: 9px;
+      border: 1px solid var(--border); background: var(--bg-card);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; color: var(--text-2);
+    }
+    .theme-toggle:hover { border-color: var(--purple); color: var(--purple); }
+    .theme-toggle svg { width: 15px; height: 15px; }
+    .btn-back {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 9px;
+      border: 1px solid var(--border); background: var(--bg-card);
+      font-size: 12px; font-family: 'Poppins', sans-serif; font-weight: 600;
+      color: var(--text-2); cursor: pointer; text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-back:hover { border-color: var(--purple); color: var(--text); }
+    .btn-back svg { width: 13px; height: 13px; }
+
+    /* ── PAGE LAYOUT ── */
+    .page-wrap {
+      position: relative; z-index: 1;
+      max-width: 720px; margin: 0 auto;
+      padding: 36px 24px 64px;
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-heading { margin-bottom: 28px; }
+    .page-heading h1 { font-size: 28px; font-weight: 800; color: var(--text); }
+    .page-heading p { font-size: 14px; color: var(--text-3); margin-top: 5px; }
+
+    /* ── STEP INDICATOR ── */
+    .steps {
+      display: flex; align-items: center; gap: 0;
+      margin-bottom: 32px;
+    }
+    .step {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; font-family: 'Poppins', sans-serif; font-weight: 600;
+    }
+    .step-num {
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; font-family: 'Poppins', sans-serif;
+      flex-shrink: 0; transition: all 0.3s;
+    }
+    .step-num.done { background: var(--purple); color: white; }
+    .step-num.active { background: var(--purple); color: white; box-shadow: 0 0 12px var(--glow); }
+    .step-num.idle { background: var(--border); color: var(--text-3); }
+    .step-label { color: var(--text-3); }
+    .step-label.active { color: var(--text); }
+    .step-line { flex: 1; height: 1px; background: var(--border); margin: 0 10px; }
+
+    /* ── CARD ── */
+    .form-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 20px; overflow: hidden;
+      box-shadow: 0 4px 40px var(--shadow);
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .card-section {
+      padding: 24px 28px;
+      border-bottom: 1px solid var(--border);
+      transition: border-color 0.3s;
+    }
+    .card-section:last-child { border-bottom: none; }
+    .section-label {
+      font-size: 11px; font-family: 'Poppins', sans-serif; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-3);
+      margin-bottom: 14px; display: flex; align-items: center; gap: 7px;
+    }
+    .section-label .req { color: var(--purple); }
+
+    /* Session selector */
+    .select-field {
+      width: 100%; background: var(--bg-input);
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 11px 16px; font-size: 14px; color: var(--text);
+      font-family: 'Poppins', sans-serif;
+      outline: none; cursor: pointer; transition: border-color 0.2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%235e5680'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      padding-right: 40px;
+    }
+    .select-field:focus { border-color: var(--purple); }
+
+    /* Partner preview */
+    .partner-preview {
+      display: none; flex-direction: row; align-items: center; gap: 14px;
+      margin-top: 14px; padding: 14px 16px;
+      background: var(--bg-card2); border: 1px solid var(--border);
+      border-radius: 12px; transition: all 0.3s;
+    }
+    .partner-preview.show { display: flex; }
+    .preview-avatar {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--purple), var(--purple-2));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 17px;
+      color: white; flex-shrink: 0;
+    }
+    .preview-name { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 15px; color: var(--text); }
+    .preview-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+    .preview-badge {
+      margin-left: auto; padding: 4px 10px; border-radius: 20px;
+      font-size: 11px; font-family: 'Poppins', sans-serif; font-weight: 600;
+      background: var(--tag-bg); color: var(--tag-text); border: 1px solid var(--tag-border);
+      text-transform: capitalize; flex-shrink: 0;
+    }
+
+    /* ── STAR RATING ── */
+    .star-row { display: flex; gap: 6px; align-items: center; flex-direction: row-reverse; justify-content: flex-end; }
+    .star-row input { display: none; }
+    .star-row label {
+      font-size: 32px; cursor: pointer; color: var(--star-dim);
+      transition: color 0.12s, transform 0.1s;
+      line-height: 1;
+    }
+    .star-row label:hover,
+    .star-row label:hover ~ label,
+    .star-row input:checked ~ label { color: var(--star); }
+    .star-row label:hover { transform: scale(1.18); }
+
+    /* category stars smaller */
+    .star-row-sm label { font-size: 22px; }
+
+    .star-label-row {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+    }
+    .star-cat-title { font-size: 12px; font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text-2); }
+
+    /* ── CATEGORY GRID ── */
+    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 500px) { .cat-grid { grid-template-columns: 1fr; } }
+    .cat-cell { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; text-align: center; }
+
+    /* ── TAGS ── */
+    .tag-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  border: 1px solid var(--tag-border);
+  transition: all 0.15s;
+
+  /* Cross-browser support */
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+    .tag-opt:hover { background: var(--tag-active-bg); border-color: var(--tag-active-bd); color: var(--tag-active-tx); }
+    .tag-opt.selected { background: var(--tag-active-bg); border-color: var(--tag-active-bd); color: var(--tag-active-tx); }
+    @keyframes pop { 0%{transform:scale(1);}50%{transform:scale(1.12);}100%{transform:scale(1);} }
+    .tag-opt.popping { animation: pop 0.2s ease; }
+
+    /* ── TEXTAREA ── */
+    .review-textarea {
+      width: 100%; background: var(--bg-input);
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px 16px; font-size: 14px; color: var(--text);
+      font-family: 'Poppins', sans-serif; line-height: 1.7;
+      outline: none; resize: vertical; min-height: 110px;
+      transition: border-color 0.2s;
+    }
+    .review-textarea:focus { border-color: var(--purple); }
+    .review-textarea::placeholder { color: var(--text-3); }
+    .char-count { font-size: 11px; color: var(--text-3); text-align: right; margin-top: 5px; }
+
+    /* ── TOGGLE ── */
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; background: var(--bg-card2);
+      border: 1px solid var(--border); border-radius: 12px;
+    }
+    .toggle-text-title { font-size: 14px; font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text); }
+    .toggle-text-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .toggle-wrap { position: relative; display: inline-flex; align-items: center; cursor: pointer; }
+    .toggle-input { display: none; }
+    .toggle-track {
+      width: 42px; height: 22px; border-radius: 11px;
+      background: var(--toggle-off); transition: background 0.2s; position: relative;
+    }
+    .toggle-input:checked + .toggle-track { background: var(--toggle-on); }
+    .toggle-thumb {
+      position: absolute; top: 2px; left: 2px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: white; transition: transform 0.2s;
+    }
+    .toggle-input:checked + .toggle-track .toggle-thumb { transform: translateX(20px); }
+
+    /* ── FOOTER ── */
+    .form-footer {
+      padding: 20px 28px; display: flex; gap: 12px;
+      background: var(--bg-card); border-top: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+    .btn-cancel {
+      flex: 1; padding: 12px; border-radius: 12px;
+      border: 1px solid var(--border); background: none;
+      font-size: 14px; font-family: 'Poppins', sans-serif; font-weight: 600;
+      color: var(--text-2); cursor: pointer; transition: all 0.2s;
+    }
+    .btn-cancel:hover { border-color: var(--purple); color: var(--text); }
+    .btn-submit {
+      flex: 2; padding: 12px; border-radius: 12px;
+      border: none; background: var(--purple);
+      font-size: 14px; font-family: 'Poppins', sans-serif; font-weight: 700;
+      color: white; cursor: pointer;
+      box-shadow: 0 0 24px var(--glow);
+      transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-submit:hover { background: var(--purple-2); transform: translateY(-1px); box-shadow: 0 0 36px var(--glow); }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit svg { width: 15px; height: 15px; }
+    .btn-submit.loading { opacity: 0.7; cursor: not-allowed; }
+
+    /* ── SUCCESS STATE ── */
+    .success-overlay {
+      display: none; position: fixed; inset: 0; z-index: 100;
+      background: var(--bg); align-items: center; justify-content: center;
+      flex-direction: column; text-align: center; padding: 24px;
+      animation: fadeIn 0.3s ease;
+    }
+    .success-overlay.show { display: flex; }
+    @keyframes fadeIn { from{opacity:0;}to{opacity:1;} }
+    .success-icon {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), var(--purple-hl));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px; margin-bottom: 20px;
+      box-shadow: 0 0 40px var(--glow);
+      animation: scaleIn 0.4s cubic-bezier(.17,.67,.35,1.4) 0.15s both;
+    }
+    @keyframes scaleIn { from{transform:scale(0);}to{transform:scale(1);} }
+    .success-title { font-size: 26px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+    .success-sub { font-size: 15px; color: var(--text-2); max-width: 380px; line-height: 1.6; }
+    .success-actions { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; justify-content: center; }
+    .btn-outline {
+      padding: 11px 22px; border-radius: 11px;
+      border: 1px solid var(--border); background: var(--bg-card);
+      font-size: 14px; font-family: 'Poppins', sans-serif; font-weight: 600;
+      color: var(--text-2); cursor: pointer; text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-outline:hover { border-color: var(--purple); color: var(--text); }
+    .btn-solid {
+      padding: 11px 22px; border-radius: 11px;
+      border: none; background: var(--purple); color: white;
+      font-size: 14px; font-family: 'Poppins', sans-serif; font-weight: 700;
+      cursor: pointer; text-decoration: none;
+      box-shadow: 0 0 20px var(--glow);
+      transition: all 0.2s;
+    }
+    .btn-solid:hover { background: var(--purple-2); }
+
+    /* ── VALIDATION ── */
+    .field-error { font-size: 11px; color: #ef4444; margin-top: 5px; display: none; }
+    .field-error.show { display: block; }
+    .review-textarea.error, .select-field.error { border-color: #ef4444; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 200;
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 16px;
+      box-shadow: 0 8px 32px var(--shadow);
+      min-width: 260px; transition: all 0.3s;
+    }
+    .toast.hidden { opacity: 0; pointer-events: none; transform: translateY(8px); }
+    .toast-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .toast-icon.success { background: rgba(34,197,94,.15); }
+    .toast-icon.error   { background: rgba(239,68,68,.15); }
+    .toast-icon svg { width: 12px; height: 12px; }
+    .toast-msg { font-size: 13px; font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text); }
+
+    /* ── TRANSITIONS ── */
+    select, input, textarea, button { transition: background 0.2s, border-color 0.2s, color 0.2s; }
+
+    /* Rating value hint */
+    .rating-hint { font-size: 12px; color: var(--text-3); margin-left: 10px; font-style: italic; min-width: 80px; }
+    .rating-hints { display:none; }
+    .rating-hints[data-v="1"] .h1,
+    .rating-hints[data-v="2"] .h2,
+    .rating-hints[data-v="3"] .h3,
+    .rating-hints[data-v="4"] .h4,
+    .rating-hints[data-v="5"] .h5 { display: inline; }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="reviews.html" class="brand">
+        <img class="logo-mark" src="images/logo.png" alt="Talent Circle logo" style="width:30px;height:30px;border-radius:9px;object-fit:contain;flex-shrink:0;"/>
+        Talent Circle
+      </a>
+      <div class="divider-v"></div>
+      <span class="page-title">Write a Review</span>
+    </div>
+    <div class="topbar-right">
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+        <svg id="icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        <svg id="icon-sun" style="display:none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      </button>
+      <a href="reviews.html" class="btn-back">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        Back to Reviews
+      </a>
+    </div>
+  </header>
+
+  <!-- PAGE CONTENT -->
+  <div class="page-wrap">
+    <div class="page-heading">
+      <h1>Leave Feedback</h1>
+      <p>Your honest review helps build a better learning community for everyone.</p>
+    </div>
+
+    <!-- Steps -->
+    <div class="steps">
+      <div class="step">
+        <div class="step-num active" id="step-1-num">1</div>
+        <span class="step-label active">Session</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step">
+        <div class="step-num idle" id="step-2-num">2</div>
+        <span class="step-label" id="step-2-label">Rating</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step">
+        <div class="step-num idle" id="step-3-num">3</div>
+        <span class="step-label" id="step-3-label">Review</span>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div class="form-card">
+
+      <!-- SECTION 1: Session -->
+      <div class="card-section">
+        <div class="section-label">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Select Session <span class="req">*</span>
+        </div>
+       <select class="select-field" id="session-sel" onchange="onSessionChange()" aria-label="Choose a session to review">
+  <option value="">— Choose a session to review —</option>
+  <option value="201">Dev P. · Testing in JS (May 30, 2026)</option>
+  <option value="202">Amara N. · GraphQL (May 28, 2026)</option>
+</select>
+        <div class="field-error" id="session-err">Please select a session to continue.</div>
+
+        <div class="partner-preview" id="partner-preview">
+          <div class="preview-avatar" id="prev-avatar">?</div>
+          <div>
+            <div class="preview-name" id="prev-name">—</div>
+            <div class="preview-sub" id="prev-sub">—</div>
+          </div>
+          <div class="preview-badge" id="prev-type">—</div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: Overall rating -->
+      <div class="card-section">
+        <div class="section-label">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+          Overall Rating <span class="req">*</span>
+        </div>
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px">
+          <div class="star-row" id="overall-stars">
+            <input type="radio" name="overall" id="os5" value="5" onchange="onOverallChange()"/><label for="os5" title="5 – Exceptional">★</label>
+            <input type="radio" name="overall" id="os4" value="4" onchange="onOverallChange()"/><label for="os4" title="4 – Great">★</label>
+            <input type="radio" name="overall" id="os3" value="3" onchange="onOverallChange()"/><label for="os3" title="3 – Good">★</label>
+            <input type="radio" name="overall" id="os2" value="2" onchange="onOverallChange()"/><label for="os2" title="2 – Fair">★</label>
+            <input type="radio" name="overall" id="os1" value="1" onchange="onOverallChange()"/><label for="os1" title="1 – Poor">★</label>
+          </div>
+          <span class="rating-hint" id="overall-hint"></span>
+        </div>
+        <div class="field-error" id="overall-err">Please give an overall star rating.</div>
+
+        <!-- Category sub-ratings -->
+        <div class="cat-grid" style="margin-top:18px;">
+          <div class="cat-cell">
+            <div style="font-size:11px;font-family:'Poppins',sans-serif;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Knowledge</div>
+            <div class="star-row star-row-sm" style="justify-content:center;">
+              <input type="radio" name="knowledge" id="ks5" value="5"/><label for="ks5">★</label>
+              <input type="radio" name="knowledge" id="ks4" value="4"/><label for="ks4">★</label>
+              <input type="radio" name="knowledge" id="ks3" value="3"/><label for="ks3">★</label>
+              <input type="radio" name="knowledge" id="ks2" value="2"/><label for="ks2">★</label>
+              <input type="radio" name="knowledge" id="ks1" value="1"/><label for="ks1">★</label>
+            </div>
+          </div>
+          <div class="cat-cell">
+            <div style="font-size:11px;font-family:'Poppins',sans-serif;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Clarity</div>
+            <div class="star-row star-row-sm" style="justify-content:center;">
+              <input type="radio" name="clarity" id="cs5" value="5"/><label for="cs5">★</label>
+              <input type="radio" name="clarity" id="cs4" value="4"/><label for="cs4">★</label>
+              <input type="radio" name="clarity" id="cs3" value="3"/><label for="cs3">★</label>
+              <input type="radio" name="clarity" id="cs2" value="2"/><label for="cs2">★</label>
+              <input type="radio" name="clarity" id="cs1" value="1"/><label for="cs1">★</label>
+            </div>
+          </div>
+          <div class="cat-cell">
+            <div style="font-size:11px;font-family:'Poppins',sans-serif;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Punctuality</div>
+            <div class="star-row star-row-sm" style="justify-content:center;">
+              <input type="radio" name="punctuality" id="ps5" value="5"/><label for="ps5">★</label>
+              <input type="radio" name="punctuality" id="ps4" value="4"/><label for="ps4">★</label>
+              <input type="radio" name="punctuality" id="ps3" value="3"/><label for="ps3">★</label>
+              <input type="radio" name="punctuality" id="ps2" value="2"/><label for="ps2">★</label>
+              <input type="radio" name="punctuality" id="ps1" value="1"/><label for="ps1">★</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3: Highlights -->
+      <div class="card-section">
+        <div class="section-label">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+          Highlights <span style="color:var(--text-3);font-weight:400;text-transform:none;letter-spacing:0;font-family:'Poppins',sans-serif;font-size:11px">(pick any)</span>
+        </div>
+        <div class="tag-grid" id="tags-wrap">
+          <button type="button" class="tag-opt" data-tag="Great explanations"  onclick="toggleTag(this)">Great explanations</button>
+          <button type="button" class="tag-opt" data-tag="Patient teacher"     onclick="toggleTag(this)">Patient teacher</button>
+          <button type="button" class="tag-opt" data-tag="Well prepared"       onclick="toggleTag(this)">Well prepared</button>
+          <button type="button" class="tag-opt" data-tag="Clear code examples" onclick="toggleTag(this)">Clear code examples</button>
+          <button type="button" class="tag-opt" data-tag="Good listener"       onclick="toggleTag(this)">Good listener</button>
+          <button type="button" class="tag-opt" data-tag="On time"             onclick="toggleTag(this)">On time</button>
+          <button type="button" class="tag-opt" data-tag="Inspiring"           onclick="toggleTag(this)">Inspiring</button>
+          <button type="button" class="tag-opt" data-tag="Encouraging"         onclick="toggleTag(this)">Encouraging</button>
+          <button type="button" class="tag-opt" data-tag="Structured"          onclick="toggleTag(this)">Structured</button>
+          <button type="button" class="tag-opt" data-tag="Resourceful"         onclick="toggleTag(this)">Resourceful</button>
+        </div>
+      </div>
+
+      <!-- SECTION 4: Written review -->
+      <div class="card-section">
+        <div class="section-label">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          Your Review
+        </div>
+        <textarea
+          class="review-textarea"
+          id="review-text"
+          rows="5"
+          placeholder="Describe what made this session great, what you learned, or how it could improve… Be specific — it helps!"
+          maxlength="500"
+          oninput="updateCharCount()"
+        ></textarea>
+        <div class="char-count"><span id="char-count">0</span> / 500</div>
+      </div>
+
+      <!-- SECTION 5: Visibility -->
+      <div class="card-section">
+        <div class="section-label">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          Visibility
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-text-title">Make review public</div>
+            <div class="toggle-text-sub">Others can see this on your partner's profile</div>
+          </div>
+          <label class="toggle-wrap">
+            <input type="checkbox" class="toggle-input" id="review-public" checked>
+            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          </label>
+        </div>
+      </div>
+
+      <!-- FORM FOOTER -->
+      <div class="form-footer">
+        <button class="btn-cancel" onclick="window.location.href='reviews.html'">Cancel</button>
+        <button class="btn-submit" id="submit-btn" onclick="submitReview()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+          Submit Review
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUCCESS OVERLAY -->
+  <div class="success-overlay" id="success-overlay">
+    <div class="success-icon">⭐</div>
+    <div class="success-title">Review Submitted!</div>
+    <div class="success-sub" id="success-msg">Your feedback has been sent. Thank you for helping build a better learning community.</div>
+    <div class="success-actions">
+      <a href="add-reviews.html" class="btn-outline" onclick="resetAndStay(event)">Leave Another</a>
+      <a href="reviews.html" class="btn-solid">Back to Reviews</a>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast hidden" id="toast">
+    <div class="toast-icon" id="toast-icon"></div>
+    <span class="toast-msg" id="toast-msg"></span>
+  </div>
+
+  <script>
+    // ── DATA ──────────────────────────────────────────────────
+    const SESSIONS = {
+      201: { partner:'Dev P.',   avatar:'D', topic:'Testing in JS', type:'learning',  date:'2026-05-30', time:'11:30 AM' },
+      202: { partner:'Amara N.', avatar:'A', topic:'GraphQL',        type:'teaching', date:'2026-05-28', time:'2:30 PM'  },
+    };
+
+    const RATING_HINTS = { 1:'Poor', 2:'Fair', 3:'Good', 4:'Great', 5:'Exceptional!' };
+
+    let selectedTags = new Set();
+
+    // ── THEME ─────────────────────────────────────────────────
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('icon-moon').style.display = isDark ? 'none' : '';
+      document.getElementById('icon-sun').style.display  = isDark ? '' : 'none';
+    }
+
+    // ── SESSION CHANGE ────────────────────────────────────────
+    function onSessionChange() {
+      const val = document.getElementById('session-sel').value;
+      const prev = document.getElementById('partner-preview');
+      const err  = document.getElementById('session-err');
+      err.classList.remove('show');
+      document.getElementById('session-sel').classList.remove('error');
+
+      if (!val) {
+        prev.classList.remove('show');
+        updateSteps(1);
+        return;
+      }
+      const s = SESSIONS[parseInt(val)];
+      if (!s) { prev.classList.remove('show'); return; }
+
+      document.getElementById('prev-avatar').textContent = s.avatar;
+      document.getElementById('prev-name').textContent   = s.partner;
+      document.getElementById('prev-sub').textContent    = `${s.topic} · ${fmtDate(s.date)} at ${s.time}`;
+      document.getElementById('prev-type').textContent   = s.type;
+      prev.classList.add('show');
+      updateSteps(2);
+    }
+
+    // ── OVERALL CHANGE ────────────────────────────────────────
+    function onOverallChange() {
+      const val = parseInt(document.querySelector('input[name="overall"]:checked')?.value || 0);
+      document.getElementById('overall-hint').textContent = val ? RATING_HINTS[val] : '';
+      document.getElementById('overall-err').classList.remove('show');
+      if (val) updateSteps(3);
+    }
+
+    // ── STEPS ─────────────────────────────────────────────────
+    function updateSteps(activeStep) {
+      for (let i = 1; i <= 3; i++) {
+        const num   = document.getElementById(`step-${i}-num`);
+        const label = document.getElementById(i > 1 ? `step-${i}-label` : null);
+        if (!num) continue;
+        if (i < activeStep) {
+          num.className = 'step-num done'; num.textContent = '✓';
+        } else if (i === activeStep) {
+          num.className = 'step-num active'; num.textContent = i;
+          if (label) label.className = 'step-label active';
+        } else {
+          num.className = 'step-num idle'; num.textContent = i;
+          if (label) label.className = 'step-label';
+        }
+      }
+    }
+
+    // ── TAGS ─────────────────────────────────────────────────
+    function toggleTag(el) {
+      const tag = el.dataset.tag;
+      if (selectedTags.has(tag)) {
+        selectedTags.delete(tag); el.classList.remove('selected');
+      } else {
+        selectedTags.add(tag); el.classList.add('selected');
+      }
+      el.classList.add('popping');
+      setTimeout(() => el.classList.remove('popping'), 220);
+    }
+
+    // ── CHAR COUNT ────────────────────────────────────────────
+    function updateCharCount() {
+      const len = document.getElementById('review-text').value.length;
+      document.getElementById('char-count').textContent = len;
+    }
+
+    // ── FORMAT DATE ───────────────────────────────────────────
+    function fmtDate(d) {
+      return new Date(d + 'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    }
+
+    // ── SUBMIT ────────────────────────────────────────────────
+    function submitReview() {
+      let valid = true;
+
+      const sessionVal = document.getElementById('session-sel').value;
+      if (!sessionVal) {
+        document.getElementById('session-err').classList.add('show');
+        document.getElementById('session-sel').classList.add('error');
+        valid = false;
+      }
+
+      const overall = parseInt(document.querySelector('input[name="overall"]:checked')?.value || 0);
+      if (!overall) {
+        document.getElementById('overall-err').classList.add('show');
+        valid = false;
+      }
+
+      if (!valid) {
+        showToast('Please complete all required fields.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('submit-btn');
+      btn.classList.add('loading');
+      btn.textContent = 'Submitting…';
+
+      // Simulate async
+      setTimeout(() => {
+        const s = SESSIONS[parseInt(sessionVal)];
+        document.getElementById('success-msg').textContent =
+          `Your feedback for ${s.partner} has been submitted. They've been notified and your review is now live.`;
+        document.getElementById('success-overlay').classList.add('show');
+        btn.classList.remove('loading');
+        btn.innerHTML = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> Submit Review`;
+      }, 900);
+    }
+
+    function resetAndStay(e) {
+      e.preventDefault();
+      document.getElementById('success-overlay').classList.remove('show');
+      document.getElementById('session-sel').value = '';
+      document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+      document.getElementById('review-text').value = '';
+      document.getElementById('char-count').textContent = '0';
+      document.getElementById('partner-preview').classList.remove('show');
+      document.getElementById('overall-hint').textContent = '';
+      selectedTags.clear();
+      document.querySelectorAll('.tag-opt').forEach(t => t.classList.remove('selected'));
+      updateSteps(1);
+    }
+
+    // ── TOAST ─────────────────────────────────────────────────
+    let toastTimer;
+    function showToast(msg, type='info') {
+      clearTimeout(toastTimer);
+      const toast = document.getElementById('toast');
+      const icon  = document.getElementById('toast-icon');
+      const iconMap = {
+        success: { cls:'success', svg:'<svg style="color:#22c55e" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>' },
+        error:   { cls:'error',   svg:'<svg style="color:#ef4444" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>' },
+      };
+      const cfg = iconMap[type] || iconMap.success;
+      icon.className = `toast-icon ${cfg.cls}`;
+      icon.innerHTML = cfg.svg;
+      document.getElementById('toast-msg').textContent = msg;
+      toast.classList.remove('hidden');
+      toastTimer = setTimeout(() => toast.classList.add('hidden'), 3800);
+    }
+
+    // ── INIT: check URL param ─────────────────────────────────
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const sid = params.get('session');
+      if (sid) {
+        const sel = document.getElementById('session-sel');
+        if ([...sel.options].some(o => o.value === sid)) {
+          sel.value = sid;
+          onSessionChange();
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

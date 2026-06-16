@@ -1,0 +1,16 @@
+de{
+    "name": "talentcircle/backend",
+    "type": "project",
+    "description": "Laravel-like PHP Backend for TalentCircle About Page",
+    "keywords": ["php", "api", "mysql", "ai"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "minimum-stability": "stable"
+}

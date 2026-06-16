@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TalentCircle - Leaderboard</title>
+  
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.className = savedTheme;
+    })();
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+ <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Poppins', 'sans-serif'] },
+          colors: {
+            purple: {
+              50: '#fdf2ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe',
+              400: '#b300ff', 500: '#9600B6', 600: '#7a0094', 700: '#5a0072',
+              800: '#3a0050', 900: '#1a0f2e', 950: '#0f0a1a',
+            }
+          },
+          animation: {
+            'float': 'float 4s ease-in-out infinite',
+            'glow': 'glow 2s ease-in-out infinite alternate',
+            'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            'pulse-glow': 'pulseGlow 2s ease-in-out infinite'
+          },
+          keyframes: {
+            float: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-8px)' } },
+            glow: {
+              '0%': { textShadow: '0 0 15px rgba(150, 0, 182, 0.4)' },
+              '100%': { textShadow: '0 0 30px rgba(179, 0, 255, 0.6)' }
+            },
+            slideUp: { '0%': { opacity: '0', transform: 'translateY(25px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+            pulseGlow: { '0%, 100%': { boxShadow: '0 0 15px rgba(150, 0, 182, 0.2)' }, '50%': { boxShadow: '0 0 35px rgba(150, 0, 182, 0.5)' } }
+          }
+        },
+      },
+    }
+  </script>
+  
+  <style>
+    body { transition: background-color 0.4s ease, color 0.4s ease; }
+
+    /* ── Dark theme base ── */
+    .dark body  { background-color: #0f0a1a; color: #fff; }
+
+    /* ── Light theme base ── */
+    .light body { background-color: #f5f0ff; color: #1a0f2e; }
+
+    /* Glassmorphism */
+    .glass {
+      backdrop-filter: blur(20px);
+      transition: background 0.4s, border-color 0.4s, box-shadow 0.4s, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .dark .glass {
+      background: rgba(20, 20, 40, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .light .glass {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(150, 0, 182, 0.15);
+      box-shadow: 0 4px 30px rgba(150, 0, 182, 0.06);
+    }
+
+    /* Sidebar */
+    .dark aside  { background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.1); }
+    .light aside { background: rgba(255,255,255,0.9); border-color: rgba(150,0,182,0.12); }
+
+    /* Text helpers */
+    .dark  .t-body  { color: #e2e8f0; }
+    .light .t-body  { color: #1a0f2e; }
+    .dark  .t-muted { color: rgba(255,255,255,0.45); }
+    .light .t-muted { color: rgba(26,15,46,0.5); }
+
+    /* Nav links */
+    .dark  nav a.inactive { color: #94a3b8; }
+    .light nav a.inactive { color: #6b21a8; opacity: .75; }
+    .dark  nav a.inactive:hover { color: #c084fc; background: rgba(150,0,182,.08); }
+    .light nav a.inactive:hover { color: #7a0094;  background: rgba(150,0,182,.06); }
+
+    /* Table rows */
+    .dark  tbody tr:hover { background: rgba(150,0,182,.06); }
+    .light tbody tr:hover { background: rgba(150,0,182,.04); }
+
+    /* Row dividers */
+    .dark  tbody  { --tw-divide-opacity:1; }
+    .light table  { border-color: rgba(150,0,182,.08); }
+    .light tbody tr { border-color: rgba(150,0,182,.08); }
+
+    /* Score / rank text in light mode */
+    .light .score-text  { color: #7a0094; font-weight: 900; }
+    .light .name-text   { color: #1a0f2e; font-weight: 700; }
+    .light .muted-score { color: #4a3060; font-weight: 700; }
+
+    /* Header border */
+    .dark  header  { border-color: rgba(255,255,255,.1); }
+    .light header  { border-color: rgba(150,0,182,.12); }
+
+    /* Staggered Row Animation Reveals */
+    .stagger-row { opacity: 0; transform: translateY(12px); animation: rowReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes rowReveal { to { opacity: 1; transform: translateY(0); } }
+
+    /* Poly Crown Badge */
+    .crown-poly {
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* BG blobs */
+    .dark  .blob-top    { background: rgba(150,0,182,.10); }
+    .light .blob-top    { background: rgba(150,0,182,.07); }
+    .dark  .blob-bottom { background: rgba(90,0,114,.05); }
+    .light .blob-bottom { background: rgba(90,0,114,.04); }
+
+    /* Select dropdown */
+    .dark  select { background: rgba(0,0,0,.2); color: #fff; border-color: rgba(150,0,182,.2); }
+    .light select { background: rgba(255,255,255,.9); color: #1a0f2e; border-color: rgba(150,0,182,.2); }
+
+    /* Table header */
+    .dark  thead tr { background: rgba(150,0,182,.05); }
+    .light thead tr { background: rgba(150,0,182,.05); }
+    .dark  thead th { color: #c084fc; }
+    .light thead th { color: #7a0094; }
+
+    /* Skill pill */
+    .dark  .skill-pill  { background: rgba(150,0,182,.12); color: #c084fc; border-color: rgba(150,0,182,.15); }
+    .light .skill-pill  { background: rgba(150,0,182,.08); color: #7a0094; border-color: rgba(150,0,182,.2); }
+
+    /* Endorsement count */
+    .dark  .endorse-count { color: #e2e8f0; }
+    .light .endorse-count { color: #1a0f2e; }
+
+    /* Section label */
+    .dark  .section-label  { color: rgba(255,255,255,.6); }
+    .light .section-label  { color: rgba(26,15,46,.55); }
+
+    /* Theme toggle btn */
+    .dark  #theme-toggle { color: #e2e8f0; border-color: rgba(150,0,182,.25); }
+    .light #theme-toggle { color: #7a0094;  border-color: rgba(150,0,182,.3); }
+
+    /* User chip */
+    .dark  .user-chip p:last-child  { color: #f1f5f9; }
+    .light .user-chip p:last-child  { color: #1a0f2e; }
+    .dark  .user-chip p:first-child { color: rgba(255,255,255,.4); }
+    .light .user-chip p:first-child { color: rgba(26,15,46,.45); }
+
+    /* Podium cards in light */
+    .light .podium-card { background: rgba(255,255,255,.9) !important; }
+    .light .podium-rank-num  { color: rgba(26,15,46,.12); }
+    .light .podium-name      { color: #1a0f2e; }
+    .light .podium-score     { color: rgba(26,15,46,.55); }
+    .light .podium-score span { color: #1a0f2e; }
+  </style>
+</head>
+<body class="min-h-screen overflow-x-hidden flex flex-col">
+
+  <div class="fixed inset-0 z-0 pointer-events-none transition-opacity duration-500">
+    <div class="blob-top absolute w-[600px] h-[600px] -top-32 -right-32 rounded-full blur-[120px]"></div>
+    <div class="blob-bottom absolute w-[500px] h-[500px] -bottom-32 -left-32 rounded-full blur-[120px]"></div>
+  </div>
+
+  <div class="flex flex-col lg:flex-row min-h-screen relative z-10 w-full flex-grow">
+    
+    <aside class="w-full lg:w-72 border-b lg:border-b-0 lg:border-r p-6 flex flex-col justify-between shrink-0 z-20 backdrop-blur-xl transition-all duration-300">
+      <div>
+        <div class="flex items-center gap-3 mb-10 px-2 justify-center lg:justify-start">
+          <a href="home.html" class="block">
+            <img src="images/logo.png" class="h-9 w-auto object-contain transition-all duration-300 dark:invert-0 light:invert light:brightness-50 light:contrast-150" alt="TalentCircle Logo">
+          </a>
+        </div>
+        
+        <nav class="space-y-1.5 font-medium text-xs md:text-sm">
+          <a href="#" class="flex items-center gap-3.5 px-4 py-3.5 rounded-xl bg-purple-500/10 text-purple-500 dark:text-purple-400 font-semibold border-l-4 border-purple-600 transition-all">
+            <i class="fas fa-globe text-base"></i> Global Rankings
+          </a>
+          <a href="#" class="inactive flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all duration-200">
+            <i class="fas fa-th-list text-base"></i> By Skill Category
+          </a>
+          <a href="#" class="inactive flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all duration-200">
+            <i class="fas fa-users text-base"></i> Peer Reviews
+          </a>
+          <a href="badges.html" class="inactive flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all duration-200">
+            <i class="fas fa-award text-base"></i> Badges &amp; Certs
+          </a>
+          <a href="#" class="inactive flex items-center gap-3.5 px-4 py-3.5 rounded-xl transition-all duration-200">
+            <i class="fas fa-exchange-alt text-base"></i> Skill Exchange Portal
+          </a>
+        </nav>
+      </div>
+
+      <button id="theme-toggle" class="mt-8 w-full py-3 px-4 rounded-xl border glass font-bold text-[10px] tracking-widest uppercase active:scale-95 focus:outline-none transition-all hover:border-purple-500/50">
+        🌓 Toggle Layout Theme
+      </button>
+    </aside>
+
+    <main class="flex-1 p-6 md:p-10 max-w-7xl w-full mx-auto space-y-10 overflow-hidden">
+      
+      <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b animate-slide-up">
+        <div>
+          <h1 class="text-3xl font-black tracking-tight t-body">Leaderboard</h1>
+          <p class="text-xs mt-1 t-muted">Real-time skills reputation matrices across global distributed nodes.</p>
+        </div>
+        <div class="user-chip flex items-center gap-3 border border-purple-500/10 rounded-2xl py-2 px-4 shadow-sm glass">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center font-bold text-white text-sm shadow-md animate-pulse-glow">
+            AK
+          </div>
+          <div class="text-left hidden sm:block">
+            <p class="text-[9px] font-bold uppercase tracking-wider">Active Node Profile</p>
+            <p class="text-xs font-bold">Aisha Khan</p>
+          </div>
+        </div>
+      </header>
+
+      <section class="space-y-6 animate-slide-up" style="animation-delay: 0.1s;">
+        <div class="flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-purple-500 animate-pulse"></span>
+          <h2 class="section-label text-xs font-bold uppercase tracking-widest">Top 3 Ecosystem Masters</h2>
+        </div>
+        
+        <div class="flex flex-col md:flex-row gap-6 items-center md:items-end justify-center pt-8">
+          
+          <!-- #2 -->
+          <div class="podium-card w-full md:w-1/3 max-w-[280px] rounded-2xl p-6 flex flex-col items-center text-center relative overflow-hidden transition-all duration-300 hover:-translate-y-1.5 shadow-md order-2 md:order-1 h-[270px] justify-center glass group">
+            <div class="podium-rank-num absolute top-4 left-4 font-black text-4xl select-none dark:text-white">#2</div>
+            <div class="relative mb-4">
+              <div class="absolute -top-7 left-1/2 -translate-x-1/2 z-20 w-10 h-10 crown-poly bg-slate-300 dark:bg-slate-700 shadow-md transition-transform duration-300 group-hover:scale-110">
+                <i class="fas fa-crown text-base text-slate-100 dark:text-slate-300 light:text-slate-600"></i>
+              </div>
+              <div class="w-20 h-20 rounded-2xl border-2 border-slate-300 overflow-hidden bg-purple-900/10 p-0.5 shadow-xl">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200" alt="Liam" class="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-110">
+              </div>
+              <span class="absolute -bottom-2 -right-2 bg-slate-400 text-white w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shadow-md font-mono">2</span>
+            </div>
+            <h3 class="podium-name font-bold text-sm truncate w-full dark:text-white">Liam O'Donnell</h3>
+            <p class="text-xs text-purple-500 dark:text-purple-400 font-semibold mb-4">UX/UI Design</p>
+            <div class="w-full bg-purple-500/10 rounded-full h-1.5 max-w-[140px] mb-2 overflow-hidden">
+              <div class="bg-slate-400 h-full rounded-full transition-all duration-1000 ease-out" style="width: 88%"></div>
+            </div>
+            <p class="podium-score text-[10px]">Score <span class="font-bold dark:text-slate-100">9850</span></p>
+          </div>
+
+          <!-- #1 -->
+          <div class="podium-card w-full md:w-1/3 max-w-[300px] border-2 border-purple-500/60 dark:border-purple-500 light:border-purple-500/40 rounded-3xl p-8 flex flex-col items-center text-center relative overflow-hidden transition-all duration-300 hover:-translate-y-2 shadow-2xl shadow-purple-500/10 order-1 md:order-2 h-[310px] justify-center ring-8 ring-purple-500/5 glass group">
+            <div class="absolute top-4 left-4 opacity-25 font-black text-5xl select-none text-yellow-500 animate-pulse">#1</div>
+            <div class="relative mb-5">
+              <div class="absolute -top-8 left-1/2 -translate-x-1/2 z-20 w-12 h-12 crown-poly bg-gradient-to-br from-yellow-400 to-amber-600 animate-float shadow-xl shadow-yellow-500/20">
+                <i class="fas fa-crown text-lg text-white"></i>
+              </div>
+              <div class="w-24 h-24 rounded-2xl border-2 border-yellow-500 overflow-hidden bg-purple-900/10 p-0.5 shadow-2xl ring-4 ring-purple-500/20">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200" alt="Aisha" class="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-110">
+              </div>
+              <span class="absolute -bottom-2 -right-2 bg-yellow-500 text-slate-950 w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shadow-md font-mono">1</span>
+            </div>
+            <h3 class="podium-name font-extrabold text-base truncate w-full dark:text-white">Aisha Khan</h3>
+            <p class="text-xs text-purple-600 dark:text-purple-400 font-bold mb-4">Python Developer</p>
+            <div class="w-full bg-purple-500/10 rounded-full h-2 max-w-[160px] mb-2 overflow-hidden">
+              <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-full rounded-full animate-pulse" style="width: 96%"></div>
+            </div>
+            <p class="text-xs font-semibold text-purple-500 dark:text-purple-400">Score <span class="font-black dark:text-white light:text-slate-900">9980</span></p>
+          </div>
+
+          <!-- #3 -->
+          <div class="podium-card w-full md:w-1/3 max-w-[280px] rounded-2xl p-6 flex flex-col items-center text-center relative overflow-hidden transition-all duration-300 hover:-translate-y-1.5 shadow-md order-3 h-[250px] justify-center glass group">
+            <div class="podium-rank-num absolute top-4 right-4 font-black text-4xl select-none dark:text-white">#3</div>
+            <div class="relative mb-4">
+              <div class="absolute -top-7 left-1/2 -translate-x-1/2 z-20 w-10 h-10 crown-poly bg-amber-700 dark:bg-amber-900 shadow-md transition-transform duration-300 group-hover:scale-110">
+                <i class="fas fa-crown text-base text-amber-100 dark:text-amber-500"></i>
+              </div>
+              <div class="w-20 h-20 rounded-2xl border-2 border-amber-700 overflow-hidden bg-purple-900/10 p-0.5 shadow-lg">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200" alt="Yuki" class="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-110">
+              </div>
+              <span class="absolute -bottom-2 -right-2 bg-amber-700 text-white w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shadow-md font-mono">3</span>
+            </div>
+            <h3 class="podium-name font-bold text-sm truncate w-full dark:text-white">Yuki Tanaka</h3>
+            <p class="text-xs text-purple-500 dark:text-purple-400 font-semibold mb-4">Project Management</p>
+            <div class="w-full bg-purple-500/10 rounded-full h-1.5 max-w-[140px] mb-2 overflow-hidden">
+              <div class="bg-amber-700 h-full rounded-full transition-all duration-1000 ease-out" style="width: 82%"></div>
+            </div>
+            <p class="podium-score text-[10px]">Score <span class="font-bold dark:text-slate-100">9710</span></p>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="space-y-4 animate-slide-up" style="animation-delay: 0.15s;">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div class="flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-purple-500/40"></span>
+            <h2 class="section-label text-xs font-bold uppercase tracking-widest">Current Global Standings</h2>
+          </div>
+          <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+
+  <!-- Accessible Label (hidden visually) -->
+  <label for="skillFilter" class="sr-only">Filter by Core Skill Matrix</label>
+
+  <select id="skillFilter" name="skill"
+    class="px-4 py-2.5 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 w-full sm:w-auto shadow-sm glass border border-purple-500/20">
+    
+    <option value="" disabled selected>Filter by Core Skill Matrix</option>
+    <option value="python">Python Dev</option>
+    <option value="uiux">UX/UI Design</option>
+    <option value="pm">Project Management</option>
+  </select>
+
+  <button class="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white font-bold text-xs tracking-wider px-5 py-3 rounded-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-purple-600/20">
+    Endorse a Peer Node
+  </button>
+
+</div>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border border-white/5 dark:border-purple-950/30 light:border-purple-500/10 shadow-xl glass">
+          <table class="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+              <tr class="border-b border-purple-500/10 text-[10px] font-bold uppercase tracking-widest bg-purple-500/5">
+                <th class="py-4 px-6 w-20 text-center">Rank</th>
+                <th class="py-4 px-6">Talent Profile</th>
+                <th class="py-4 px-6">Primary Skill Field</th>
+                <th class="py-4 px-6">Earned Badges</th>
+                <th class="py-4 px-6 text-center">Ecosystem Endorsements</th>
+                <th class="py-4 px-6 text-right">XP Signature Score</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-purple-500/5 text-xs md:text-sm font-medium">
+              
+              <tr class="stagger-row transition-colors duration-200" style="animation-delay: 0.2s;">
+                <td class="py-4 px-6 text-center font-black text-yellow-600 dark:text-yellow-400 font-mono text-base">01</td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3 name-text dark:text-slate-100 font-bold">
+                    <div class="w-9 h-9 rounded-xl overflow-hidden border border-purple-500/10"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=80" class="w-full h-full object-cover" alt="Profile"></div>
+                    Aisha Khan
+                  </div>
+                </td>
+                <td class="py-4 px-6"><span class="skill-pill px-3 py-1 rounded-full text-[11px] font-bold border">Python Dev</span></td>
+                <td class="py-4 px-6 text-sm tracking-wide">🥇 💎</td>
+                <td class="py-4 px-6 text-center font-bold endorse-count">23</td>
+                <td class="py-4 px-6 text-right font-black score-text dark:text-purple-400">9980</td>
+              </tr>
+
+              <tr class="stagger-row transition-colors duration-200" style="animation-delay: 0.25s;">
+                <td class="py-4 px-6 text-center font-black text-slate-400 font-mono text-base">02</td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3 name-text dark:text-slate-100 font-bold">
+                    <div class="w-9 h-9 rounded-xl overflow-hidden border border-purple-500/10"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=80" class="w-full h-full object-cover" alt="Profile"></div>
+                    Liam O'Donnell
+                  </div>
+                </td>
+                <td class="py-4 px-6"><span class="skill-pill px-3 py-1 rounded-full text-[11px] font-bold border">UX/UI Design</span></td>
+                <td class="py-4 px-6 text-sm tracking-wide">🥈 🔮</td>
+                <td class="py-4 px-6 text-center font-bold endorse-count">15</td>
+                <td class="py-4 px-6 text-right font-bold muted-score dark:text-slate-100 dark:opacity-80">9850</td>
+              </tr>
+
+              <tr class="stagger-row transition-colors duration-200" style="animation-delay: 0.3s;">
+                <td class="py-4 px-6 text-center font-black text-amber-700 font-mono text-base">03</td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3 name-text dark:text-slate-100 font-bold">
+                    <div class="w-9 h-9 rounded-xl overflow-hidden border border-purple-500/10"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=80" class="w-full h-full object-cover" alt="Profile"></div>
+                    Yuki Tanaka
+                  </div>
+                </td>
+                <td class="py-4 px-6"><span class="skill-pill px-3 py-1 rounded-full text-[11px] font-bold border">Project Mgmt</span></td>
+                <td class="py-4 px-6 text-sm tracking-wide">🥉 ⚡</td>
+                <td class="py-4 px-6 text-center font-bold endorse-count">8</td>
+                <td class="py-4 px-6 text-right font-bold muted-score dark:text-slate-100 dark:opacity-80">9710</td>
+              </tr>
+
+              <tr class="stagger-row transition-colors duration-200" style="animation-delay: 0.35s;">
+                <td class="py-4 px-6 text-center font-bold font-mono text-base t-muted">04</td>
+                <td class="py-4 px-6">
+                  <div class="flex items-center gap-3 name-text dark:text-slate-100 font-bold">
+                    <div class="w-9 h-9 rounded-xl overflow-hidden border border-purple-500/10"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=80" class="w-full h-full object-cover" alt="Profile"></div>
+                    Caritica Chen
+                  </div>
+                </td>
+                <td class="py-4 px-6"><span class="skill-pill px-3 py-1 rounded-full text-[11px] font-bold border">Python Dev</span></td>
+                <td class="py-4 px-6 text-sm tracking-wide">✨</td>
+                <td class="py-4 px-6 text-center font-bold endorse-count">13</td>
+                <td class="py-4 px-6 text-right font-bold muted-score dark:text-slate-100 dark:opacity-80">9780</td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const htmlDoc = document.documentElement;
+
+    themeToggleBtn.addEventListener('click', () => {
+      if (htmlDoc.classList.contains('dark')) {
+        htmlDoc.className = 'light';
+        localStorage.setItem('theme', 'light');
+      } else {
+        htmlDoc.className = 'dark';
+        localStorage.setItem('theme', 'dark');
+      }
+    });
+  </script>
+</body>
+</html>

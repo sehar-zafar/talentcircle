@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>TalentCircle — Premium Dashboard & Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+<style>
+  /* ── NEO-PURPLE SYSTEM VARIABLES ── */
+  :root {
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --surface2: #f8fafc;
+    --surface3: #f1f5f9;
+    --border: #e2e8f0;
+    --border-glow: rgba(155, 48, 217, 0.15);
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    --accent: #9b30d9;
+    --accent-linear: linear-gradient(135deg, #9b30d9 0%, #6b1fa3 100%);
+    --accent-dim: rgba(155, 48, 217, 0.05);
+    --accent-mid: rgba(155, 48, 217, 0.15);
+    --accent-glow: rgba(155, 48, 217, 0.2);
+    --white: #0f172a;
+    --card-header-bg: #f8fafc;
+    --green: #10b981;
+    --green-dim: rgba(16, 185, 129, 0.1);
+    --danger: #ef4444;
+    --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 10px 25px -5px rgba(155, 48, 217, 0.1);
+  }
+
+  [data-theme="dark"] {
+    --bg: #020105;
+    --surface: #070410;
+    --surface2: #0f0a21;
+    --surface3: #160f33;
+    --border: #281454;
+    --border-glow: rgba(188, 119, 255, 0.3);
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --text-dim: #5c538c;
+    --accent: #BC77FF;
+    --accent-linear: linear-gradient(135deg, #BC77FF 0%, #7C3AED 100%);
+    --accent-dim: rgba(188, 119, 255, 0.08);
+    --accent-mid: rgba(188, 119, 255, 0.2);
+    --accent-glow: rgba(188, 119, 255, 0.4);
+    --white: #ffffff;
+    --card-header-bg: rgba(188, 119, 255, 0.02);
+    --green: #34d399;
+    --green-dim: rgba(52, 211, 153, 0.1);
+    --danger: #f87171;
+    --shadow: 0 0 25px rgba(188, 119, 255, 0.08);
+    --shadow-md: 0 0 40px rgba(188, 119, 255, 0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    transition: background 0.3s ease, color 0.3s ease;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* ── CLEAN ENTRY ANIMATION ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes tickerRun {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .secure-lockdown { animation: flashRed 0.30s ease-out; }
+  @keyframes flashRed { 0%, 100% { background-color: transparent; } 50% { background-color: rgba(239, 68, 68, 0.12); } }
+
+  .animate-card { animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+  /* ── SECURITY NOTIFICATION TICKER ── */
+  .ticker-wrap {
+    width: 100%; background: var(--surface2); border-bottom: 1px solid var(--border);
+    height: 32px; display: flex; align-items: center; overflow: hidden; position: relative;
+  }
+  .ticker-stream {
+    display: flex; white-space: nowrap;
+    animation: tickerRun 30s linear infinite;
+  }
+  .ticker-msg {
+    font-family: 'Space Mono', monospace; font-size: 11px; color: var(--accent); padding: 0 40px;
+    display: flex; align-items: center; gap: 6px; font-weight: 600;
+  }
+
+  /* ── NAVIGATION ── */
+  nav {
+    display: flex; align-items: center; justify-content: space-between; padding: 0 28px;
+    height: 72px; background: var(--surface); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow);
+  }
+  .nav-left { display: flex; align-items: center; gap: 16px; }
+  .back-btn { display: flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 600; transition: color 0.2s; }
+  .back-btn:hover { color: var(--accent); }
+  .nav-divider { width: 1px; height: 20px; background: var(--border); }
+  .nav-logo { display: flex; align-items: center; text-decoration: none; max-height: 42px; }
+  .nav-logo img { height: 34px; width: auto; object-fit: contain; }
+  .nav-center { flex: 1; display: flex; justify-content: center; }
+  .nav-search { display: flex; align-items: center; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-full); padding: 8px 18px; gap: 10px; width: min(380px, 100%); }
+  .nav-search input { background: transparent; border: none; outline: none; font-size: 13px; color: var(--text-primary); width: 100%; }
+  .nav-right { display: flex; align-items: center; gap: 14px; }
+  
+  .icon-btn {
+    width: 38px; height: 36px; border: 1px solid var(--border); background: transparent; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); transition: all 0.2s;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .theme-btn { font-size: 16px; }
+
+  .nav-avatar-stack { display: flex; align-items: center; gap: 8px; position: relative; }
+  .nav-pfp { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
+  .nav-avatar { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; position: absolute; bottom: -3px; right: -3px; border: 2px solid var(--surface); }
+
+  /* ── PAGE LAYOUT TRACKS ── */
+  .page {
+    flex: 1; max-width: 1240px; margin: 0 auto; width: 100%; padding: 36px 24px 60px;
+    display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 32px; align-items: start;
+  }
+  @media (max-width: 968px) { .page { grid-template-columns: 1fr; padding: 20px 16px 40px; gap: 24px; } }
+
+  /* ── LEFT COLUMN ── */
+  .left-col { display: flex; flex-direction: column; gap: 24px; }
+  .profile-card { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; overflow: hidden; position: relative; }
+  .profile-cover { height: 110px; background: linear-gradient(135deg, #020105 0%, #160f33 50%, #070410 100%); position: relative; overflow: hidden; }
+  .banner-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(188,119,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(188,119,255,0.06) 1px, transparent 1px); background-size: 22px 22px; }
+  .banner-glow { position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); width: 150px; height: 90px; background: radial-gradient(ellipse, var(--accent-glow), transparent 70%); }
+  .profile-body { padding: 0 24px 28px; }
+  
+  .avatar-wrap { display: flex; align-items: flex-end; justify-content: space-between; margin-top: -36px; margin-bottom: 16px; position: relative; }
+  .big-pfp-box { width: 76px; height: 76px; border-radius: 20px; border: 4px solid var(--surface); overflow: hidden; background: #fff; box-shadow: var(--shadow); }
+  .big-pfp-box img { width: 100%; height: 100%; object-fit: cover; }
+  .big-avatar-overlay { width: 30px; height: 30px; border-radius: 50%; border: 2.5px solid var(--surface); position: absolute; bottom: -2px; left: 58px; overflow: hidden; background: var(--surface2); box-shadow: var(--shadow); }
+  .big-avatar-overlay img { width: 100%; height: 100%; object-fit: cover; }
+  .avatar-online { position: absolute; top: -4px; left: -4px; width: 14px; height: 14px; background: var(--green); border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 8px var(--green); }
+
+  .edit-btn {
+    padding: 6px 14px; border: 1px solid var(--border); background: var(--surface2); border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; color: var(--text-muted);
+    cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+  }
+  .edit-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  .profile-name { font-size: 21px; font-weight: 700; color: var(--white); letter-spacing: -0.03em; margin-bottom: 4px; }
+  .profile-role { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; font-weight: 500; }
+  .profile-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+  .ptag { padding: 4px 10px; border-radius: 7px; font-size: 11px; font-weight: 700; font-family: 'Space Mono', monospace; }
+  .ptag-purple { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-mid); }
+  .ptag-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
+  .ptag-gray { background: var(--surface3); color: var(--text-muted); border: 1px solid var(--border); }
+  .ptag-white { background: rgba(255,255,255,0.04); color: var(--text); border: 1px solid var(--border); }
+
+  .global-rank-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; background: linear-gradient(90deg, rgba(188,119,255,0.12), rgba(6,182,214,0.12)); border: 1px solid var(--border); border-radius: var(--radius-full); margin-bottom: 16px; font-size: 11px; font-weight: 800; color: var(--accent); font-family: 'Space Mono', monospace; }
+  .global-rank-pill i { color: #f59e0b; }
+
+  .profile-divider { height: 1px; background: var(--border); margin: 16px 0; }
+  .profile-stat-row { display: flex; }
+  .pstat { flex: 1; text-align: center; padding: 8px 2px; border-right: 1px solid var(--border); }
+  .pstat:last-child { border-right: none; }
+  .pstat-num { font-size: 19px; font-weight: 700; color: var(--white); font-family: 'Space Mono', monospace; }
+  .pstat-num.accent { color: var(--accent); }
+  .pstat-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; }
+
+  /* SIDEBAR BADGES */
+  .badges-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+  .earned-badges-deck { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .earned-badge-item { display: flex; align-items: center; gap: 6px; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); font-size: 11px; font-weight: 700; }
+  .earned-badge-item i { color: #f59e0b; text-shadow: 0 0 8px rgba(245,158,11,0.3); }
+
+  .info-card, .skills-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+  .card-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); font-family: 'Space Mono', monospace; margin-bottom: 14px; }
+  .info-line { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .info-line:last-child { border-bottom: none; }
+  .info-icon { color: var(--accent); flex-shrink: 0; }
+  .info-label { color: var(--text-muted); min-width: 64px; font-size: 11px; }
+  .info-val { color: var(--text); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .info-val a { color: var(--accent); text-decoration: none; }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .skill-tag { padding: 5px 12px; background: var(--surface2); border: 1px solid var(--border-light); border-radius: 8px; font-size: 11px; color: var(--text); font-family: 'Space Mono', monospace; cursor: default; }
+
+  /* ── RIGHT COLUMN ── */
+  .right-col { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+  .section-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; box-shadow: var(--shadow); }
+  .section-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid var(--border); background: var(--card-header-bg); }
+  .section-title { font-size: 14px; height: auto; font-weight: 700; color: var(--white); display: flex; align-items: center; gap: 8px; }
+  .section-title-icon { width: 28px; height: 28px; background: var(--accent-dim); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent); }
+  .section-action { font-size: 11px; color: var(--accent); cursor: pointer; font-family: 'Space Mono', monospace; background: none; border: none; font-weight: 600; }
+  .section-body { padding: 24px; }
+
+  /* AVATAR GALLERY DECK Grid layout */
+  .avatar-gallery-deck { padding: 2px 0; }
+  .avatar-deck-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 14px; }
+  .avatar-option-card { border: 2px solid var(--border); border-radius: 14px; padding: 14px; cursor: pointer; text-align: center; background: var(--surface2); transition: border-color 0.2s; }
+  .avatar-option-card:hover { border-color: var(--accent); }
+  .avatar-option-card.selected { border-color: var(--accent); background: var(--accent-dim); box-shadow: var(--shadow); }
+  .avatar-option-card img { width: 56px; height: 58px; border-radius: 50%; object-fit: cover; margin: 0 auto 8px; background: rgba(255,255,255,0.02); }
+  .avatar-meta-tag { font-size: 11px; font-weight: 700; color: var(--text-muted); }
+
+  /* OVERVIEW */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; }
+  .stat-tile { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+  .st-label { font-size: 10px; color: var(--text-muted); font-family: 'Space Mono', monospace; text-transform: uppercase; margin-bottom: 6px; font-weight: 600; }
+  .st-val { font-size: 28px; font-weight: 700; color: var(--white); font-family: 'Space Mono', monospace; line-height: 1; }
+  .st-val.accent { color: var(--accent); }
+  .st-sub { font-size: 11px; color: var(--text-muted); margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+  .trend-up { color: var(--green); }
+  .trend-down { color: #f87171; }
+
+  /* LEADERBOARD STANDINGS MATRIX */
+  .leaderboard-list { display: flex; flex-direction: column; }
+  .leaderboard-row { display: flex; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid var(--border); }
+  .leaderboard-row:last-child { border-bottom: none; }
+  .rank-num { font-size: 13px; font-weight: 800; width: 24px; text-align: center; color: var(--text-muted); font-family: 'Space Mono', monospace; }
+  .rank-num.top-three { color: #f59e0b; font-size: 15px; }
+  .rank-pfp { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
+  .rank-info { flex: 1; min-width: 0; }
+  .rank-name { font-weight: 700; font-size: 13px; color: var(--white); }
+  .rank-title { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rank-score { font-size: 13px; font-weight: 800; color: var(--accent); text-align: right; font-family: 'Space Mono', monospace; }
+
+  /* HEATMAP */
+  .heatmap-wrap { margin-top: 4px; }
+  .heatmap-label { font-size: 11px; color: var(--text-muted); font-family: 'Space Mono', monospace; margin-bottom: 10px; }
+  .heatmap { display: flex; gap: 3.5px; padding-bottom: 4px; }
+  .hm-col { display: flex; flex-direction: column; gap: 3.5px; }
+  .hm-cell { width: 12px; height: 12px; border-radius: 3px; background: var(--surface2); border: 1px solid var(--border); }
+  .hm-cell.l1 { background: rgba(155,48,217,0.15); }
+  .hm-cell.l2 { background: rgba(155,48,217,0.38); }
+  .hm-cell.l3 { background: rgba(155,48,217,0.65); }
+  .hm-cell.l4 { background: var(--accent); }
+
+  /* LIST CHANNELS */
+  .exp-list { display: flex; flex-direction: column; }
+  .exp-item { display: flex; gap: 14px; padding: 18px 0; border-bottom: 1px solid var(--border); }
+  .exp-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .exp-item:first-child { padding-top: 0; }
+  .exp-timeline { display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
+  .exp-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface); }
+  .exp-line { width: 1px; flex: 1; background: var(--border); min-height: 24px; margin-top: 4px; }
+  .exp-content { flex: 1; min-width: 0; }
+  .exp-role { font-size: 14px; font-weight: 600; color: var(--white); }
+  .exp-company { font-size: 12px; color: var(--accent); font-family: 'Space Mono', monospace; margin-bottom: 4px; }
+  .exp-period { font-size: 11px; color: var(--text-muted); font-family: 'Space Mono', monospace; margin-bottom: 6px; }
+  .exp-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  .exp-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .etag { padding: 2px 7px; background: var(--surface3); border: 1px solid var(--border); border-radius: 4px; font-size: 10px; color: var(--text-muted); font-family: 'Space Mono', monospace; }
+
+  .session-list { display: flex; flex-direction: column; gap: 12px; }
+  .session-row { display: flex; align-items: center; gap: 14px; padding: 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; }
+  .session-indicator { width: 4px; height: 36px; border-radius: 2px; }
+  .si-done { background: var(--surface3); }
+  .si-upcoming { background: var(--accent); }
+  .si-today { background: var(--green); }
+  .session-info { flex: 1; min-width: 0; }
+  .si-name { font-size: 13px; font-weight: 600; color: var(--white); }
+  .si-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-family: 'Space Mono', monospace; }
+  .si-chip { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; font-family: 'Space Mono', monospace; }
+  .chip-done { background: var(--surface3); color: var(--text-muted); border: 1px solid var(--border); }
+  .chip-today { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+  .chip-upcoming { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-mid); }
+
+  .review-list { display: flex; flex-direction: column; gap: 14px; }
+  .review-item { padding: 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; }
+  .review-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .reviewer-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; font-family: 'Space Mono', monospace; }
+  .reviewer-name { font-size: 13px; font-weight: 600; color: var(--white); }
+  .reviewer-role { font-size: 11px; color: var(--text-muted); }
+  .stars { display: flex; gap: 2px; margin-left: auto; }
+  .star { color: #f59e0b; font-size: 12px; }
+  .star.empty { color: var(--border); }
+  .review-text { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  .review-date { font-size: 10px; color: var(--text-dim); font-family: 'Space Mono', monospace; margin-top: 8px; }
+
+  .tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface2); border-radius: 10px; margin-bottom: 18px; }
+  .tab { flex: 1; padding: 8px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; border: none; background: transparent; font-family: 'DM Sans', sans-serif; text-align: center; }
+  .tab.active { background: var(--surface); color: var(--white); box-shadow: var(--shadow); }
+
+  .chart-wrap { display: flex; gap: 8px; align-items: flex-end; height: 68px; margin-top: 10px; }
+  .chart-bar-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+  .chart-bar { width: 100%; border-radius: 4px 4px 0 0; background: var(--accent-mid); border: 1px solid var(--border); height: 0; transition: height 0.4s ease-out; }
+  .chart-bar.high { background: var(--accent); }
+  .chart-label { font-size: 9px; color: var(--text-dim); font-family: 'Space Mono', monospace; }
+
+  .action-row { display: flex; gap: 10px; flex-wrap: wrap; padding: 18px 24px; border-top: 1px solid var(--border); background: var(--accent-dim); }
+  .abt { padding: 11px 20px; border-radius: 12px; font-size: 13px; font-family: 'DM Sans', sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; border: none; }
+  .abt-primary { background: var(--accent); color: white; }
+  .abt-secondary { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
+  .abt-danger { background: transparent; color: #f87171; border: 1px solid rgba(248,113,113,0.2); margin-left: auto; }
+
+  /* ── SKILL TESTS ASSESSMENTS ── */
+  .skill-tests-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; padding: 4px 0; }
+  .skill-test-card { border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px; background: var(--surface2); }
+  .st-header { display: flex; justify-content: space-between; align-items: flex-start; }
+  .st-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; background: var(--surface3); border: 1px solid var(--border); }
+  .st-score { font-size: 24px; font-weight: 800; color: var(--accent); font-family: 'Space Mono', monospace; }
+  .st-name { font-weight: 700; font-size: 14px; color: var(--white); }
+  .st-meta { font-size: 12px; color: var(--text-muted); }
+  .st-bar-wrap { background: var(--surface3); border-radius: var(--radius-full); height: 8px; overflow: hidden; border: 1px solid var(--border); }
+  .st-bar { height: 100%; background: var(--accent-linear); width: 0; transition: width 0.5s ease-out; }
+  .take-test-card { border: 2px dashed var(--border); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: pointer; text-align: center; min-height: 160px; background: rgba(255,255,255,0.01); transition: background 0.2s; }
+  .take-test-card:hover { background: var(--accent-dim); }
+  .take-test-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--surface3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--accent); }
+
+  /* ── MODALS ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(2, 1, 5, 0.85); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; width: min(600px, 100%); max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-close { width: 34px; height: 34px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
+  .modal-body { padding: 24px; }
+  
+  .quiz-options-box { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+</style>
+</head>
+<body class="animate-fade-up">
+
+<!-- SECURITY RUNNER -->
+<div class="ticker-wrap">
+  <div class="ticker-stream">
+    <div class="ticker-msg">⚡ SYSTEM: Anti-Cheat Stream Monitor is active and securing your active parameters natively.</div>
+    <div class="ticker-msg">🏆 LEADERBOARD: Sehar just secured verified status marks inside the Tech Sourcing Track.</div>
+    <div class="ticker-msg">⚡ SYSTEM: Anti-Cheat Stream Monitor is active and securing your active parameters natively.</div>
+    <div class="ticker-msg">🏆 LEADERBOARD: Sehar just secured verified status marks inside the Tech Sourcing Track.</div>
+  </div>
+</div>
+
+<!-- NAV COMPONENT -->
+<nav>
+  <div class="nav-left">
+    <a class="back-btn" href="chat-list.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Back
+    </a>
+  <div class="nav-divider"></div>
+
+<a class="nav-logo logo-glow" href="#" aria-label="TalentCircle Home">
+  
+  <object 
+    data="images/logo.html" 
+    type="text/html" 
+    class="h-11 w-auto pointer-events-none" 
+    id="logo-object-node"
+    aria-label="TalentCircle Logo">
+
+    <img 
+      src="images/logo.png" 
+      alt="TalentCircle Logo"
+      onerror="this.src='https://placehold.co/120x40/090514/BC77FF?text=TC'" />
+      
+  </object>
+
+</a>
+  <div class="nav-center">
+    <div class="nav-search">
+      <span>🔍</span>
+      <input placeholder="Search leadership ranks, credentials, verification pools...">
+    </div>
+  </div>
+  <div class="nav-right">
+    <button class="theme-btn icon-btn" onclick="toggleInterfaceTheme()" id="theme-btn" title="Toggle theme">☀️</button>
+    <button class="icon-btn" title="Share profile">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+      </svg>
+    </button>
+    <div class="nav-avatar-stack">
+      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" class="nav-pfp" id="nav-pfp-img" alt="PFP">
+      <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Sara" class="nav-avatar" id="nav-avatar-img" alt="Avatar">
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN SYSTEM GRID FRAMEWORK -->
+<div class="page">
+
+  <!-- LEFT COLUMN PANEL -->
+  <div class="left-col animate-card" style="animation-delay: 0s;">
+    <div class="card profile-card" id="main-parallax-profile-card">
+      <div class="profile-cover">
+        <div class="banner-grid"></div>
+        <div class="banner-glow"></div>
+      </div>
+      <div class="profile-body">
+        <div class="avatar-wrap">
+          <div class="user-identity-stack">
+            <div class="big-pfp-box" id="profile-pfp-box">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="PFP">
+            </div>
+            <div class="big-avatar-overlay" id="profile-avatar-box">
+              <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Sara" alt="Avatar">
+            </div>
+            <div class="avatar-online"></div>
+          </div>
+          <a href="edit-profile.html" class="edit-btn">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Edit
+          </a>
+        </div>
+        <div class="profile-name" id="display-name">Ayesha Siddiqui</div>
+        <div class="profile-role" id="display-title">Senior Recruiter · TalentCircle</div>
+        
+        <div class="global-rank-pill">
+          <i class="fas fa-crown"></i> Rank: <span id="rank-points-text">#14 Global</span>
+        </div>
+
+        <div class="profile-tags">
+          <span class="ptag ptag-green">● Active</span>
+          <span class="ptag ptag-purple">Pro</span>
+          <span class="ptag ptag-gray">Lahore, PK</span>
+          <span class="ptag ptag-white">4 yrs exp</span>
+        </div>
+        <div class="profile-divider"></div>
+        <div class="profile-stat-row">
+          <div class="pstat">
+            <div class="pstat-num accent" id="trust-metric-score">94</div>
+            <div class="pstat-label">Trust Score</div>
+          </div>
+          <div class="pstat">
+            <div class="pstat-num">47</div>
+            <div class="pstat-label">Placements</div>
+          </div>
+          <div class="pstat">
+            <div class="pstat-num">4.9</div>
+            <div class="pstat-label">Rating</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- achievement BADGES PANEL -->
+    <div class="card badges-card">
+      <div class="sidebar-label">Earned Achievements</div>
+      <div class="earned-badges-deck" id="profile-badges-deck">
+        <div class="earned-badge-item" title="Verified identity credential tokens locked"><i class="fas fa-shield-halved"></i> ID Verified</div>
+        <div class="earned-badge-item" title="Verified system recruiter status clear"><i class="fas fa-award"></i> HR Leader</div>
+      </div>
+    </div>
+
+    <!-- CONTACT INFO -->
+    <div class="info-card">
+      <div class="card-title">Contact Info</div>
+      <div class="info-line">
+        <svg class="info-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+        <span class="info-label">Email</span>
+        <span class="info-val"><a href="#" id="display-email">a.siddiqui@tc.io</a></span>
+      </div>
+      <div class="info-line">
+        <svg class="info-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        <span class="info-label">Location</span>
+        <span class="info-val">Lahore, Punjab</span>
+      </div>
+    </div>
+
+    <!-- SPECIALISATIONS CARD -->
+    <div class="skills-card">
+      <div class="card-title">Specialisations</div>
+      <div class="skill-tags" id="deck-skill-tags">
+        <span class="skill-tag verified">Tech Hiring</span>
+        <span class="skill-tag verified">UX/Design</span>
+        <span class="skill-tag">Executive Search</span>
+        <span class="skill-tag">HR Strategy</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN CONTENT PANELS -->
+  <div class="right-col animate-card" style="animation-delay: 0.05s;">
+    
+    <!-- AVATAR GALLERIES -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">🎭 Choose Vector Portrait Overlay Representation</span>
+        <span class="text-xs text-muted">A comprehensive collection of diverse female and male vector personas</span>
+      </div>
+      <div class="section-body avatar-gallery-deck">
+        <div class="avatar-deck-row">
+          <div class="avatar-option-card selected" onclick="switchDynamicAvatarAsset('Sara', this)">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Sara" alt="F1">
+            <div class="avatar-meta-tag">Male Alpha</div>
+          </div>
+          <div class="avatar-option-card" onclick="switchDynamicAvatarAsset('Fatima', this)">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Fatima" alt="F2">
+            <div class="avatar-meta-tag">Male Beta</div>
+          </div>
+          <div class="avatar-option-card" onclick="switchDynamicAvatarAsset('Tahir', this)">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Tahir" alt="M1">
+            <div class="avatar-meta-tag">Female Alpha</div>
+          </div>
+          <div class="avatar-option-card" onclick="switchDynamicAvatarAsset('Amir', this)">
+            <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Amir" alt="M2">
+            <div class="avatar-meta-tag">Female Beta</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REALTIME CHALLENGE EVALUATOR -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title">
+          <div class="section-title-icon"><i class="fas fa-shield-halved"></i></div>
+          Capability Validation & Assessment Systems
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="skill-tests-grid" id="verification-tests-grid-section">
+          <div class="skill-test-card" id="static-card-hiring">
+            <div class="st-header">
+              <div class="st-icon">💼</div>
+              <div class="st-score">92</div>
+            </div>
+            <div class="st-name">Talent Acquisition Sourcing</div>
+            <div class="st-meta">25 Systems Items · Completed 2026</div>
+            <div class="st-bar-wrap"><div class="st-bar" style="width: 92%;"></div></div>
+          </div>
+
+          <div class="take-test-card" onclick="openAssessmentVerificationModal()">
+            <div class="take-test-icon"><i class="fas fa-vial"></i></div>
+            <div class="take-test-label">Execute Active Skills Evaluation Quiz</div>
+            <p style="font-size:11px; color:var(--text-muted); margin-top:4px;">Locks user configuration validation badges across Arts, Tech, Strategy, and Marketing fields dynamically.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERFORMANCE OVERVIEW -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title">
+          <div class="section-title-icon"><i class="fas fa-chart-simple"></i></div>
+          Activity Analytics Overview
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="tab active" style="flex:none; padding:4px 12px; font-size:11px;">Month</button>
+          <button class="tab" style="flex:none; padding:4px 12px; font-size:11px;" onclick="adjustChartMetricHeights(20, 35, 12, 8)">Quarter</button>
+          <button class="tab" style="flex:none; padding:4px 12px; font-size:11px;" onclick="adjustChartMetricHeights(44, 58, 32, 18)">Year</button>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="stats-grid">
+          <div class="stat-tile">
+            <div class="st-label">Sessions</div>
+            <div class="st-val accent">18</div>
+            <div class="st-sub"><span class="trend-up">↑ 12%</span> vs last month</div>
+          </div>
+          <div class="stat-tile">
+            <div class="st-label">Placements</div>
+            <div class="st-val">6</div>
+            <div class="st-sub"><span class="trend-up">↑ 2</span> this month</div>
+          </div>
+          <div class="stat-tile">
+            <div class="st-label">Candidates</div>
+            <div class="st-val">34</div>
+            <div class="st-sub"><span class="trend-down">↓ 3%</span> pipeline</div>
+          </div>
+          <div class="stat-tile">
+            <div class="st-label">Avg Rating</div>
+            <div class="st-val accent">4.9</div>
+            <div class="st-sub"><span class="trend-up">↑ 0.2</span> improved</div>
+          </div>
+        </div>
+
+        <!-- PROGRESS CHART -->
+        <div class="heatmap-wrap" style="margin-top:24px;">
+          <div class="heatmap-label">Weekly Pipeline Conversions · May 2026</div>
+          <div class="chart-wrap">
+            <div class="chart-bar-col"><div class="chart-bar" id="bar-w1"></div><div class="chart-label">W1</div></div>
+            <div class="chart-bar-col"><div class="chart-bar high" id="bar-w2"></div><div class="chart-label">W2</div></div>
+            <div class="chart-bar-col"><div class="chart-bar" id="bar-w3"></div><div class="chart-label">W3</div></div>
+            <div class="chart-bar-col"><div class="chart-bar" id="bar-w4"></div><div class="chart-label">W4</div></div>
+          </div>
+        </div>
+
+        <!-- HEATMAP -->
+        <div class="heatmap-wrap" style="margin-top:20px;">
+          <div class="heatmap-label">Operational platform contribution sequence map · last 14 columns</div>
+          <div class="heatmap" id="heatmap"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD RANKINGS -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title">
+          <div class="section-title-icon"><i class="fas fa-trophy"></i></div>
+          Global Leaderboard Network Standings
+        </div>
+      </div>
+      <div class="leaderboard-list">
+        <div class="leaderboard-row">
+          <span class="rank-num top-three">1</span>
+          <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Amir" class="rank-pfp" alt="Leader 1">
+          <div class="rank-info"><div class="rank-name">Sara Raza</div><div class="rank-title">Product Designer · 2,450 XP</div></div>
+          <span class="rank-score">98% Match</span>
+        </div>
+        <div class="leaderboard-row" style="background: var(--accent-dim);">
+          <span class="rank-num" id="live-rank-indicator">14</span>
+          <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Sara" class="rank-pfp" id="leaderboard-self-portrait-pfp" alt="Self portrait">
+          <div class="rank-info"><div class="rank-name" style="color: var(--accent); font-weight:700;">Ayesha Siddiqui (You)</div><div class="rank-title">Senior Talent Consultant</div></div>
+          <span class="rank-score" id="leaderboard-xp-display-value">1,620 XP</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIMELINES LOGGER -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title">
+          <div class="section-title-icon"><i class="fas fa-clock"></i></div>
+          Scheduled Work Sessions
+        </div>
+        <button class="section-action">View Full Ledger →</button>
+      </div>
+      <div class="section-body">
+        <div class="tabs">
+          <button class="tab active" onclick="toggleActiveTabContentPanel(this,'sessions','upcoming')">Upcoming</button>
+          <button class="tab" onclick="toggleActiveTabContentPanel(this,'sessions','past')">Past</button>
+        </div>
+        
+        <div id="sessions-upcoming" class="session-list">
+          <div class="session-row">
+            <div class="session-indicator si-today"></div>
+            <div class="session-info">
+              <div class="si-name">Sarah Rahman — Executive Search Screening</div>
+              <div class="si-meta">Today · 3:00 PM · TalentCircle Core-Bridge</div>
+            </div>
+            <span class="si-chip chip-today">TODAY</span>
+          </div>
+        </div>
+        
+        <div id="sessions-past" class="session-list" style="display:none;">
+          <div class="session-row">
+            <div class="session-indicator si-done"></div>
+            <div class="session-info">
+              <div class="si-name">James Okafor — Portfolio Alignment Evaluation</div>
+              <div class="si-meta">Completed · May 2026</div>
+            </div>
+            <span class="si-chip chip-done">DONE</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="action-row">
+        <button class="abt abt-primary"><i class="fas fa-envelope"></i> Message Hub</button>
+        <button class="abt abt-secondary"><i class="fas fa-calendar-days"></i> Book Session</button>
+        <button class="abt abt-danger">Deactivate System Frame</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SECURE TESTING STATE OVERLAY MODULE -->
+<div class="modal-overlay" id="assessment-test-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="assessment-modal-title">📊 Select Domain Validation Challenge</div>
+      <button class="modal-close" onclick="dismissAssessmentVerificationModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      
+      <!-- Selector Grid Layout -->
+      <div id="quiz-selection-viewport-panel">
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+          Choose an operational vector slot below to ignite secure counter timeout quiz loops.
+        </p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;" id="dynamic-quiz-selection-cards-target"></div>
+      </div>
+
+      <!-- Live Quiz Execution Screen -->
+      <div id="live-quiz-execution-panel" style="display:none">
+        <div class="quiz-timer-box">
+          <span style="font-size:11px; font-weight:700; color:var(--danger)"><i class="fas fa-shield-halved"></i> SECURE EXAM WINDOW ACTIVE</span>
+          <div class="quiz-timer">Timeout: <span id="quiz-live-clock-element">30</span>s</div>
+        </div>
+        <p class="quiz-q" id="active-quiz-question-placeholder"></p>
+        <div class="quiz-options-box" id="active-quiz-options-buttons-target"></div>
+        <div style="margin-top:20px; display:flex; justify-content:flex-end;">
+          <button class="abt abt-primary" id="quiz-submit-action-trigger" onclick="evaluateChosenQuizAnswerMetric()" disabled>Lock Answer Metric</button>
+        </div>
+      </div>
+
+      <!-- Analysis Report Payout Deck View -->
+      <div id="quiz-analytics-payout-panel" style="display:none; text-align:center; padding:12px 0;">
+        <div style="font-size:54px; margin-bottom:10px;" id="analytics-medal-icon">🏆</div>
+        <div style="font-size:22px; font-weight:800; color:var(--accent); margin-bottom:6px;" id="analytics-score-label">Passed</div>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;" id="analytics-summary-text"></p>
+        <button class="abt abt-primary" onclick="claimQuizVerificationBadgesToSideDeck()">Inject Validated Badges</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const capabilityQuizGlobalDatabase = {
+  "tech---hiring": { name: "Tech Sourcing Architecture", icon: "💼", q: "Which core framework parameter evaluates long-term developer velocity values cleanly inside isolated testing setups?", opts: ["A) Algorithmic speed metrics records", "B) Domain-specific production scenario mockups with peer reviews", "C) Standard multiple-choice evaluation logic tables"], ans: "B", badge: "Hiring Strategist", points: 140 },
+  "ux---design": { name: "UX Design Usability", icon: "🎨", q: "What metric calculation maps cumulative shifts layout discrepancies over mobile viewport elements?", opts: ["A) The CLS layout boundary algorithm factor", "B) Canvas pixel depth metrics optimization lines", "C) Image compression ratio matrix tables"], ans: "A", badge: "UX Systems Expert", points: 160 },
+  "language---comm": { name: "Language & Comm Hub", icon: "🗣️", q: "When driving team engagement loops, which listening pattern establishes direct operational parity?", opts: ["A) Intermittent metric response sequences", "B) Active empathetic feedback structures", "C) Passive chronological logging loops"], ans: "B", badge: "Orator Elite", points: 110 },
+  "marketing---seo": { name: "SEO & Growth Engines", icon: "📈", q: "Which configuration handles crawl map optimization networks across separated subdomains natively?", opts: ["A) High-density anchor keyword arrays", "B) Structured JSON-LD Graph Meta-Schemas", "C) Hidden frame text injections"], ans: "B", badge: "SEO Strategist", points: 150 }
+};
+
+let activeSelectedQuizKey = null;
+let activeQuizTimerReferenceCount = null;
+let quizSecondsLeftRemaining = 30;
+let userTotalRankScoreXP = 1620;
+
+// ── HARD ANTI-COPY PREVENTIONS ──
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C')) || (e.ctrlKey && (e.key === 'c' || e.key === 'v'))) {
+    e.preventDefault();
+    document.body.classList.add('secure-lockdown');
+    setTimeout(() => document.body.classList.remove('secure-lockdown'), 300);
+    return false;
+  }
+});
+document.addEventListener('copy', e => e.preventDefault());
+document.addEventListener('paste', e => e.preventDefault());
+
+// ── THEME SWITCHERS ──
+function toggleInterfaceTheme() {
+  const rootElement = document.documentElement;
+  const targetedTheme = rootElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  rootElement.setAttribute('data-theme', targetedTheme);
+  document.getElementById('theme-btn').textContent = targetedTheme === 'dark' ? '☀️' : '🌙';
+}
+
+// ── LIFECYCLE ──
+window.addEventListener('pageshow', () => {
+  // Prefer backend data; keep localStorage as fallback.
+  if(localStorage.getItem('tc_fullname')) document.getElementById('display-name').textContent = localStorage.getItem('tc_fullname');
+  if(localStorage.getItem('tc_title')) document.getElementById('display-title').textContent = localStorage.getItem('tc_title');
+  if(localStorage.getItem('tc_pfp')) {
+    const serializedBase64String = localStorage.getItem('tc_pfp');
+    document.getElementById('nav-pfp-img').src = serializedBase64String;
+    document.getElementById('profile-pfp-box').innerHTML = `<img src="${serializedBase64String}" alt="PFP">`;
+  }
+
+  loadProfileFromBackend();
+  setTimeout(() => adjustChartMetricHeights(28, 48, 36, 20), 100);
+});
+
+async function loadProfileFromBackend() {
+  try {
+    const token = localStorage.getItem('tc_token');
+    // If token is missing, we can’t load private profile.
+    if (!token) return;
+
+    const res = await fetch('/api/profile-skill?token=' + encodeURIComponent(token), {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (!res.ok) return;
+    const data = await res.json();
+
+    // User basic fields
+    if (data?.user) {
+      if (data.user.name) document.getElementById('display-name').textContent = data.user.name;
+      // profile.html expects “display-title” text; map from a couple of common fields.
+      const title = data.user.title || data.user.role || data.user.position || data.user.headline;
+      if (title) document.getElementById('display-title').textContent = title;
+
+      // If backend stores a base64/URL image in image, reflect it.
+      const img = data.user.image || data.user.avatar || null;
+      if (img) {
+        document.getElementById('nav-pfp-img').src = img;
+        document.getElementById('profile-pfp-box').innerHTML = `<img src="${img}" alt="PFP">`;
+        document.getElementById('profile-avatar-box').innerHTML = `<img src="${img}" alt="Avatar">`;
+        document.getElementById('leaderboard-self-portrait-pfp').src = img;
+      }
+
+      // Email (optional)
+      if (data.user.email) {
+        document.getElementById('display-email').textContent = data.user.email;
+        document.getElementById('display-email').href = `mailto:${data.user.email}`;
+      }
+
+      // Bio / location not currently rendered in this HTML; ignore for now.
+    }
+
+    // Skills (show “have” publicly)
+    const deck = document.getElementById('deck-skill-tags');
+    if (deck && Array.isArray(data.skills_have)) {
+      deck.innerHTML = '';
+      data.skills_have.slice(0, 12).forEach((sk) => {
+        // skill shape can vary; try common keys.
+        const name = sk.name || sk.skill_name || sk.title || (typeof sk === 'string' ? sk : null);
+        if (!name) return;
+        const verified = (sk.verified === 1 || sk.verified === true || sk.is_verified === 1);
+        const span = document.createElement('span');
+        span.className = 'skill-tag' + (verified ? ' verified' : '');
+        span.textContent = name;
+        deck.appendChild(span);
+      });
+    }
+
+    // Stats (if backend returns standard keys)
+    const stats = data.stats || {};
+    // trust-metric-score
+    if (stats.trust_score != null) document.getElementById('trust-metric-score').textContent = stats.trust_score;
+    // placements / rating fields if they exist
+    if (stats.placements != null) document.querySelectorAll('.pstat-num')[1].textContent = stats.placements;
+    if (stats.rating != null) document.querySelectorAll('.pstat-num')[2].textContent = stats.rating;
+
+    // Leaderboard xp/rank fields (optional)
+    if (stats.xp != null) document.getElementById('leaderboard-xp-display-value').textContent = `${stats.xp} XP`;
+  } catch (e) {
+    // fail silently; UI remains static fallback
+  }
+}
+
+function switchDynamicAvatarAsset(seed, cardDomElement) {
+  document.querySelectorAll('.avatar-option-card').forEach(card => card.classList.remove('selected'));
+  cardDomElement.classList.add('selected');
+  const targetUrlStr = `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}`;
+  document.getElementById('nav-avatar-img').src = targetUrlStr;
+  document.getElementById('profile-avatar-box').innerHTML = `<img src="${targetUrlStr}" alt="Avatar">`;
+  document.getElementById('leaderboard-self-portrait-pfp').src = targetUrlStr;
+}
+
+function adjustChartMetricHeights(h1, h2, h3, h4) {
+  document.getElementById('bar-w1').style.height = `${h1}px`;
+  document.getElementById('bar-w2').style.height = `${h2}px`;
+  document.getElementById('bar-w3').style.height = `${h3}px`;
+  document.getElementById('bar-w4').style.height = `${h4}px`;
+}
+
+// ── SECURE CHALLENGE LOOP ──
+function openAssessmentVerificationModal() {
+  document.getElementById('assessment-test-modal').classList.add('open');
+  const cardsGridContainer = document.getElementById('dynamic-quiz-selection-cards-target');
+  cardsGridContainer.innerHTML = '';
+  
+  Object.entries(capabilityQuizGlobalDatabase).forEach(([key, descriptor]) => {
+    const elementCard = document.createElement('div');
+    elementCard.className = 'avatar-option-card';
+    elementCard.style.cssText = 'cursor:pointer; border:1px solid var(--border);';
+    elementCard.onclick = () => launchSecureQuizSequenceLoop(key);
+    elementCard.innerHTML = `<div style="font-size:20px; margin-bottom:4px;">${descriptor.icon}</div><div class="avatar-meta-tag">${descriptor.name}</div><div style="font-size:9px; color:var(--accent); font-weight:bold; margin-top:2px;">+${descriptor.points} XP</div>`;
+    cardsGridContainer.appendChild(elementCard);
+  });
+}
+
+function dismissAssessmentVerificationModal() {
+  clearInterval(activeQuizTimerReferenceCount);
+  document.getElementById('assessment-test-modal').classList.remove('open');
+  document.getElementById('quiz-selection-viewport-panel').style.display = 'block';
+  document.getElementById('live-quiz-execution-panel').style.display = 'none';
+  document.getElementById('quiz-analytics-payout-panel').style.display = 'none';
+  document.getElementById('assessment-modal-title').textContent = "📊 Select Domain Validation Challenge";
+}
+
+function launchSecureQuizSequenceLoop(targetKeyId) {
+  activeSelectedQuizKey = targetKeyId;
+  quizSecondsLeftRemaining = 30;
+  
+  document.getElementById('quiz-selection-viewport-panel').style.display = 'none';
+  document.getElementById('live-quiz-execution-panel').style.display = 'block';
+  
+  const evaluationQuizSchema = capabilityQuizGlobalDatabase[targetKeyId];
+  document.getElementById('assessment-modal-title').textContent = `⚡ Active Run: ${evaluationQuizSchema.name}`;
+  document.getElementById('active-quiz-question-placeholder').textContent = evaluationQuizSchema.q;
+  
+  const optionsWrapperElement = document.getElementById('active-quiz-options-buttons-target');
+  optionsWrapperElement.innerHTML = '';
+  
+  evaluationQuizSchema.opts.forEach(optString => {
+    const choiceRowBtn = document.createElement('div');
+    choiceRowBtn.className = 'quiz-option';
+    choiceRowBtn.textContent = optString;
+    choiceRowBtn.onclick = () => {
+      document.querySelectorAll('.quiz-option').forEach(n => n.classList.remove('selected'));
+      choiceRowBtn.classList.add('selected');
+      document.getElementById('quiz-submit-action-trigger').disabled = false;
+    };
+    optionsWrapperElement.appendChild(choiceRowBtn);
+  });
+
+  clearInterval(activeQuizTimerReferenceCount);
+  activeQuizTimerReferenceCount = setInterval(() => {
+    quizSecondsLeftRemaining--;
+    document.getElementById('quiz-live-clock-element').textContent = quizSecondsLeftRemaining;
+    if (quizSecondsLeftRemaining <= 0) {
+      clearInterval(activeQuizTimerReferenceCount);
+      alert("⏳ Secure assessment timeout encountered. Lock active.");
+      dismissAssessmentVerificationModal();
+    }
+  }, 1000);
+}
+
+function evaluateChosenQuizAnswerMetric() {
+  clearInterval(activeQuizTimerReferenceCount);
+  const quizObj = capabilityQuizGlobalDatabase[activeSelectedQuizKey];
+  const chosenOptionNode = document.querySelector('.quiz-option.selected');
+  const userPickedLetter = chosenOptionNode.textContent.trim().charAt(0);
+
+  document.querySelectorAll('.quiz-option').forEach(row => {
+    if (row.textContent.trim().charAt(0) === quizObj.ans) row.className = 'quiz-option correct';
+    else if (row.classList.contains('selected')) row.className = 'quiz-option wrong';
+  });
+
+  setTimeout(() => {
+    document.getElementById('live-quiz-execution-panel').style.display = 'none';
+    document.getElementById('quiz-analytics-payout-panel').style.display = 'block';
+    
+    const labelNode = document.getElementById('analytics-score-label');
+    const descNode = document.getElementById('analytics-summary-text');
+    const iconNode = document.getElementById('analytics-medal-icon');
+
+    if (userPickedLetter === quizObj.ans) {
+      labelNode.textContent = "Passed (100%)";
+      descNode.textContent = `✓ Dynamic verification complete. Your account info has been validated under the ${quizObj.name} track.`;
+      iconNode.textContent = "🏆";
+    } else {
+      labelNode.textContent = "Unverified (0%)";
+      descNode.textContent = "❌ Assessment discrepancy noted. Review your specialization tracks to clear your verification locks.";
+      iconNode.textContent = "📚";
+    }
+  }, 800);
+}
+
+function claimQuizVerificationBadgesToSideDeck() {
+  const quizObj = capabilityQuizGlobalDatabase[activeSelectedQuizKey];
+  if(document.getElementById('analytics-score-label').textContent.includes("Passed")) {
+    const coreBadgesDeck = document.getElementById('profile-badges-deck');
+    const elementBadge = document.createElement('div');
+    elementBadge.className = 'earned-badge-item';
+    elementBadge.innerHTML = `<i class="fas fa-certificate"></i> ${quizObj.badge}`;
+    coreBadgesDeck.appendChild(elementBadge);
+
+    const expertiseDeck = document.getElementById('deck-skill-tags');
+    const verifiedTagNode = document.createElement('span');
+    verifiedTagNode.className = 'skill-tag verified';
+    verifiedTagNode.textContent = quizObj.name.split(" ")[0];
+    expertiseDeck.insertBefore(verifiedTagNode, expertiseDeck.firstChild);
+
+    const layoutGridSection = document.getElementById('verification-tests-grid-section');
+    const completedScoreBlock = document.createElement('div');
+    completedScoreBlock.className = 'skill-test-card';
+    completedScoreBlock.innerHTML = `
+      <div class="st-header"><div class="st-icon">${quizObj.icon}</div><div class="st-score">100</div></div>
+      <div class="st-name">${quizObj.name}</div>
+      <div class="st-meta">Verified Live Verification Run passed cleanly</div>
+      <div class="st-bar-wrap"><div class="st-bar" style="width: 100%;"></div></div>
+    `;
+    layoutGridSection.insertBefore(completedScoreBlock, layoutGridSection.firstChild);
+
+    userTotalRankScoreXP += quizObj.points;
+    document.getElementById('leaderboard-xp-display-value').textContent = `${userTotalRankScoreXP} XP`;
+    document.getElementById('trust-metric-score').textContent = "100";
+    if(userTotalRankScoreXP >= 1750) {
+      document.getElementById('rank-points-text').textContent = "#6 Global";
+    }
+  }
+  dismissAssessmentVerificationModal();
+}
+
+// ── HEATMAP ──
+(function populateOperationalHeatmapMatrix() {
+  const targetMapContainer = document.getElementById('heatmap');
+  const baselineActivityTiers = [0,1,0,2,3,4,1,0,3,2,1,0,4,2,3,1,0,0,2,1,3,4,0,1,2,0,3,4,1,2,0,1,2,3,4,1,0,2,3,0,1,4,2,3,1,0,1,2,4,3,2,1,0];
+  let cycleIndex = 0;
+  
+  for (let columnTrack = 0; columnTrack < 16; columnTrack++) {
+    const colColumnDOMNode = document.createElement('div');
+    colColumnDOMNode.className = 'hm-col';
+    for (let rows = 0; rows < 4; rows++) {
+      const cellSquareDOMNode = document.createElement('div');
+      const standardTier = baselineActivityTiers[cycleIndex++ % baselineActivityTiers.length];
+      cellSquareDOMNode.className = 'hm-cell' + (standardTier > 0 ? ` l${standardTier}` : '');
+      colColumnDOMNode.appendChild(cellSquareDOMNode);
+    }
+    targetMapContainer.appendChild(colColumnDOMNode);
+  }
+})();
+
+function toggleActiveTabContentPanel(btnElement, contextGroupName, targetPanelIdString) {
+  document.querySelectorAll(`[id^="${contextGroupName}-"]`).forEach(p => p.style.display = 'none');
+  document.getElementById(`${contextGroupName}-${targetPanelIdString}`).style.display = 'flex';
+  btnElement.closest('.tabs').querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+  btnElement.classList.add('active');
+}
+</script>
+</body>
+</html>

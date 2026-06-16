@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - TalentCircle</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- High-Performance Global Three.js Bundle Integration -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    body { font-family: 'Poppins', sans-serif; transition: background-color 0.5s ease, color 0.5s ease; }
+
+    /* Core Architectural Themes (Light & Dark Variants) */
+    .theme-dark { background-color: #0f0a1a; color: #ffffff; }
+    .theme-light { background-color: #f8f6fc; color: #1a0f2e; }
+
+    /* Dynamic Glassmorphism Layering Architectures */
+    .glass {
+      transition: background 0.5s, border-color 0.5s;
+    }
+    .theme-dark .glass {
+      background: rgba(20, 20, 40, 0.4);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .theme-light .glass {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(150, 0, 182, 0.1);
+    }
+
+    #globe-container { position: relative; width: 100%; height: 600px; border-radius: 24px; overflow: hidden; }
+    #globe-canvas { width: 100%; height: 100%; display: block; outline: none; cursor: grab; }
+    #globe-canvas:active { cursor: grabbing; }
+    @media (max-width: 768px) { #globe-container { height: 400px; } }
+
+    /* Interactive CSS Fallback Fallback Engines */
+    #globe-fallback {
+      position: absolute; inset: 0; display: none; flex-direction: column; 
+      align-items: center; justify-content: center; border-radius: 24px; z-index: 5;
+    }
+    .globe-fallback-active #globe-fallback { display: flex; }
+    .globe-fallback-active #globe-canvas { display: none; }
+
+    .fallback-sphere {
+      position: absolute; border-radius: 50%; background: rgba(150, 0, 182, 0.4);
+      animation: globeRotate 12s linear infinite, glowPulse 2s ease-in-out infinite alternate;
+    }
+    .fallback-sphere:nth-child(1) { width: 50%; height: 50%; }
+    @keyframes globeRotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes glowPulse { 0% { box-shadow: 0 0 30px rgba(150,0,182,0.3); } 100% { box-shadow: 0 0 60px rgba(150,0,182,0.7); } }
+
+    /* Performance-tuned Animation Sequences */
+    .section-reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .section-reveal.animate { opacity: 1; transform: translateY(0); }
+    
+    .stagger-list > * { opacity: 0; transform: translateY(20px); transition: all 0.6s ease-out; }
+    .stagger-list.animate > * { opacity: 1; transform: translateY(0); }
+    .stagger-list.animate > *:nth-child(1) { transition-delay: 0.1s; }
+    .stagger-list.animate > *:nth-child(2) { transition-delay: 0.2s; }
+    .stagger-list.animate > *:nth-child(3) { transition-delay: 0.3s; }
+    .stagger-list.animate > *:nth-child(4) { transition-delay: 0.4s; }
+
+    /* Timeline Component Mapping */
+    .timeline-line {
+      position: absolute; left: 50%; top: 0; bottom: 0; width: 2px;
+      background: linear-gradient(to bottom, rgba(150,0,182,0.1), #9600B6, rgba(150,0,182,0.1));
+      transform: translateX(-50%);
+    }
+    @media (max-width: 768px) { .timeline-line { left: 24px; } }
+    .timeline-dot {
+      position: absolute; left: 50%; width: 20px; height: 20px; background: #9600B6;
+      border-radius: 50%; transform: translateX(-50%); box-shadow: 0 0 20px #9600B6; z-index: 10;
+    }
+    @media (max-width: 768px) { .timeline-dot { left: 24px; } }
+    .chapter-card { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .chapter-card:hover { transform: translateY(-5px); }
+    .theme-dark .chapter-card:hover { box-shadow: 0 20px 40px rgba(150,0,182,0.25); }
+    .theme-light .chapter-card:hover { box-shadow: 0 20px 40px rgba(150,0,182,0.15); }
+    
+    .chapter-number {
+      font-size: 5rem; font-weight: 900; line-height: 1;
+      position: absolute; top: -10px; right: 20px; pointer-events: none;
+    }
+    .theme-dark .chapter-number { color: rgba(255, 255, 255, 0.05); }
+    .theme-light .chapter-number { color: rgba(150, 0, 182, 0.08); }
+  </style>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            purple: {
+              950: '#0f0a1a', 900: '#1a0f2e', 800: '#3a0050', 700: '#5a0072', 600: '#7a0094', 500: '#9600B6', 400: '#b300ff'
+            }
+          },
+          animation: {
+            'float': 'float 4s ease-in-out infinite',
+            'glow': 'glow 2s ease-in-out infinite alternate',
+            'pulse-glow': 'pulseGlow 2s ease-in-out infinite'
+          },
+          keyframes: {
+            float: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-12px)' } },
+            glow: { '0%': { textShadow: '0 0 15px rgba(150,0,182,0.6)' }, '100%': { textShadow: '0 0 30px rgba(150,0,182,0.9)' } },
+            pulseGlow: { '0%, 100%': { boxShadow: '0 0 15px rgba(150,0,182,0.4)' }, '50%': { boxShadow: '0 0 35px rgba(150,0,182,0.8)' } }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="theme-dark overflow-x-hidden">
+
+<!-- Dynamic Interactive Particles Context Layout -->
+<div class="fixed inset-0 pointer-events-none z-0">
+  <canvas id="bg-particles"></canvas>
+</div>
+
+<!-- Main Navigation Header -->
+<nav id="mainNav" class="fixed top-0 w-full z-50 px-4 md:px-8 lg:px-16 py-4 border-b text-inherit glass backdrop-blur-md transition-colors duration-300">
+  <div class="flex items-center justify-between max-w-7xl mx-auto">
+    <!-- Image Logo Replaced Instead of Typography text content style -->
+    <a href="#" class="block">
+      <img src="images/logo.png" class="w-28 md:w-36 lg:w-44 h-auto animate-float" alt="TalentCircle Logo">
+    </a>
+    
+    <ul id="desktopNav" class="hidden md:flex items-center space-x-8 text-base font-medium transition-colors">
+      <li><a href="#" class="hover:text-purple-500 transition-colors">Home</a></li>
+      <li><a href="#" class="text-purple-500 transition-colors">About</a></li>
+      <li><a href="#" class="hover:text-purple-500 transition-colors">Features</a></li>
+      <li><a href="#" class="hover:text-purple-500 transition-colors">Get Started</a></li>
+    </ul>
+
+    <!-- Quick-Action UI Theme Switcher Controller Engine -->
+    <div class="flex items-center space-x-4">
+      <button id="themeToggle" class="p-2.5 rounded-xl border border-purple-500/30 glass hover:scale-110 active:scale-95 transition-all text-xl" aria-label="Toggle Theme">
+        <!-- Default theme icon reflects mode shift behavior -->
+        🌓
+      </button>
+      <button id="mobileBtn" class="md:hidden text-2xl focus:outline-none">☰</button>
+    </div>
+  </div>
+</nav>
+
+<!-- Responsive Mobile Navigation Layer Drawer -->
+<div id="mobileNav" class="md:hidden fixed top-[4.5rem] left-0 right-0 bg-purple-950/95 backdrop-blur-xl z-40 p-8 text-center space-y-4 border-b border-purple-500/20 hidden">
+  <a href="#" class="block py-3 text-lg font-medium hover:text-purple-400">Home</a>
+  <a href="#" class="block py-3 text-lg font-medium text-purple-400">About</a>
+  <a href="#" class="block py-3 text-lg font-medium hover:text-purple-400">Features</a>
+  <a href="#" class="block py-3 text-lg font-medium hover:text-purple-400">Get Started</a>
+</div>
+
+<!-- ===================== HERO SECTION ===================== -->
+<section class="pt-44 pb-20 relative z-10">
+  <div class="max-w-5xl mx-auto px-6 text-center">
+  
+
+    <h1 class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6 transition-colors duration-300">
+      Welcome to <span class="text-purple-500 animate-glow">TalentCircle</span>
+    </h1>
+    <p class="text-xl md:text-2xl lg:text-3xl font-light opacity-90 mb-6 max-w-3xl mx-auto">
+      The Future of Learning, Powered by People &amp; AI
+    </p>
+    <p class="text-base md:text-lg opacity-70 max-w-2xl mx-auto mb-10 leading-relaxed">
+      TalentCircle is an intelligent skill-exchange ecosystem where people don't just learn — they connect, collaborate, and grow together. With AI-powered skill matching, real-time collaboration, and a token-based economy.
+    </p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+      <a href="#" class="w-full sm:w-auto text-center bg-purple-600 text-white px-8 py-3.5 rounded-xl font-bold hover:bg-purple-500 animate-pulse-glow transition-all duration-300 hover:scale-105">
+        Get Started
+      </a>
+      <a href="#" class="w-full sm:w-auto text-center glass border border-purple-500/20 px-8 py-3.5 rounded-xl font-bold hover:bg-purple-500/10 transition-all duration-300 hover:scale-105">
+        Explore Skills
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 3D GLOBE ENGINE CANVAS ===================== -->
+<section id="skills-globe" class="py-20 relative z-10 section-reveal">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl md:text-5xl font-bold text-purple-500 mb-4">Our Skills Universe</h2>
+      <p class="text-lg opacity-80 max-w-xl mx-auto">
+        Interactive 3D particle matrix ecosystem showcasing live network loops. Drag to spin canvas.
+      </p>
+    </div>
+
+    <!-- Main Rendering Module Frame Wrapper Layout Container -->
+    <div class="glass rounded-3xl p-4 md:p-6 border border-purple-500/20 shadow-2xl relative">
+      <div id="globe-container">
+        <canvas id="globe-canvas"></canvas>
+        <div id="globe-fallback" class="glass">
+          <div class="fallback-sphere"></div>
+          <p class="z-10 font-medium text-purple-400 animate-pulse text-lg">Initializing Quantum Systems Matrix...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Grid Cards Array Layout Block -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 text-center stagger-list">
+      <div class="glass p-5 rounded-xl border border-purple-500/10 hover:border-purple-500/40 transition-all duration-300">
+        <h3 class="text-xl font-bold text-purple-500">HTML/CSS/JS</h3>
+        <p class="text-xs opacity-60 mt-1">Frontend Mastery</p>
+      </div>
+      <div class="glass p-5 rounded-xl border border-purple-500/10 hover:border-purple-500/40 transition-all duration-300">
+        <h3 class="text-xl font-bold text-purple-500">React/Node</h3>
+        <p class="text-xs opacity-60 mt-1">Fullstack Infrastructure</p>
+      </div>
+      <div class="glass p-5 rounded-xl border border-purple-500/10 hover:border-purple-500/40 transition-all duration-300">
+        <h3 class="text-xl font-bold text-purple-500">Python/ML</h3>
+        <p class="text-xs opacity-60 mt-1">AI Engines &amp; Compute</p>
+      </div>
+      <div class="glass p-5 rounded-xl border border-purple-500/10 hover:border-purple-500/40 transition-all duration-300">
+        <h3 class="text-xl font-bold text-purple-500">Matching AI</h3>
+        <p class="text-xs opacity-60 mt-1">Core Topology Engine</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== HISTORY JOURNEY MODULE ===================== -->
+<section id="story" class="py-20 relative z-10 section-reveal">
+  <div class="max-w-5xl mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl md:text-5xl font-bold text-purple-500 mb-4">Our Journey</h2>
+      <p class="text-lg opacity-80 max-w-xl mx-auto">From a raw prototype stack to an organic, international infrastructure network loop.</p>
+    </div>
+
+    <div class="relative">
+      <div class="timeline-line"></div>
+
+      <!-- Chronological Stage Block Unit 01 -->
+      <div class="relative mb-12 md:mb-20 section-reveal">
+        <div class="timeline-dot" style="top: 24px;"></div>
+        <div class="md:flex items-center">
+          <div class="hidden md:block md:w-1/2 md:pr-12"></div>
+          <div class="md:w-1/2 md:pl-12">
+            <div class="chapter-card glass p-6 md:p-8 rounded-2xl border border-purple-500/10 relative">
+              <span class="chapter-number">01</span>
+              <h3 class="text-2xl font-bold text-purple-500 mb-2">The Spark</h3>
+              <p class="opacity-80 text-sm md:text-base leading-relaxed">
+                TalentCircle was born out of a clean vision: traditional learning frameworks are failing modern skill vectors. Real skill transformations do not arrive via isolated whitepapers, but through collaborative connection with live engineers.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chronological Stage Block Unit 02 -->
+      <div class="relative mb-12 md:mb-20 section-reveal">
+        <div class="timeline-dot" style="top: 24px;"></div>
+        <div class="md:flex items-center">
+          <div class="md:w-1/2 md:pr-12 md:text-right">
+            <div class="chapter-card glass p-6 md:p-8 rounded-2xl border border-purple-500/10 relative">
+              <span class="chapter-number">02</span>
+              <h3 class="text-2xl font-bold text-purple-500 mb-2">First Users</h3>
+              <p class="opacity-80 text-sm md:text-base leading-relaxed">
+                We quietly initialized our micro-exchange core engine. Within 30 days, verified software specialists, mathematical researchers, and UI architects swapped 4,000 computation engine hours driven strictly inside a local barter credit network infrastructure.
+              </p>
+            </div>
+          </div>
+          <div class="hidden md:block md:w-1/2 md:pl-12"></div>
+        </div>
+      </div>
+
+      <!-- Chronological Stage Block Unit 03 -->
+      <div class="relative mb-12 md:mb-20 section-reveal">
+        <div class="timeline-dot" style="top: 24px;"></div>
+        <div class="md:flex items-center">
+          <div class="hidden md:block md:w-1/2 md:pr-12"></div>
+          <div class="md:w-1/2 md:pl-12">
+            <div class="chapter-card glass p-6 md:p-8 rounded-2xl border border-purple-500/10 relative">
+              <span class="chapter-number">03</span>
+              <h3 class="text-2xl font-bold text-purple-500 mb-2">AI Awakening</h3>
+              <p class="opacity-80 text-sm md:text-base leading-relaxed">
+                We integrated an advanced vector-matching algorithmic cluster system. Users are no longer manual system searchers—neural matching topologies compute optimal skill pairings based on precise telemetry with a high success execution path.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chronological Stage Block Unit 04 (Added & Formatted) -->
+      <div class="relative mb-12 md:mb-20 section-reveal">
+        <div class="timeline-dot" style="top: 24px;"></div>
+        <div class="md:flex items-center">
+          <div class="md:w-1/2 md:pr-12 md:text-right">
+            <div class="chapter-card glass p-6 md:p-8 rounded-2xl border border-purple-500/10 relative">
+              <span class="chapter-number">04</span>
+              <h3 class="text-2xl font-bold text-purple-500 mb-2">Going Global</h3>
+              <p class="opacity-80 text-sm md:text-base leading-relaxed">
+                Today, TalentCircle spans 40+ countries with 50,000+ active learners. From San Francisco to Singapore, our community breaks down geographical and cultural barriers, proving that the desire to learn is a universal language.
+              </p>
+            </div>
+          </div>
+          <div class="hidden md:block md:w-1/2 md:pl-12"></div>
+        </div>
+      </div>
+
+      <!-- Chronological Stage Block Unit 05 (Added & Formatted) -->
+      <div class="relative section-reveal">
+        <div class="timeline-dot" style="top: 24px;"></div>
+        <div class="md:flex items-center">
+          <div class="hidden md:block md:w-1/2 md:pr-12"></div>
+          <div class="md:w-1/2 md:pl-12">
+            <div class="chapter-card glass p-6 md:p-8 rounded-2xl border border-purple-500/10 relative">
+              <span class="chapter-number">05</span>
+              <h3 class="text-2xl font-bold text-purple-500 mb-2">The Future</h3>
+              <p class="opacity-80 text-sm md:text-base leading-relaxed">
+                We're just getting started. With VR classrooms, AI mentors, and a decentralized skill economy on the horizon, TalentCircle is evolving into the ultimate platform for human potential. Join us and be part of the learning revolution.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER CORE MODULE SECTION ===================== -->
+<footer class="w-full py-10 mt-16 border-t border-purple-500/10 glass relative z-10 transition-colors">
+  <div class="max-w-6xl mx-auto px-6 text-center">
+    <div class="flex flex-wrap justify-center items-center gap-6 mb-4 text-sm opacity-80">
+      <a href="#" class="hover:text-purple-500 transition-colors">Home</a>
+      <a href="#" class="hover:text-purple-500 transition-colors">About</a>
+      <a href="#" class="hover:text-purple-500 transition-colors">Features</a>
+      <a href="#" class="hover:text-purple-500 transition-colors">Get Started</a>
+    </div>
+    <p class="opacity-40 text-xs">&copy; 2026 TalentCircle. All global computing system rights reserved.</p>
+  </div>
+</footer>
+
+<!-- ===================== APPLICATION OPERATIONAL SCRIPTS ===================== -->
+<script>
+  // Global Operational State Storage Registry Core
+  const STATE = {
+    theme: 'dark',
+    colors: {
+      dark: { primary: 0x9600b6, particle: 0xb300ff, background: 0x0f0a1a, line: 0x5a0072 },
+      light: { primary: 0x7a0094, particle: 0x5a0072, background: 0xf8f6fc, line: 0xb300ff }
+    }
+  };
+
+  // UI Navigation Controller Event Handler
+  const mobileBtn = document.getElementById('mobileBtn');
+  const mobileNav = document.getElementById('mobileNav');
+  if (mobileBtn && mobileNav) {
+    mobileBtn.addEventListener('click', () => mobileNav.classList.toggle('hidden'));
+  }
+
+  // Optimized Layout Viewport Intersection Observer Engine for Scroll Reveals
+  const revealElements = document.querySelectorAll('.section-reveal, .stagger-list');
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animate');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  revealElements.forEach(el => revealObserver.observe(el));
+
+  // High-Performance Ambient Background Particle Engine (HTML5 Canvas 2D Core Context)
+  (function initBgEngine() {
+    const canvas = document.getElementById('bg-particles');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    for (let i = 0; i < 45; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2.5 + 0.5,
+        vX: (Math.random() - 0.5) * 0.4,
+        vY: (Math.random() - 0.5) * 0.4,
+        a: Math.random() * 0.4 + 0.1
+      });
+    }
+
+    function renderLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const activeColor = STATE.theme === 'dark' ? '150, 0, 182' : '122, 0, 148';
+      
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${activeColor}, ${p.a})`;
+        ctx.fill();
+        
+        p.x += p.vX;
+        p.y += p.vY;
+        
+        if (p.x < 0 || p.x > canvas.width) p.vX *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vY *= -1;
+      });
+      requestAnimationFrame(renderLoop);
+    }
+    renderLoop();
+  })();
+
+  // Standalone Production-Ready Interactive WebGL 3D Particle Constellation Globe Framework
+  (function initWebGLGlobe() {
+    const container = document.getElementById('globe-container');
+    const canvas = document.getElementById('globe-canvas');
+    if (!canvas || !container) return;
+
+    // Safety Interceptor Handling Module Routine
+    if (!window.THREE) {
+      container.classList.add('globe-fallback-active');
+      return;
+    }
+
+    // Pipeline Instantiations Architectural Setup
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.z = 250;
+
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Structural Geometry Computations Assembly Block
+    const globeRadius = 65;
+    const particleCount = 750;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount; i++) {
+      const phi = Math.acos(Math.random() * 2 - 1);
+      const theta = Math.random() * Math.PI * 2;
+
+      positions[i * 3] = globeRadius * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = globeRadius * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = globeRadius * Math.cos(phi);
+    }
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    // Dynamic High-Fidelity Particle Shader Texturing Generation Node Module
+    function createCircleTexture(colorHex) {
+      const matCanvas = document.createElement('canvas');
+      matCanvas.width = 16; matCanvas.height = 16;
+      const matCtx = matCanvas.getContext('2d');
+      const grad = matCtx.createRadialGradient(8, 8, 0, 8, 8, 8);
+      grad.addColorStop(0, '#ffffff');
+      grad.addColorStop(0.3, colorHex);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      matCtx.fillStyle = grad; matCtx.fillRect(0, 0, 16, 16);
+      return new THREE.CanvasTexture(matCanvas);
+    }
+
+    const currentColors = STATE.colors[STATE.theme];
+    const pointMaterial = new THREE.PointsMaterial({
+      size: 2.8,
+      map: createCircleTexture('#b300ff'),
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+
+    const particleSystem = new THREE.Points(geometry, pointMaterial);
+    scene.add(particleSystem);
+
+    // Dynamic Digital Matrix Constellation Wireframe Layer Generation Vector
+    const wireMeshMaterial = new THREE.MeshBasicMaterial({
+      color: currentColors.line,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.08
+    });
+    const sphereGeo = new THREE.SphereGeometry(globeRadius - 0.5, 22, 22);
+    const globeWireMesh = new THREE.Mesh(sphereGeo, wireMeshMaterial);
+    scene.add(globeWireMesh);
+
+    // Interactive Drag Mechanics Interpolation Layer
+    let isDragging = false;
+    let targetRotationX = 0, targetRotationY = 0;
+    let mouseX = 0, mouseY = 0;
+
+    canvas.addEventListener('mousedown', (e) => { isDragging = true; mouseX = e.clientX; mouseY = e.clientY; });
+    window.addEventListener('mouseup', () => isDragging = false);
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const deltaX = e.clientX - mouseX;
+      const deltaY = e.clientY - mouseY;
+      targetRotationY += deltaX * 0.005;
+      targetRotationX += deltaY * 0.005;
+      mouseX = e.clientX; mouseY = e.clientY;
+    });
+
+    // Mobile Contact Device Touch Mechanics Core Support Engine Mapping
+    canvas.addEventListener('touchstart', (e) => { if(e.touches.length === 1) { isDragging = true; mouseX = e.touches[0].clientX; mouseY = e.touches[0].clientY; } });
+    window.addEventListener('touchend', () => isDragging = false);
+    window.addEventListener('touchmove', (e) => {
+      if (!isDragging || e.touches.length !== 1) return;
+      const deltaX = e.touches[0].clientX - mouseX;
+      const deltaY = e.touches[0].clientY - mouseY;
+      targetRotationY += deltaX * 0.008;
+      targetRotationX += deltaY * 0.008;
+      mouseX = e.touches[0].clientX; mouseY = e.touches[0].clientY;
+    });
+
+    // Real-Time High Frequency Core System Render Engine Loop Loop
+    function render() {
+      requestAnimationFrame(render);
+
+      if (!isDragging) {
+        targetRotationY += 0.0015; // Passive Drift Speed Scalar
+      }
+
+      // Smooth System Damping Calculations Archetype Interpolation
+      particleSystem.rotation.y += (targetRotationY - particleSystem.rotation.y) * 0.1;
+      particleSystem.rotation.x += (targetRotationX - particleSystem.rotation.x) * 0.1;
+      globeWireMesh.rotation.y = particleSystem.rotation.y;
+      globeWireMesh.rotation.x = particleSystem.rotation.x;
+
+      renderer.render(scene, camera);
+    }
+    render();
+
+    // Responsive Canvas Resize Matrix Recalculation Core Routine Handler Loop
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    // Global Registry Core Hook Integration for Dynamic WebGL Pipeline Color Shifts
+    window.updateGlobeTheme = function(mode) {
+      const themeColors = STATE.colors[mode];
+      wireMeshMaterial.color.setHex(themeColors.line);
+      pointMaterial.map = createCircleTexture(mode === 'dark' ? '#b300ff' : '#5a0072');
+      pointMaterial.needsUpdate = true;
+    };
+  })();
+
+  // Core Orchestration Architecture Switch Engine Controller
+  const body = document.body;
+  const themeToggleBtn = document.getElementById('themeToggle');
+
+  themeToggleBtn.addEventListener('click', () => {
+    if (STATE.theme === 'dark') {
+      STATE.theme = 'light';
+      body.classList.remove('theme-dark');
+      body.classList.add('theme-light');
+      if (window.updateGlobeTheme) window.updateGlobeTheme('light');
+    } else {
+      STATE.theme = 'dark';
+      body.classList.remove('theme-light');
+      body.classList.add('theme-dark');
+      if (window.updateGlobeTheme) window.updateGlobeTheme('dark');
+    }
+  });
+</script>
+</body>
+</html>

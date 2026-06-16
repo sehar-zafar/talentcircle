@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ProDash — Requests</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['DM Sans','sans-serif'],mono:['DM Mono','monospace']}}}}</script>
+ <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+<style>
+*{font-family:'DM Sans',sans-serif;box-sizing:border-box;margin:0;padding:0;}
+
+/* ─────── THEME TOKENS ─────── */
+:root{
+  /* Dark Theme */
+  --bg:#080612;
+  --surf:#0e0a1c;
+  --card:#13102a;
+  --card2:#1a1535;
+  --card3:#221d42;
+  --bd:rgba(130,80,255,.2);
+  --bd2:rgba(255,255,255,.06);
+  --bd3:rgba(255,255,255,.1);
+  --t1:#f2eeff;
+  --t2:#8b82a8;
+  --t3:#3d3660;
+  --acc:#8250ff;
+  --acc2:#a87cff;
+  --acc3:#c5a8ff;
+  --adim:rgba(130,80,255,.12);
+  --green:#2ecc85;
+  --blue:#5b9ef5;
+  --amber:#f5b942;
+  --red:#f06c6c;
+  --cyan:#22d3ee;
+  --sb:228px;
+  --shadow-acc:0 8px 32px rgba(130,80,255,.25);
+  --shadow-card:0 4px 24px rgba(0,0,0,.4);
+}
+
+html.light{
+  --bg:#f4f1ff;
+  --surf:#ffffff;
+  --card:#ffffff;
+  --card2:#f7f5ff;
+  --card3:#ede9ff;
+  --bd:rgba(130,80,255,.22);
+  --bd2:rgba(130,80,255,.08);
+  --bd3:rgba(130,80,255,.15);
+  --t1:#160e2e;
+  --t2:#6b5f8c;
+  --t3:#b0a8d0;
+  --acc:#7b3fff;
+  --acc2:#9b5fff;
+  --acc3:#7b3fff;
+  --adim:rgba(130,80,255,.08);
+  --green:#16a05e;
+  --blue:#2563eb;
+  --amber:#d97706;
+  --red:#dc3545;
+  --shadow-acc:0 8px 32px rgba(130,80,255,.2);
+  --shadow-card:0 4px 24px rgba(130,80,255,.06);
+}
+
+body{background:var(--bg);color:var(--t1);min-height:100vh;transition:background .35s,color .35s;}
+
+/* ─── NOISE TEXTURE OVERLAY ─── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:.4;
+}
+
+/* ─── AMBIENT GLOW ─── */
+.ambient{
+  position:fixed;pointer-events:none;z-index:0;
+  border-radius:50%;filter:blur(80px);opacity:.12;
+  animation:amb 12s ease-in-out infinite alternate;
+}
+.amb1{width:600px;height:600px;background:var(--acc);top:-200px;left:-100px;}
+.amb2{width:400px;height:400px;background:#ff6b9d;bottom:-100px;right:-50px;animation-delay:-4s;}
+.amb3{width:300px;height:300px;background:#22d3ee;top:40%;right:20%;animation-delay:-8s;}
+html.light .ambient{opacity:.06;}
+
+@keyframes amb{from{transform:translate(0,0) scale(1);}to{transform:translate(40px,30px) scale(1.15);}}
+
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--acc);border-radius:10px;}
+
+/* ─────── SIDEBAR ─────── */
+#sb{
+  position:fixed;top:0;left:0;height:100%;width:var(--sb);
+  background:var(--surf);
+  border-right:1px solid var(--bd2);
+  z-index:40;display:flex;flex-direction:column;
+  padding:20px 12px;overflow-y:auto;
+  transition:transform .35s cubic-bezier(.4,0,.2,1),background .35s,border-color .35s;
+  backdrop-filter:blur(20px);
+}
+html.dark #sb{background:rgba(14,10,28,.85);}
+html.light #sb{background:rgba(255,255,255,.92);}
+
+#tb{
+  position:fixed;top:0;left:var(--sb);right:0;height:58px;
+  background:var(--surf);border-bottom:1px solid var(--bd2);
+  z-index:30;display:flex;align-items:center;padding:0 22px;gap:12px;
+  transition:left .35s cubic-bezier(.4,0,.2,1),background .35s;
+  backdrop-filter:blur(20px);
+}
+html.dark #tb{background:rgba(14,10,28,.8);}
+html.light #tb{background:rgba(255,255,255,.88);}
+
+#mn{margin-left:var(--sb);padding-top:58px;transition:margin-left .35s cubic-bezier(.4,0,.2,1);position:relative;z-index:1;}
+
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:11px;
+  font-size:.8rem;font-weight:500;cursor:pointer;
+  transition:all .22s;color:var(--t2);text-decoration:none;
+  position:relative;overflow:hidden;
+}
+.nav-item::before{
+  content:'';position:absolute;inset:0;
+  background:rgba(130,80,255,.1);
+  transform:translateX(-100%);
+  transition:transform .25s ease;
+  border-radius:11px;
+}
+.nav-item:hover{color:var(--t1);}
+.nav-item:hover::before{transform:translateX(0);}
+.nav-item.on{
+  color:#fff;
+  background:linear-gradient(135deg,#8250ff,#a87cff);
+  box-shadow:0 4px 18px rgba(130,80,255,.4);
+}
+html.light .nav-item.on{color:#fff;}
+.nav-item.on::before{display:none;}
+
+.nbadge{
+  margin-left:auto;
+  background:rgba(130,80,255,.2);color:var(--acc2);
+  padding:1px 7px;border-radius:20px;
+  font-size:.6rem;font-weight:700;
+  transition:all .2s;
+}
+.nav-item.on .nbadge{background:rgba(255,255,255,.25);color:#fff;}
+.nav-group{
+  font-size:.58rem;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--t3);
+  margin:16px 0 6px 4px;
+}
+.odot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 0 3px rgba(46,204,133,.2);
+  flex-shrink:0;
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(46,204,133,.2);}50%{box-shadow:0 0 0 6px rgba(46,204,133,.1);}}
+
+/* ─── Avatar gradients ─── */
+.av-a{background:linear-gradient(135deg,#8250ff,#c5a8ff);}
+.av-b{background:linear-gradient(135deg,#1d4ed8,#5b9ef5);}
+.av-c{background:linear-gradient(135deg,#059669,#2ecc85);}
+.av-d{background:linear-gradient(135deg,#b45309,#f5b942);}
+.av-e{background:linear-gradient(135deg,#0891b2,#22d3ee);}
+.av-f{background:linear-gradient(135deg,#dc2626,#f06c6c);}
+
+.tg{background:linear-gradient(135deg,#c5a8ff,#8250ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+html.light .tg{background:linear-gradient(135deg,#7b3fff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* ─────── KPI ─────── */
+.kpi{
+  background:var(--card);border:1px solid var(--bd2);
+  border-radius:18px;padding:18px;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;
+}
+.kpi::after{
+  content:'';position:absolute;top:0;right:0;
+  width:80px;height:80px;
+  border-radius:50%;
+  opacity:0;
+  transition:opacity .3s,transform .4s;
+  transform:translate(20px,-20px);
+}
+.kpi:hover{
+  border-color:var(--bd);
+  transform:translateY(-3px);
+  box-shadow:var(--shadow-acc);
+}
+.kpi:hover::after{opacity:.06;transform:translate(0,0);}
+
+/* ─────── Progress ─────── */
+.pbar{height:5px;border-radius:20px;background:var(--card2);overflow:hidden;}
+.pf{height:100%;border-radius:20px;transition:width .8s cubic-bezier(.4,0,.2,1);}
+.pf-acc{background:linear-gradient(90deg,#8250ff,#c5a8ff);}
+.pf-g{background:linear-gradient(90deg,#059669,#2ecc85);}
+.pf-b{background:linear-gradient(90deg,#1d4ed8,#5b9ef5);}
+.pf-a{background:linear-gradient(90deg,#b45309,#f5b942);}
+.pf-r{background:linear-gradient(90deg,#dc2626,#f06c6c);}
+
+/* ─────── Chips ─────── */
+.chip{
+  padding:2px 9px;border-radius:20px;
+  font-size:.65rem;font-weight:700;letter-spacing:.02em;
+  white-space:nowrap;display:inline-flex;align-items:center;gap:4px;
+}
+.c-acc{background:rgba(130,80,255,.14);color:var(--acc2);border:1px solid rgba(130,80,255,.25);}
+.c-green{background:rgba(46,204,133,.1);color:var(--green);border:1px solid rgba(46,204,133,.2);}
+.c-red{background:rgba(240,108,108,.1);color:var(--red);border:1px solid rgba(240,108,108,.18);}
+.c-blue{background:rgba(91,158,245,.1);color:var(--blue);border:1px solid rgba(91,158,245,.18);}
+.c-amber{background:rgba(245,185,66,.1);color:var(--amber);border:1px solid rgba(245,185,66,.18);}
+.c-gray{background:rgba(139,130,168,.1);color:var(--t2);border:1px solid rgba(139,130,168,.15);}
+
+html.light .c-acc{background:rgba(130,80,255,.08);color:#7b3fff;}
+html.light .c-green{background:rgba(22,160,94,.08);color:#16a05e;}
+html.light .c-red{background:rgba(220,53,69,.08);color:#dc3545;}
+html.light .c-amber{background:rgba(217,119,6,.08);color:#d97706;}
+
+/* ─────── Buttons ─────── */
+.btn{
+  padding:8px 18px;border-radius:11px;
+  font-size:.78rem;font-weight:600;cursor:pointer;
+  border:none;transition:all .22s;
+  font-family:'DM Sans',sans-serif;
+  position:relative;overflow:hidden;
+}
+.btn::after{
+  content:'';position:absolute;inset:0;
+  background:rgba(255,255,255,.12);
+  opacity:0;transition:opacity .2s;
+  border-radius:inherit;
+}
+.btn:hover::after{opacity:1;}
+.btn-acc{
+  background:linear-gradient(135deg,#8250ff,#a87cff);
+  color:#fff;
+  box-shadow:0 4px 16px rgba(130,80,255,.35);
+}
+.btn-acc:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(130,80,255,.5);}
+.btn-acc:active{transform:translateY(0) scale(.98);}
+.btn-ghost{
+  background:var(--card2);
+  border:1px solid var(--bd2);
+  color:var(--t2);
+}
+.btn-ghost:hover{border-color:var(--bd);color:var(--acc2);}
+.btn-danger{
+  background:rgba(240,108,108,.1);
+  border:1px solid rgba(240,108,108,.2);
+  color:var(--red);
+}
+.btn-danger:hover{background:rgba(240,108,108,.2);}
+.btn-sm{padding:5px 12px;font-size:.7rem;}
+.btn-xs{padding:3px 9px;font-size:.65rem;}
+
+/* ─────── Filter tabs ─────── */
+.ftab{
+  padding:7px 16px;border-radius:10px;
+  font-size:.76rem;font-weight:600;cursor:pointer;
+  border:1px solid var(--bd2);background:var(--card2);
+  color:var(--t2);transition:all .22s;white-space:nowrap;
+}
+.ftab.on{
+  background:linear-gradient(135deg,#8250ff,#a87cff);
+  color:#fff;border-color:transparent;
+  box-shadow:0 4px 14px rgba(130,80,255,.35);
+}
+.ftab:hover:not(.on){border-color:var(--bd);color:var(--acc2);}
+
+/* ─────── Request card ─────── */
+.req-card{
+  background:var(--card);border:1px solid var(--bd2);
+  border-radius:18px;padding:20px;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  cursor:pointer;position:relative;overflow:hidden;
+}
+.req-card::before{
+  content:'';position:absolute;
+  top:0;left:0;width:3px;height:100%;
+  border-radius:3px 0 0 3px;
+  transition:width .25s ease;
+}
+.req-card:hover::before{width:4px;}
+.req-card:hover{
+  border-color:var(--bd);
+  box-shadow:var(--shadow-card);
+  transform:translateY(-2px);
+}
+.req-card::after{
+  content:'';position:absolute;
+  inset:0;border-radius:18px;
+  background:radial-gradient(ellipse at top left,rgba(130,80,255,.06),transparent 60%);
+  opacity:0;transition:opacity .3s;
+  pointer-events:none;
+}
+.req-card:hover::after{opacity:1;}
+.req-card.status-pending::before{background:linear-gradient(180deg,#f5b942,#f59e0b);}
+.req-card.status-active::before{background:linear-gradient(180deg,#8250ff,#c5a8ff);}
+.req-card.status-completed::before{background:linear-gradient(180deg,#2ecc85,#059669);}
+.req-card.status-cancelled::before{background:linear-gradient(180deg,#f06c6c,#dc2626);}
+
+/* ─────── Card ─────── */
+.card{
+  background:var(--card);border:1px solid var(--bd2);
+  border-radius:18px;
+  transition:background .35s,border-color .35s;
+}
+.card:hover{border-color:var(--bd);}
+.card2{background:var(--card2);border:1px solid var(--bd2);border-radius:12px;}
+
+/* ─────── Table ─────── */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{
+  font-size:.62rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--t3);padding:10px 14px;text-align:left;
+  border-bottom:1px solid var(--bd2);white-space:nowrap;
+}
+.tbl td{padding:11px 14px;font-size:.8rem;color:var(--t1);border-bottom:1px solid var(--bd2);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tbody tr{transition:background .15s;}
+.tbl tbody tr:hover{background:var(--card2);}
+
+/* ─────── Inputs ─────── */
+.inp{
+  background:var(--card2);border:1px solid var(--bd2);
+  border-radius:11px;padding:9px 12px;
+  font-size:.8rem;color:var(--t1);outline:none;width:100%;
+  font-family:'DM Sans',sans-serif;
+  transition:border-color .2s,box-shadow .2s;
+}
+.inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(130,80,255,.12);}
+.inp::placeholder{color:var(--t3);}
+.sel{
+  background:var(--card2);border:1px solid var(--bd2);
+  border-radius:11px;padding:8px 12px;
+  font-size:.76rem;color:var(--t1);outline:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;transition:border-color .2s;
+}
+.sel:focus{border-color:var(--acc);}
+
+/* ─────── Detail Panel ─────── */
+#detailPanel{
+  position:fixed;top:0;right:-480px;width:480px;height:100%;
+  background:var(--surf);border-left:1px solid var(--bd2);
+  z-index:50;transition:right .4s cubic-bezier(.4,0,.2,1);
+  overflow-y:auto;padding:26px;
+  backdrop-filter:blur(20px);
+}
+html.dark #detailPanel{background:rgba(14,10,28,.95);}
+html.light #detailPanel{background:rgba(255,255,255,.96);}
+#detailPanel.open{right:0;}
+#detailOverlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.55);
+  z-index:45;display:none;
+  backdrop-filter:blur(4px);
+  transition:opacity .3s;
+}
+#detailOverlay.open{display:block;animation:fadeIn .25s ease;}
+
+/* ─────── View toggle ─────── */
+.view-btn{
+  width:34px;height:34px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border:1px solid var(--bd2);
+  background:var(--card2);color:var(--t2);transition:all .2s;
+}
+.view-btn.on{background:var(--adim);border-color:var(--bd);color:var(--acc2);}
+.view-btn:hover:not(.on){border-color:var(--bd);}
+
+/* ─────── Priority ─────── */
+.pri-high{color:var(--red);}
+.pri-medium{color:var(--amber);}
+.pri-low{color:var(--green);}
+
+/* ─────── Theme toggle ─────── */
+#themeBtn{
+  width:36px;height:36px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--card);border:1px solid var(--bd2);
+  color:var(--t2);cursor:pointer;
+  transition:all .25s;position:relative;overflow:hidden;
+}
+#themeBtn:hover{border-color:var(--bd);color:var(--acc2);}
+.theme-icon{transition:all .3s cubic-bezier(.4,0,.2,1);position:absolute;}
+.theme-icon.hidden{opacity:0;transform:rotate(90deg) scale(.5);}
+.theme-icon.visible{opacity:1;transform:rotate(0) scale(1);}
+
+/* ─────── ANIMATIONS ─────── */
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+@keyframes slideRight{from{opacity:0;transform:translateX(-12px);}to{opacity:1;transform:translateX(0);}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);}}
+@keyframes countUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@keyframes shimmer{0%{background-position:-400px 0;}100%{background-position:400px 0;}}
+@keyframes borderGlow{0%,100%{box-shadow:0 0 0 0 rgba(130,80,255,0);}50%{box-shadow:0 0 0 3px rgba(130,80,255,.2);}}
+
+.anim-up{animation:slideUp .45s cubic-bezier(.4,0,.2,1) both;}
+.anim-scale{animation:scaleIn .35s cubic-bezier(.4,0,.2,1) both;}
+.d1{animation-delay:.04s;}.d2{animation-delay:.08s;}.d3{animation-delay:.12s;}
+.d4{animation-delay:.16s;}.d5{animation-delay:.2s;}.d6{animation-delay:.24s;}
+.d7{animation-delay:.28s;}.d8{animation-delay:.32s;}.d9{animation-delay:.36s;}
+
+/* Number counter animation */
+.kpi-num{
+  transition:all .4s ease;
+  display:block;
+}
+
+/* Skeleton loader */
+.skel{
+  background:linear-gradient(90deg,var(--card2) 25%,var(--card3) 50%,var(--card2) 75%);
+  background-size:400px 100%;
+  animation:shimmer 1.5s infinite;
+  border-radius:8px;
+}
+
+/* ─────── Logo ─────── */
+.logo-mark{
+  width:34px;height:34px;border-radius:12px;overflow:hidden;flex-shrink:0;
+  background:linear-gradient(135deg,#8250ff,#c5a8ff);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(130,80,255,.4);
+  transition:box-shadow .3s;
+}
+.logo-mark:hover{box-shadow:0 6px 24px rgba(130,80,255,.6);}
+
+/* ─────── RESPONSIVE ─────── */
+@media(max-width:768px){
+  #sb{transform:translateX(-228px);}
+  #tb{left:0;}
+  #mn{margin-left:0;padding-top:52px;}
+  #detailPanel{width:100%;right:-100%;}
+  .hide-mob{display:none!important;}
+  .kpi-grid{grid-template-columns:1fr 1fr!important;}
+  .main-row{grid-template-columns:1fr!important;}
+}
+@media(max-width:480px){.kpi-grid{grid-template-columns:1fr!important;}}
+
+#mobBar{display:none;position:fixed;top:0;left:0;right:0;height:52px;z-index:30;align-items:center;padding:0 14px;gap:10px;background:var(--surf);border-bottom:1px solid var(--bd2);}
+@media(max-width:768px){#mobBar{display:flex!important;}#tb{display:none;}}
+#mobOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:38;backdrop-filter:blur(3px);}
+
+/* ─────── LIGHT SPECIFIC OVERRIDES ─────── */
+html.light .req-card{box-shadow:0 2px 12px rgba(130,80,255,.05);}
+html.light .req-card:hover{box-shadow:0 8px 32px rgba(130,80,255,.12);}
+html.light .kpi{box-shadow:0 2px 12px rgba(130,80,255,.05);}
+html.light .kpi:hover{box-shadow:0 8px 32px rgba(130,80,255,.15);}
+html.light .btn-acc{box-shadow:0 4px 16px rgba(130,80,255,.25);}
+html.light .btn-acc:hover{box-shadow:0 8px 28px rgba(130,80,255,.4);}
+html.light body::before{opacity:.2;}
+</style>
+</head>
+<body>
+<!-- Ambient glows -->
+<div class="ambient amb1"></div>
+<div class="ambient amb2"></div>
+<div class="ambient amb3"></div>
+
+<div id="mobOverlay" onclick="closeMob()"></div>
+<div id="detailOverlay" onclick="closeDetail()"></div>
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<aside id="sb">
+  <div style="display:flex;align-items:center;gap:10px;padding:2px 4px;margin-bottom:24px">
+    <div class="logo-mark">
+      <span style="color:#fff;font-weight:800;font-size:.9rem;font-family:'DM Sans'">P</span>
+    </div>
+    <div>
+      <div style="font-weight:800;font-size:.92rem;color:var(--t1);letter-spacing:-.01em">ProDash</div>
+      <div style="font-size:.58rem;color:var(--t3);letter-spacing:.04em">COACHING PLATFORM</div>
+    </div>
+  </div>
+
+  <div class="nav-group">Main</div>
+  <nav style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px">
+    <a href="#" class="nav-item">
+      <svg class="w-4 h-4" style="flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Dashboard
+    </a>
+    <a href="#" class="nav-item on">
+      <svg class="w-4 h-4" style="flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+      Requests
+      <span class="nbadge">12</span>
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="w-4 h-4" style="flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Calendar
+      <span class="nbadge">3</span>
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="w-4 h-4" style="flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Messages
+      <span class="nbadge">5</span>
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="w-4 h-4" style="flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Notifications
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="w-4 h-4" style="flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+      Badges
+    </a>
+  </nav>
+  <div class="nav-group">Account</div>
+  <nav style="display:flex;flex-direction:column;gap:2px">
+    <a href="#" class="nav-item">
+      <svg class="w-4 h-4" style="flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 1.64 13.65M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Admin Panel
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="w-4 h-4" style="flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Tokens
+    </a>
+  </nav>
+
+  <div style="margin-top:auto;padding-top:16px">
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:13px;background:var(--card2);border:1px solid var(--bd2);transition:all .2s;cursor:pointer;" onmouseenter="this.style.borderColor='var(--bd)'" onmouseleave="this.style.borderColor='var(--bd2)'">
+      <div class="av-a" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.72rem;flex-shrink:0">S</div>
+      <div style="min-width:0;flex:1">
+        <div style="font-size:.76rem;font-weight:600;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Sarah Mitchell</div>
+        <div style="font-size:.6rem;color:var(--t3)">Senior Coach</div>
+      </div>
+      <div class="odot"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══════════ TOPBAR ══════════ -->
+<header id="tb">
+  <button 
+  onclick="toggleSb()" 
+  aria-label="Toggle sidebar"
+  style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--bd2);color:var(--t2);cursor:pointer;flex-shrink:0;transition:all .2s"
+>
+  <svg style="width:16px;height:16px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <line x1="3" y1="12" x2="21" y2="12"/>
+    <line x1="3" y1="6" x2="21" y2="6"/>
+    <line x1="3" y1="18" x2="21" y2="18"/>
+  </svg>
+</button>
+  <div>
+    <div style="font-size:.62rem;color:var(--t3)">Home / <span style="color:var(--acc2)">Requests</span></div>
+    <div style="font-size:.84rem;font-weight:700;color:var(--t1);letter-spacing:-.01em">Coaching Requests</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bd2);border-radius:12px;padding:7px 13px;flex:1;max-width:260px;margin-left:16px;transition:border-color .2s" onfocus-within="this.style.borderColor='var(--acc)'">
+    <svg class="w-3.5 h-3.5" style="color:var(--t3);flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input oninput="searchReqs(this.value)" placeholder="Search requests…" style="background:transparent;border:none;outline:none;font-size:.76rem;color:var(--t1);width:100%;font-family:'DM Sans',sans-serif"/>
+  </div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+    <button id="themeBtn" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle theme">
+  <svg id="moonIcon" class="w-4 h-4 theme-icon visible" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+
+  <svg id="sunIcon" class="w-4 h-4 theme-icon hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="5"/>
+    <line x1="12" y1="1" x2="12" y2="3"/>
+    <line x1="12" y1="21" x2="12" y2="23"/>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+    <line x1="1" y1="12" x2="3" y2="12"/>
+    <line x1="21" y1="12" x2="23" y2="12"/>
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+  </svg>
+</button>
+    <button onclick="showNewReqToast()" class="btn btn-acc" style="display:flex;align-items:center;gap:6px;font-size:.78rem">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Request
+    </button>
+  </div>
+</header>
+
+<!-- Mobile bar -->
+<div id="mobBar">
+  <button onclick="openMob()" style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--card2);border:1px solid var(--bd2);color:var(--t2);cursor:pointer;flex-shrink:0">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="logo-mark" style="width:26px;height:26px;border-radius:8px"><span style="color:#fff;font-weight:800;font-size:.65rem">P</span></div>
+    <span style="font-weight:700;font-size:.9rem;color:var(--t1)">Requests</span>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:6px">
+    <button onclick="toggleTheme()" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--card2);border:1px solid var(--bd2);color:var(--t2);cursor:pointer">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <button onclick="showNewReqToast()" style="display:flex;align-items:center;gap:4px;padding:5px 12px;border-radius:9px;background:linear-gradient(135deg,#8250ff,#a87cff);color:#fff;font-size:.72rem;font-weight:600;border:none;cursor:pointer">+ New</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="position:fixed;bottom:24px;right:24px;z-index:100;display:none;animation:slideUp .3s ease;"></div>
+
+<!-- ══════════ MAIN ══════════ -->
+<main id="mn" style="background:var(--bg);min-height:100vh;transition:background .35s">
+<div style="padding:22px;max-width:1300px;margin:0 auto">
+
+  <!-- KPI Row -->
+  <div class="kpi-grid anim-up d1" style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px">
+    <div class="kpi" onclick="setFilterById('all')" style="cursor:pointer">
+      <div style="display:flex;align-items:start;justify-content:space-between;margin-bottom:14px">
+        <div style="width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(130,80,255,.14);font-size:1.1rem;transition:transform .3s" onmouseenter="this.style.transform='scale(1.1) rotate(-5deg)'" onmouseleave="this.style.transform=''">📋</div>
+        <span class="chip c-acc">Total</span>
+      </div>
+      <div class="tg kpi-num" style="font-weight:800;font-size:2rem;line-height:1;margin-bottom:4px" id="kpi-total">47</div>
+      <div style="font-size:.72rem;color:var(--t2)">All Requests</div>
+      <div class="pbar" style="margin-top:12px"><div class="pf pf-acc" style="width:0%" data-w="100"></div></div>
+    </div>
+    <div class="kpi" onclick="setFilterById('pending')" style="cursor:pointer">
+      <div style="display:flex;align-items:start;justify-content:space-between;margin-bottom:14px">
+        <div style="width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(245,185,66,.1);font-size:1.1rem;transition:transform .3s" onmouseenter="this.style.transform='scale(1.1) rotate(-5deg)'" onmouseleave="this.style.transform=''">⏳</div>
+        <span class="chip c-amber">Pending</span>
+      </div>
+      <div style="font-weight:800;font-size:2rem;line-height:1;margin-bottom:4px;color:var(--amber)" id="kpi-pending">12</div>
+      <div style="font-size:.72rem;color:var(--t2)">Awaiting Review</div>
+      <div class="pbar" style="margin-top:12px"><div class="pf pf-a" style="width:0%" data-w="25"></div></div>
+    </div>
+    <div class="kpi" onclick="setFilterById('active')" style="cursor:pointer">
+      <div style="display:flex;align-items:start;justify-content:space-between;margin-bottom:14px">
+        <div style="width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(130,80,255,.14);font-size:1.1rem;transition:transform .3s" onmouseenter="this.style.transform='scale(1.1) rotate(-5deg)'" onmouseleave="this.style.transform=''">🔄</div>
+        <span class="chip c-acc">Active</span>
+      </div>
+      <div class="tg kpi-num" style="font-weight:800;font-size:2rem;line-height:1;margin-bottom:4px" id="kpi-active">18</div>
+      <div style="font-size:.72rem;color:var(--t2)">In Progress</div>
+      <div class="pbar" style="margin-top:12px"><div class="pf pf-acc" style="width:0%" data-w="38"></div></div>
+    </div>
+    <div class="kpi" onclick="setFilterById('completed')" style="cursor:pointer">
+      <div style="display:flex;align-items:start;justify-content:space-between;margin-bottom:14px">
+        <div style="width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(46,204,133,.1);font-size:1.1rem;transition:transform .3s" onmouseenter="this.style.transform='scale(1.1) rotate(-5deg)'" onmouseleave="this.style.transform=''">✅</div>
+        <span class="chip c-green">Done</span>
+      </div>
+      <div style="font-weight:800;font-size:2rem;line-height:1;margin-bottom:4px;color:var(--green)" id="kpi-done">14</div>
+      <div style="font-size:.72rem;color:var(--t2)">Completed</div>
+      <div class="pbar" style="margin-top:12px"><div class="pf pf-g" style="width:0%" data-w="30"></div></div>
+    </div>
+    <div class="kpi" onclick="setFilterById('cancelled')" style="cursor:pointer">
+      <div style="display:flex;align-items:start;justify-content:space-between;margin-bottom:14px">
+        <div style="width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;background:rgba(240,108,108,.1);font-size:1.1rem;transition:transform .3s" onmouseenter="this.style.transform='scale(1.1) rotate(-5deg)'" onmouseleave="this.style.transform=''">❌</div>
+        <span class="chip c-red">Cancelled</span>
+      </div>
+      <div style="font-weight:800;font-size:2rem;line-height:1;margin-bottom:4px;color:var(--red)" id="kpi-cancelled">3</div>
+      <div style="font-size:.72rem;color:var(--t2)">Cancelled</div>
+      <div class="pbar" style="margin-top:12px"><div class="pf pf-r" style="width:0%" data-w="6"></div></div>
+    </div>
+  </div>
+
+  <!-- Main layout -->
+  <div class="main-row" style="display:grid;grid-template-columns:1fr 308px;gap:16px">
+
+    <!-- LEFT -->
+    <div>
+      <!-- Toolbar -->
+      <div class="anim-up d2" style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="filterTabs">
+          <button class="ftab on" onclick="setFilter(this,'all')">All <span style="opacity:.55;font-size:.62rem">47</span></button>
+          <button class="ftab" onclick="setFilter(this,'pending')">Pending <span style="opacity:.55;font-size:.62rem">12</span></button>
+          <button class="ftab" onclick="setFilter(this,'active')">Active <span style="opacity:.55;font-size:.62rem">18</span></button>
+          <button class="ftab" onclick="setFilter(this,'completed')">Completed <span style="opacity:.55;font-size:.62rem">14</span></button>
+          <button class="ftab" onclick="setFilter(this,'cancelled')">Cancelled <span style="opacity:.55;font-size:.62rem">3</span></button>
+        </div>
+       <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+
+  <!-- Hidden label for accessibility -->
+  <label for="sortSelect" style="position:absolute;left:-9999px;">
+    Sort Requests
+  </label>
+
+  <select id="sortSelect" class="sel" onchange="sortReqs(this.value)" aria-label="Sort requests" style="font-size:.74rem">
+    <option value="newest">Newest First</option>
+    <option value="oldest">Oldest First</option>
+    <option value="priority">By Priority</option>
+    <option value="status">By Status</option>
+  </select>
+
+
+          <div class="view-btn on" onclick="setView('card',this)" id="vCard" title="Card view">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          </div>
+          <div class="view-btn" onclick="setView('list',this)" id="vList" title="List view">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card view -->
+      <div id="cardView" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+
+      <!-- List view -->
+      <div id="listView" style="display:none">
+        <div class="card" style="overflow:hidden">
+          <div style="overflow-x:auto">
+            <table class="tbl">
+              <thead><tr>
+                <th>#ID</th><th>Title</th><th>Type</th>
+                <th class="hide-mob">Coach</th><th>Priority</th>
+                <th class="hide-mob">Date</th><th>Status</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="listTbl"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="emptyState" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:70px 20px;text-align:center">
+        <div style="font-size:3rem;margin-bottom:14px;animation:amb 3s ease-in-out infinite alternate">🗂️</div>
+        <div style="font-weight:700;font-size:1.05rem;color:var(--t1);margin-bottom:8px">No requests found</div>
+        <div style="font-size:.84rem;color:var(--t2);margin-bottom:20px">Try a different filter or create a new request</div>
+        <button onclick="showNewReqToast()" class="btn btn-acc">+ New Request</button>
+      </div>
+    </div>
+
+    <!-- RIGHT sidebar -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <!-- Chart -->
+      <div class="card anim-up d3" style="padding:18px">
+        <div style="font-weight:700;font-size:.88rem;color:var(--t1);margin-bottom:3px;letter-spacing:-.01em">Request Trend</div>
+        <div style="font-size:.7rem;color:var(--t2);margin-bottom:14px">Last 7 days</div>
+        <div style="height:110px"><canvas id="trendChart"></canvas></div>
+      </div>
+
+      <!-- By type -->
+      <div class="card anim-up d4" style="padding:18px">
+        <div style="font-weight:700;font-size:.88rem;color:var(--t1);margin-bottom:14px;letter-spacing:-.01em">By Type</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:.74rem;color:var(--t2)">Career Coaching</span><span style="font-size:.74rem;font-weight:700;color:var(--t1)">18</span></div><div class="pbar"><div class="pf pf-acc" style="width:0%" data-w="38"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:.74rem;color:var(--t2)">Interview Prep</span><span style="font-size:.74rem;font-weight:700;color:var(--t1)">12</span></div><div class="pbar"><div class="pf pf-b" style="width:0%" data-w="26"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:.74rem;color:var(--t2)">Resume Review</span><span style="font-size:.74rem;font-weight:700;color:var(--t1)">9</span></div><div class="pbar"><div class="pf pf-g" style="width:0%" data-w="19"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:.74rem;color:var(--t2)">Mock Interview</span><span style="font-size:.74rem;font-weight:700;color:var(--t1)">5</span></div><div class="pbar"><div class="pf pf-a" style="width:0%" data-w="11"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:.74rem;color:var(--t2)">Salary Negotiation</span><span style="font-size:.74rem;font-weight:700;color:var(--t1)">3</span></div><div class="pbar"><div class="pf pf-r" style="width:0%" data-w="6"></div></div></div>
+        </div>
+      </div>
+
+      <!-- Top coaches -->
+      <div class="card anim-up d5" style="padding:18px">
+        <div style="font-weight:700;font-size:.88rem;color:var(--t1);margin-bottom:14px;letter-spacing:-.01em">Top Coaches</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:11px;background:var(--card2);border:1px solid var(--bd2);transition:all .2s;cursor:pointer" onmouseenter="this.style.borderColor='var(--bd)'" onmouseleave="this.style.borderColor='var(--bd2)'">
+            <div class="av-a" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.7rem;flex-shrink:0">DV</div>
+            <div style="flex:1;min-width:0"><div style="font-size:.78rem;font-weight:600;color:var(--t1)">David Park</div><div style="font-size:.63rem;color:var(--t2)">Tech Coach</div></div>
+            <span style="font-size:.8rem;font-weight:800" class="tg">12</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:11px;background:var(--card2);border:1px solid var(--bd2);transition:all .2s;cursor:pointer" onmouseenter="this.style.borderColor='var(--bd)'" onmouseleave="this.style.borderColor='var(--bd2)'">
+            <div class="av-b" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.7rem;flex-shrink:0">SM</div>
+            <div style="flex:1;min-width:0"><div style="font-size:.78rem;font-weight:600;color:var(--t1)">Sarah Mitchell</div><div style="font-size:.63rem;color:var(--t2)">Career Coach</div></div>
+            <span style="font-size:.8rem;font-weight:800" class="tg">9</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:11px;background:var(--card2);border:1px solid var(--bd2);transition:all .2s;cursor:pointer" onmouseenter="this.style.borderColor='var(--bd)'" onmouseleave="this.style.borderColor='var(--bd2)'">
+            <div class="av-c" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.7rem;flex-shrink:0">KP</div>
+            <div style="flex:1;min-width:0"><div style="font-size:.78rem;font-weight:600;color:var(--t1)">Kevin Patel</div><div style="font-size:.63rem;color:var(--t2)">DevOps Coach</div></div>
+            <span style="font-size:.8rem;font-weight:800" class="tg">7</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="anim-up d6" onclick="showNewReqToast()" style="display:block;padding:18px;border-radius:16px;background:linear-gradient(135deg,#8250ff,#c5a8ff 120%);cursor:pointer;text-align:center;box-shadow:0 8px 28px rgba(130,80,255,.4);transition:all .3s;position:relative;overflow:hidden" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 16px 40px rgba(130,80,255,.5)'" onmouseleave="this.style.transform='';this.style.boxShadow='0 8px 28px rgba(130,80,255,.4)'">
+        <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.1)"></div>
+        <div style="position:absolute;bottom:-30px;left:-10px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.06)"></div>
+        <div style="font-size:1.4rem;margin-bottom:6px;position:relative">➕</div>
+        <div style="font-weight:700;font-size:.9rem;color:#fff;margin-bottom:3px;position:relative;letter-spacing:-.01em">New Request</div>
+        <div style="font-size:.72rem;color:rgba(255,255,255,.75);position:relative">Submit a coaching request</div>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<!-- ══════════ DETAIL PANEL ══════════ -->
+<div id="detailPanel">
+  <div id="detailContent"></div>
+</div>
+
+<script>
+// ── DATA ──
+const REQUESTS = [
+  {id:'REQ-001',title:'Career Transition to Product Management',type:'Career Coaching',coach:'Sarah Mitchell',coachAv:'SM',coachAvc:'av-a',priority:'High',status:'active',date:'May 14, 2026',desc:'I want to transition from a software engineering role into product management. I need help crafting my narrative, updating my LinkedIn, and preparing for PM interviews at top-tier companies.',tags:['PM Transition','FAANG','LinkedIn'],budget:'$200',sessions:3,progress:40,timeline:[{t:'May 14','ev':'Request submitted','c':'#8250ff'},{t:'May 15','ev':'Coach Sarah Mitchell accepted','c':'#2ecc85'},{t:'May 16','ev':'First session scheduled for May 20','c':'#5b9ef5'}]},
+  {id:'REQ-002',title:'Technical Interview Preparation — FAANG',type:'Interview Prep',coach:'David Park',coachAv:'DP',coachAvc:'av-b',priority:'High',status:'pending',date:'May 15, 2026',desc:'Preparing for software engineering interviews at Google, Meta, and Amazon. Need help with data structures, system design, and behavioral questions.',tags:['DSA','System Design','FAANG'],budget:'$300',sessions:5,progress:0,timeline:[{t:'May 15','ev':'Request submitted','c':'#8250ff'},{t:'May 15','ev':'Awaiting coach acceptance','c':'#f5b942'}]},
+  {id:'REQ-003',title:'Resume Review & ATS Optimization',type:'Resume Review',coach:'Kevin Patel',coachAv:'KP',coachAvc:'av-c',priority:'Medium',status:'completed',date:'May 8, 2026',desc:'Need a comprehensive review of my resume for DevOps and SRE roles. Specifically want ATS keyword optimization and format improvements.',tags:['DevOps','ATS','SRE'],budget:'$80',sessions:1,progress:100,timeline:[{t:'May 8','ev':'Request submitted','c':'#8250ff'},{t:'May 8','ev':'Coach accepted within 2 hours','c':'#2ecc85'},{t:'May 10','ev':'Session completed','c':'#2ecc85'},{t:'May 10','ev':'Resume delivered','c':'#2ecc85'}]},
+  {id:'REQ-004',title:'Salary Negotiation Strategy Session',type:'Salary Negotiation',coach:'Emma Thompson',coachAv:'ET',coachAvc:'av-d',priority:'Medium',status:'active',date:'May 12, 2026',desc:'I have received an offer from a Series B startup and want to negotiate effectively. Need help with counter-offer strategies and equity negotiation.',tags:['Negotiation','Startup','Equity'],budget:'$120',sessions:2,progress:60,timeline:[{t:'May 12','ev':'Request submitted','c':'#8250ff'},{t:'May 13','ev':'Coach assigned','c':'#2ecc85'},{t:'May 14','ev':'First session completed','c':'#2ecc85'},{t:'May 18','ev':'Final session scheduled','c':'#5b9ef5'}]},
+  {id:'REQ-005',title:'Mock Interview — Senior SWE Position',type:'Mock Interview',coach:'David Park',coachAv:'DP',coachAvc:'av-b',priority:'Low',status:'pending',date:'May 16, 2026',desc:'Need a realistic mock interview simulation for a Senior Software Engineer role at a mid-size tech company. Focus on system design and coding rounds.',tags:['Mock','Senior SWE','Coding'],budget:'$150',sessions:2,progress:0,timeline:[{t:'May 16','ev':'Request submitted','c':'#8250ff'}]},
+  {id:'REQ-006',title:'LinkedIn Profile & Personal Brand Overhaul',type:'Career Coaching',coach:'Sarah Mitchell',coachAv:'SM',coachAvc:'av-a',priority:'Low',status:'completed',date:'Apr 30, 2026',desc:'Complete rebuild of my LinkedIn profile and personal brand strategy for a senior leadership transition in the fintech industry.',tags:['LinkedIn','Branding','Fintech'],budget:'$160',sessions:2,progress:100,timeline:[{t:'Apr 30','ev':'Request submitted','c':'#8250ff'},{t:'May 1','ev':'Accepted','c':'#2ecc85'},{t:'May 5','ev':'Sessions completed','c':'#2ecc85'},{t:'May 6','ev':'Deliverables sent','c':'#2ecc85'}]},
+  {id:'REQ-007',title:'Job Search Strategy for Data Science Roles',type:'Career Coaching',coach:'Kevin Patel',coachAv:'KP',coachAvc:'av-c',priority:'High',status:'active',date:'May 13, 2026',desc:'Comprehensive job search strategy for data science and ML engineering roles. Need help with targeting companies, outreach, and portfolio presentation.',tags:['Data Science','ML','Job Search'],budget:'$220',sessions:4,progress:25,timeline:[{t:'May 13','ev':'Request submitted','c':'#8250ff'},{t:'May 14','ev':'Coach accepted','c':'#2ecc85'},{t:'May 16','ev':'Strategy session completed','c':'#2ecc85'}]},
+  {id:'REQ-008',title:'Behavioral Interview Coaching',type:'Interview Prep',coach:'Emma Thompson',coachAv:'ET',coachAvc:'av-d',priority:'Medium',status:'cancelled',date:'May 10, 2026',desc:'Help with behavioral interview questions using the STAR method for product and program management roles.',tags:['Behavioral','STAR','PM'],budget:'$100',sessions:2,progress:0,timeline:[{t:'May 10','ev':'Request submitted','c':'#8250ff'},{t:'May 11','ev':'Cancelled by user','c':'#f06c6c'}]},
+];
+
+let activeFilter='all', activeView='card', searchQ='';
+let isDark=true;
+
+const statusChip=s=>({active:'c-acc',pending:'c-amber',completed:'c-green',cancelled:'c-red'})[s]||'c-gray';
+const statusLabel=s=>({active:'🔄 Active',pending:'⏳ Pending',completed:'✅ Completed',cancelled:'❌ Cancelled'})[s]||s;
+const priorityClass=p=>({High:'pri-high',Medium:'pri-medium',Low:'pri-low'})[p]||'';
+const priorityIcon=p=>({High:'🔴',Medium:'🟡',Low:'🟢'})[p]||'';
+const typeIcon=t=>({'Career Coaching':'💼','Interview Prep':'🎯','Resume Review':'📄','Mock Interview':'🎤','Salary Negotiation':'💰'})[t]||'📋';
+
+function getFiltered(){
+  return REQUESTS.filter(r=>{
+    const mf=activeFilter==='all'||r.status===activeFilter;
+    const ms=!searchQ||r.title.toLowerCase().includes(searchQ)||r.type.toLowerCase().includes(searchQ)||r.coach.toLowerCase().includes(searchQ);
+    return mf&&ms;
+  });
+}
+
+function renderAll(){
+  const data=getFiltered();
+  const empty=document.getElementById('emptyState');
+  const cv=document.getElementById('cardView');
+  const lv=document.getElementById('listView');
+  if(!data.length){empty.style.display='flex';cv.style.display='none';lv.style.display='none';return;}
+  empty.style.display='none';
+  if(activeView==='card'){cv.style.display='grid';lv.style.display='none';renderCards(data);}
+  else{cv.style.display='none';lv.style.display='block';renderList(data);}
+}
+
+function renderCards(data){
+  document.getElementById('cardView').innerHTML=data.map((r,i)=>`
+    <div class="req-card status-${r.status}" style="animation:slideUp .4s cubic-bezier(.4,0,.2,1) ${i*.05}s both" onclick="openDetail('${r.id}')">
+      <div style="display:flex;align-items:start;justify-content:space-between;gap:8px;margin-bottom:13px">
+        <div style="display:flex;align-items:center;gap:9px;flex:1;min-width:0">
+          <div style="width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--card2);flex-shrink:0;font-size:1rem;border:1px solid var(--bd2)">${typeIcon(r.type)}</div>
+          <div style="min-width:0">
+            <div style="font-weight:600;font-size:.84rem;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px;letter-spacing:-.01em">${r.title}</div>
+            <div style="font-size:.67rem;color:var(--t2);margin-top:2px">${r.type}</div>
+          </div>
+        </div>
+        <span class="chip ${statusChip(r.status)}">${statusLabel(r.status)}</span>
+      </div>
+      <div style="font-size:.74rem;color:var(--t2);line-height:1.6;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${r.desc}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px">
+        ${r.tags.map(t=>`<span style="padding:2px 8px;border-radius:20px;font-size:.6rem;font-weight:600;background:var(--card2);color:var(--t2);border:1px solid var(--bd2)">#${t}</span>`).join('')}
+      </div>
+      ${r.status==='active'?`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:.67rem;color:var(--t2)">Progress</span><span style="font-size:.67rem;font-weight:700;color:var(--acc2)">${r.progress}%</span></div><div class="pbar"><div class="pf pf-acc" style="width:${r.progress}%" ></div></div></div>`:''}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--bd2)">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div class="${r.coachAvc}" style="width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.6rem;flex-shrink:0">${r.coachAv}</div>
+          <span style="font-size:.71rem;color:var(--t2)">${r.coach}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="${priorityClass(r.priority)}" style="font-size:.67rem;font-weight:700">${priorityIcon(r.priority)} ${r.priority}</span>
+          <span style="font-size:.65rem;color:var(--t3);font-family:'DM Mono',monospace">${r.date}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderList(data){
+  document.getElementById('listTbl').innerHTML=data.map((r,i)=>`
+    <tr onclick="openDetail('${r.id}')" style="cursor:pointer;animation:slideRight .35s ease ${i*.04}s both">
+      <td style="font-size:.7rem;font-weight:700;color:var(--acc2);font-family:'DM Mono',monospace">${r.id}</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--card2);flex-shrink:0;font-size:.82rem">${typeIcon(r.type)}</div><div style="font-weight:600;font-size:.8rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.title}</div></div></td>
+      <td><span class="chip c-gray">${r.type}</span></td>
+      <td class="hide-mob"><div style="display:flex;align-items:center;gap:6px"><div class="${r.coachAvc}" style="width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.58rem;flex-shrink:0">${r.coachAv}</div><span style="font-size:.76rem;color:var(--t2)">${r.coach}</span></div></td>
+      <td><span class="${priorityClass(r.priority)}" style="font-size:.72rem;font-weight:700">${priorityIcon(r.priority)} ${r.priority}</span></td>
+      <td class="hide-mob" style="font-size:.7rem;color:var(--t2);font-family:'DM Mono',monospace">${r.date}</td>
+      <td><span class="chip ${statusChip(r.status)}">${statusLabel(r.status)}</span></td>
+      <td><div style="display:flex;gap:5px"><button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();openDetail('${r.id}')">View</button>${r.status==='pending'?'<button class="btn btn-danger btn-xs" onclick="event.stopPropagation()">Cancel</button>':''}</div></td>
+    </tr>`).join('');
+}
+
+// ── DETAIL PANEL ──
+function openDetail(reqId){
+  const r=REQUESTS.find(x=>x.id===reqId);
+  if(!r)return;
+  document.getElementById('detailContent').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+      <div style="font-size:.62rem;color:var(--t3);font-family:'DM Mono',monospace;letter-spacing:.08em">${r.id}</div>
+      <button onclick="closeDetail()" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--card2);border:1px solid var(--bd2);color:var(--t2);cursor:pointer;font-size:1.2rem;transition:all .2s" onmouseenter="this.style.borderColor='var(--bd)'" onmouseleave="this.style.borderColor='var(--bd2)'">×</button>
+    </div>
+    <div style="display:flex;align-items:start;gap:13px;margin-bottom:18px">
+      <div style="width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--card2);flex-shrink:0;font-size:1.15rem;border:1px solid var(--bd2)">${typeIcon(r.type)}</div>
+      <div>
+        <div style="font-weight:700;font-size:.96rem;color:var(--t1);line-height:1.35;margin-bottom:6px;letter-spacing:-.01em">${r.title}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="chip ${statusChip(r.status)}">${statusLabel(r.status)}</span>
+          <span class="chip c-gray">${r.type}</span>
+          <span class="${priorityClass(r.priority)}" style="font-size:.67rem;font-weight:700">${priorityIcon(r.priority)} ${r.priority} Priority</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:.78rem;color:var(--t2);line-height:1.65;margin-bottom:16px;padding:13px;border-radius:11px;background:var(--card2);border:1px solid var(--bd2)">${r.desc}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="padding:12px;border-radius:11px;background:var(--card2);border:1px solid var(--bd2)"><div style="font-size:.6rem;color:var(--t3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.1em">Budget</div><div style="font-weight:700;font-size:.96rem;color:var(--green)">${r.budget}</div></div>
+      <div style="padding:12px;border-radius:11px;background:var(--card2);border:1px solid var(--bd2)"><div style="font-size:.6rem;color:var(--t3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.1em">Sessions</div><div style="font-weight:700;font-size:.96rem;color:var(--t1)">${r.sessions} planned</div></div>
+      <div style="padding:12px;border-radius:11px;background:var(--card2);border:1px solid var(--bd2)"><div style="font-size:.6rem;color:var(--t3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.1em">Date</div><div style="font-weight:600;font-size:.82rem;color:var(--t1);font-family:'DM Mono',monospace">${r.date}</div></div>
+      <div style="padding:12px;border-radius:11px;background:var(--card2);border:1px solid var(--bd2)"><div style="font-size:.6rem;color:var(--t3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em">Coach</div><div style="display:flex;align-items:center;gap:6px"><div class="${r.coachAvc}" style="width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.58rem;flex-shrink:0">${r.coachAv}</div><span style="font-weight:600;font-size:.8rem;color:var(--t1)">${r.coach}</span></div></div>
+    </div>
+    ${r.status==='active'?`<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;margin-bottom:7px"><div style="font-size:.76rem;font-weight:600;color:var(--t1)">Progress</div><div style="font-size:.76rem;font-weight:700;color:var(--acc2)">${r.progress}%</div></div><div class="pbar" style="height:7px"><div class="pf pf-acc" style="width:${r.progress}%"></div></div></div>`:''}
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:18px">
+      ${r.tags.map(t=>`<span style="padding:3px 10px;border-radius:20px;font-size:.64rem;font-weight:600;background:var(--adim);color:var(--acc2);border:1px solid rgba(130,80,255,.25)">#${t}</span>`).join('')}
+    </div>
+    <div style="font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:12px">Timeline</div>
+    <div style="margin-bottom:22px">
+      ${r.timeline.map((t,i)=>`
+      <div style="display:flex;gap:12px;${i<r.timeline.length-1?'padding-bottom:15px':''}">
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div style="width:10px;height:10px;border-radius:50%;background:${t.c};box-shadow:0 0 0 3px ${t.c}33;flex-shrink:0;margin-top:3px"></div>
+          ${i<r.timeline.length-1?`<div style="width:1px;flex:1;background:var(--bd2);margin-top:5px"></div>`:''}
+        </div>
+        <div>
+          <div style="font-size:.64rem;color:var(--t3);margin-bottom:2px;font-family:'DM Mono',monospace">${t.t}</div>
+          <div style="font-size:.78rem;color:var(--t1)">${t.ev}</div>
+        </div>
+      </div>`).join('')}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${r.status==='pending'?`<button class="btn btn-acc" style="width:100%" onclick="showToast('Session scheduled!','success')">Accept & Schedule Session</button><button class="btn btn-danger" style="width:100%" onclick="showToast('Request cancelled','error')">Cancel Request</button>`:''}
+      ${r.status==='active'?`<button class="btn btn-acc" style="width:100%" onclick="showToast('Opening calendar...','info')">📅 Schedule Next Session</button><button class="btn btn-ghost" style="width:100%" onclick="showToast('Opening messages...','info')">💬 Message Coach</button>`:''}
+      ${r.status==='completed'?`<button class="btn btn-acc" style="width:100%" onclick="showToast('Review form opened','success')">⭐ Leave a Review</button><button class="btn btn-ghost" style="width:100%" onclick="showToast('Creating new request...','info')">🔄 New Similar Request</button>`:''}
+      ${r.status==='cancelled'?`<button class="btn btn-acc" style="width:100%" onclick="showToast('Request reopened!','success')">🔄 Reopen Request</button>`:''}
+    </div>`;
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('detailOverlay').classList.add('open');
+}
+function closeDetail(){
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('detailOverlay').classList.remove('open');
+}
+
+// ── CONTROLS ──
+function setFilter(el,f){
+  document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');activeFilter=f;renderAll();
+}
+function setFilterById(f){
+  const tabs=document.querySelectorAll('.ftab');
+  const map={all:0,pending:1,active:2,completed:3,cancelled:4};
+  tabs.forEach(b=>b.classList.remove('on'));
+  tabs[map[f]].classList.add('on');
+  activeFilter=f;renderAll();
+}
+function setView(v,el){
+  activeView=v;
+  document.getElementById('vCard').classList.toggle('on',v==='card');
+  document.getElementById('vList').classList.toggle('on',v==='list');
+  renderAll();
+}
+function searchReqs(q){searchQ=q.toLowerCase();renderAll();}
+function sortReqs(v){
+  if(v==='newest')REQUESTS.sort((a,b)=>b.id.localeCompare(a.id));
+  if(v==='oldest')REQUESTS.sort((a,b)=>a.id.localeCompare(b.id));
+  if(v==='priority'){const o={High:0,Medium:1,Low:2};REQUESTS.sort((a,b)=>o[a.priority]-o[b.priority]);}
+  if(v==='status'){const o={active:0,pending:1,completed:2,cancelled:3};REQUESTS.sort((a,b)=>o[a.status]-o[b.status]);}
+  renderAll();
+}
+
+// ── TOAST ──
+function showToast(msg,type='info'){
+  const colors={success:['rgba(46,204,133,.15)','#2ecc85'],error:['rgba(240,108,108,.15)','#f06c6c'],info:['rgba(130,80,255,.15)','#a87cff']};
+  const [bg,col]=colors[type];
+  const t=document.getElementById('toast');
+  t.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:100;padding:12px 18px;border-radius:12px;background:${bg};border:1px solid ${col}33;color:${col};font-size:.8rem;font-weight:600;display:block;animation:slideUp .3s ease;backdrop-filter:blur(12px);font-family:'DM Sans',sans-serif`;
+  t.textContent=msg;
+  clearTimeout(t._tid);
+  t._tid=setTimeout(()=>{t.style.display='none';},2500);
+}
+function showNewReqToast(){showToast('Opening new request form…','info');}
+
+// ── SIDEBAR ──
+let sbOpen=true;
+function toggleSb(){
+  sbOpen=!sbOpen;
+  const sb=document.getElementById('sb');
+  const tb=document.getElementById('tb');
+  const mn=document.getElementById('mn');
+  if(sbOpen){
+    sb.style.transform='translateX(0)';
+    tb.style.left='var(--sb)';
+    mn.style.marginLeft='var(--sb)';
+  }else{
+    sb.style.transform='translateX(-228px)';
+    tb.style.left='0';
+    mn.style.marginLeft='0';
+  }
+}
+function openMob(){document.getElementById('sb').style.transform='translateX(0)';document.getElementById('mobOverlay').style.display='block';}
+function closeMob(){document.getElementById('sb').style.transform='translateX(-228px)';document.getElementById('mobOverlay').style.display='none';}
+
+// ── THEME ──
+function toggleTheme(){
+  const html=document.documentElement;
+  isDark=!isDark;
+  html.classList.toggle('dark',isDark);
+  html.classList.toggle('light',!isDark);
+  const moon=document.getElementById('moonIcon');
+  const sun=document.getElementById('sunIcon');
+  if(isDark){moon.classList.add('visible');moon.classList.remove('hidden');sun.classList.add('hidden');sun.classList.remove('visible');}
+  else{sun.classList.add('visible');sun.classList.remove('hidden');moon.classList.add('hidden');moon.classList.remove('visible');}
+  if(trendChart){
+    const gc=isDark?'rgba(255,255,255,.05)':'rgba(130,80,255,.07)';
+    const tc=isDark?'#3d3660':'#b0a8d0';
+    const tt={backgroundColor:isDark?'#1a1535':'#fff',titleColor:isDark?'#f2eeff':'#160e2e',bodyColor:tc,borderColor:isDark?'rgba(130,80,255,.3)':'rgba(130,80,255,.2)',borderWidth:1,cornerRadius:10,padding:10};
+    trendChart.options.scales.x.grid.color=gc;
+    trendChart.options.scales.x.ticks.color=tc;
+    trendChart.options.scales.y.grid.color=gc;
+    trendChart.options.scales.y.ticks.color=tc;
+    trendChart.options.plugins.tooltip={...tt};
+    trendChart.update();
+  }
+}
+
+// ── CHART ──
+let trendChart;
+function buildTrend(){
+  const ctx=document.getElementById('trendChart').getContext('2d');
+  const g=ctx.createLinearGradient(0,0,0,110);
+  g.addColorStop(0,'rgba(130,80,255,.35)');
+  g.addColorStop(1,'rgba(130,80,255,0)');
+  trendChart=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+      datasets:[{
+        label:'Requests',
+        data:[3,5,4,7,6,4,8],
+        borderColor:'#8250ff',
+        backgroundColor:g,
+        borderWidth:2.5,
+        tension:.42,fill:true,
+        pointBackgroundColor:'#8250ff',
+        pointRadius:3,pointHoverRadius:6,
+        pointBorderColor:'transparent'
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'rgba(26,21,53,.95)',
+          titleColor:'#f2eeff',bodyColor:'#8b82a8',
+          borderColor:'rgba(130,80,255,.3)',borderWidth:1,
+          cornerRadius:10,padding:10,
+          titleFont:{family:'DM Sans',size:12},
+          bodyFont:{family:'DM Sans',size:11}
+        }
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#3d3660',font:{family:'DM Sans',size:9}}},
+        y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#3d3660',font:{family:'DM Sans',size:9}},beginAtZero:true}
+      }
+    }
+  });
+}
+
+// ── PROGRESS BARS ANIMATION ──
+function animateBars(){
+  document.querySelectorAll('.pf[data-w]').forEach(bar=>{
+    setTimeout(()=>{bar.style.width=bar.dataset.w+'%';},100);
+  });
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded',()=>{
+  renderAll();
+  buildTrend();
+  animateBars();
+
+  // Keyboard shortcut: T for theme toggle
+  document.addEventListener('keydown',e=>{
+    if(e.key==='t'&&!e.target.matches('input,textarea'))toggleTheme();
+    if(e.key==='Escape')closeDetail();
+  });
+});
+</script>
+</body>
+</html>

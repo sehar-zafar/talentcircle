@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Features - Talent Circle</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          accent: { cyan: '#00FFFF', magenta: '#FF00FF' },
+          purple: {
+            50: '#fdf2ff', 900: '#581c87', 950: '#0f0a1a',
+            800: '#3a0050', 700: '#5a0072', 600: '#7a0094',
+            500: '#9600B6', 400: '#b300ff'
+          }
+        },
+        animation: {
+          'float': 'float 6s ease-in-out infinite',
+          'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+          'slide-up': 'slide-up 1s ease-out',
+          'shimmer': 'shimmer 2.5s infinite',
+          'float-slow': 'float-slow 8s ease-in-out infinite',
+        },
+        keyframes: {
+          'float': {
+            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+            '50%': { transform: 'translateY(-20px) rotate(1deg)' }
+          },
+          'pulse-glow': {
+            '0%, 100%': { boxShadow: '0 0 20px rgba(159,67,240,0.3)' },
+            '50%': { boxShadow: '0 0 40px rgba(159,67,240,0.6), 0 0 60px rgba(197,95,255,0.4)' }
+          },
+          'slide-up': {
+            '0%': { opacity: 0, transform: 'translateY(50px)' },
+            '100%': { opacity: 1, transform: 'translateY(0)' }
+          },
+          'shimmer': {
+            '0%': { transform: 'translateX(-100%)' },
+            '100%': { transform: 'translateX(200%)' }
+          },
+          'float-slow': {
+            '0%, 100%': { transform: 'translateY(0px)' },
+            '50%': { transform: 'translateY(-10px)' }
+          }
+        }
+      }
+    }
+  }
+</script>
+<style>
+/* ========== ROOT VARIABLES ========== */
+:root {
+  --c-purple: #9600B6;
+  --c-purple-light: #b300ff;
+  --c-purple-mid: #d455ff;
+  --grad-purple: linear-gradient(135deg, #9600B6 0%, #b300ff 50%, #d455ff 100%);
+}
+
+/* ========== BASE ========== */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', 'Poppins', sans-serif;
+  overflow-x: hidden;
+  transition: background-color 0.4s, color 0.4s;
+}
+
+/* ========== DARK / LIGHT SURFACES ========== */
+.dark body { background: #09090b; color: #f4f4f5; }
+html:not(.dark) body { background: #f8f5ff; color: #18181b; }
+
+/* ========== GLASS ========== */
+.glass {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+html:not(.dark) .glass {
+  background: rgba(255,255,255,0.75);
+  border: 1px solid rgba(150,0,182,0.12);
+}
+
+/* ========== GRADIENT TEXT ========== */
+.gradient-text {
+  background: var(--grad-purple);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ========== NAV ========== */
+#mainNav {
+  transition: background 0.3s, border-color 0.3s, backdrop-filter 0.3s;
+}
+.nav-link {
+  position: relative;
+  padding-bottom: 2px;
+  transition: color 0.2s;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 0; height: 1.5px;
+  background: var(--c-purple-light);
+  transition: width 0.3s;
+}
+.nav-link:hover::after,
+.nav-link.active::after { width: 100%; }
+html:not(.dark) .nav-link { color: #52525b; }
+html:not(.dark) .nav-link:hover { color: #18181b; }
+
+/* ========== HERO ========== */
+.hero-grid-bg {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(150,0,182,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(150,0,182,0.07) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+html:not(.dark) .hero-grid-bg { opacity: 0.4; }
+
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: float-slow 8s ease-in-out infinite;
+}
+
+/* ========== STATS BAR ========== */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(150,0,182,0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(150,0,182,0.2);
+}
+.stat-cell {
+  padding: 1.4rem 1rem;
+  text-align: center;
+  backdrop-filter: blur(20px);
+  background: rgba(9,9,11,0.6);
+  transition: background 0.25s;
+}
+html:not(.dark) .stat-cell {
+  background: rgba(255,255,255,0.85);
+}
+.stat-cell:hover { background: rgba(150,0,182,0.12); }
+.stat-number {
+  font-size: 2rem; font-weight: 800;
+  background: var(--grad-purple);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.stat-label { font-size: 0.82rem; color: #a1a1aa; margin-top: 0.25rem; font-weight: 500; }
+html:not(.dark) .stat-label { color: #71717a; }
+
+/* ========== FEATURE CARDS ========== */
+.feature-card {
+  position: relative; overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(24px);
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1),
+              border-color 0.3s,
+              box-shadow 0.4s;
+  cursor: pointer;
+}
+html:not(.dark) .feature-card {
+  background: rgba(255,255,255,0.8);
+  border-color: rgba(150,0,182,0.1);
+}
+.feature-card:hover {
+  transform: translateY(-10px) scale(1.015);
+  border-color: rgba(150,0,182,0.5);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(150,0,182,0.15);
+}
+
+/* Shimmer sweep on hover */
+.feature-card::after {
+  content: '';
+  position: absolute; top: 0; left: -100%;
+  width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  transition: left 0.7s ease;
+  pointer-events: none; z-index: 10;
+}
+.feature-card:hover::after { left: 160%; }
+
+/* Purple inner glow on hover */
+.feature-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(150,0,182,0.12) 0%, transparent 60%);
+  opacity: 0; transition: opacity 0.4s;
+  pointer-events: none; z-index: 1;
+}
+.feature-card:hover::before { opacity: 1; }
+
+/* ========== CARD IMAGES ========== */
+.card-img-wrap { position: relative; overflow: hidden; }
+.card-img-wrap img {
+  width: 100%; object-fit: cover; display: block;
+  transition: transform 0.6s cubic-bezier(0.4,0,0.2,1), filter 0.4s;
+  filter: brightness(0.6);
+}
+html:not(.dark) .card-img-wrap img { filter: brightness(0.82); }
+.feature-card:hover .card-img-wrap img {
+  transform: scale(1.07);
+  filter: brightness(0.85);
+}
+html:not(.dark) .feature-card:hover .card-img-wrap img { filter: brightness(1); }
+
+/* Video overlay */
+.card-img-wrap video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity 0.5s;
+  border-radius: 0;
+}
+.feature-card:hover .card-img-wrap video { opacity: 1; }
+
+/* ========== CARD BODY ========== */
+.card-body { position: relative; z-index: 2; padding: 1.75rem 2rem; }
+
+.card-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg, rgba(150,0,182,0.3), rgba(179,0,255,0.2));
+  border: 1px solid rgba(150,0,182,0.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.15rem; color: #d455ff;
+  margin-bottom: 1rem;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.feature-card:hover .card-icon {
+  transform: scale(1.1) rotate(-5deg);
+  box-shadow: 0 8px 24px rgba(150,0,182,0.35);
+}
+
+.card-tag {
+  display: inline-flex;
+  padding: 0.28rem 0.75rem;
+  border-radius: 100px;
+  font-size: 0.75rem; font-weight: 600;
+  background: rgba(150,0,182,0.15);
+  border: 1px solid rgba(150,0,182,0.3);
+  color: #d8b4fe;
+  transition: all 0.2s;
+}
+html:not(.dark) .card-tag {
+  background: rgba(150,0,182,0.08);
+  border-color: rgba(150,0,182,0.2);
+  color: #7a0094;
+}
+.feature-card:hover .card-tag {
+  background: rgba(150,0,182,0.25);
+  border-color: rgba(179,0,255,0.45);
+}
+
+/* ========== DEMO BADGE ========== */
+.demo-badge {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.35rem 0.9rem; border-radius: 100px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15);
+  font-size: 0.8rem; color: rgba(255,255,255,0.75);
+  margin-top: 1rem; transition: all 0.25s; cursor: pointer;
+}
+html:not(.dark) .demo-badge {
+  background: rgba(150,0,182,0.06);
+  border-color: rgba(150,0,182,0.2);
+  color: #7a0094;
+}
+.demo-badge:hover {
+  background: rgba(150,0,182,0.2);
+  border-color: rgba(179,0,255,0.45);
+  color: #d455ff;
+}
+html:not(.dark) .demo-badge:hover { color: #9600B6; }
+.demo-badge i { color: #d455ff; font-size: 0.9rem; }
+html:not(.dark) .demo-badge i { color: #9600B6; }
+
+/* ========== SCHEDULING TABS ========== */
+.sched-tab {
+  padding: 0.35rem 0.85rem; border-radius: 8px;
+  font-size: 0.8rem; font-weight: 600;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.45);
+  transition: all 0.25s; cursor: pointer;
+}
+html:not(.dark) .sched-tab {
+  background: rgba(150,0,182,0.04);
+  border-color: rgba(150,0,182,0.12);
+  color: #71717a;
+}
+.sched-tab.active,
+.sched-tab:hover {
+  background: rgba(150,0,182,0.3);
+  border-color: rgba(150,0,182,0.5);
+  color: #d455ff;
+}
+html:not(.dark) .sched-tab.active,
+html:not(.dark) .sched-tab:hover {
+  background: rgba(150,0,182,0.12);
+  border-color: rgba(150,0,182,0.35);
+  color: #7a0094;
+}
+
+/* ========== STAR RATING ========== */
+.star { font-size: 1.1rem; color: rgba(251,191,36,0.25); transition: color 0.2s; }
+.star.lit { color: #fbbf24; }
+
+/* ========== WALLET ========== */
+.wallet-display {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; padding: 0.75rem 1rem;
+  margin-top: 1.25rem; transition: all 0.3s;
+}
+html:not(.dark) .wallet-display {
+  background: rgba(150,0,182,0.05);
+  border-color: rgba(150,0,182,0.18);
+}
+.feature-card:hover .wallet-display {
+  border-color: rgba(150,0,182,0.35);
+  background: rgba(150,0,182,0.1);
+}
+.wallet-pts {
+  font-size: 1.5rem; font-weight: 800;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.wallet-sub { font-size: 0.8rem; color: #a1a1aa; }
+
+/* ========== ACHIEVEMENT BADGES ========== */
+.ach-badge {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.3s;
+}
+html:not(.dark) .ach-badge {
+  background: rgba(150,0,182,0.05);
+  border-color: rgba(150,0,182,0.14);
+}
+.feature-card:hover .ach-badge {
+  transform: translateY(-3px);
+  border-color: rgba(150,0,182,0.4);
+}
+
+/* ========== VIDEO OVERLAY MASK ========== */
+.video-overlay {
+  mask: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 13%) add;
+  -webkit-mask: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 13%) add;
+}
+
+/* ========== SECTION LABELS ========== */
+.section-eyebrow {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  color: #d8b4fe;
+}
+html:not(.dark) .section-eyebrow { color: #7a0094; }
+.eyebrow-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--c-purple-light);
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { box-shadow: 0 0 0 0 rgba(179,0,255,0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(179,0,255,0); }
+}
+
+/* ========== WORKS SECTION ========== */
+.work-card {
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.03);
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+  cursor: pointer; position: relative;
+}
+html:not(.dark) .work-card {
+  background: #fff;
+  border-color: rgba(150,0,182,0.09);
+}
+.work-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(150,0,182,0.45);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+}
+.work-img {
+  width: 100%; height: 160px; object-fit: cover; display: block;
+  transition: transform 0.5s, filter 0.3s;
+  filter: brightness(0.7);
+}
+html:not(.dark) .work-img { filter: brightness(0.85); }
+.work-card:hover .work-img { transform: scale(1.07); filter: brightness(0.9); }
+html:not(.dark) .work-card:hover .work-img { filter: brightness(1); }
+.work-num {
+  position: absolute; top: 0.75rem; right: 0.75rem;
+  width: 28px; height: 28px; border-radius: 8px;
+  background: rgba(150,0,182,0.25); border: 1px solid rgba(150,0,182,0.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 700; color: #d8b4fe;
+}
+.work-tag {
+  padding: 0.22rem 0.6rem; border-radius: 100px;
+  font-size: 0.72rem; font-weight: 600;
+  background: rgba(150,0,182,0.12);
+  border: 1px solid rgba(150,0,182,0.25);
+  color: #d8b4fe;
+}
+html:not(.dark) .work-tag {
+  background: rgba(150,0,182,0.07);
+  border-color: rgba(150,0,182,0.18);
+  color: #7a0094;
+}
+
+/* ========== CTA SECTION ========== */
+.cta-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(150,0,182,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+html:not(.dark) .cta-bg {
+  background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(150,0,182,0.08) 0%, transparent 70%);
+}
+
+/* ========== BUTTONS ========== */
+.btn-primary-pill {
+  display: inline-block;
+  padding: 0.85rem 2.25rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #9600B6, #b300ff);
+  color: #fff; font-size: 1rem; font-weight: 700;
+  text-decoration: none; transition: all 0.25s;
+  border: none; cursor: pointer;
+}
+.btn-primary-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(150,0,182,0.45);
+}
+.btn-outline-pill {
+  display: inline-block;
+  padding: 0.85rem 2.25rem;
+  border-radius: 14px;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  color: #fff; font-size: 1rem; font-weight: 600;
+  text-decoration: none; background: transparent; transition: all 0.25s;
+}
+html:not(.dark) .btn-outline-pill {
+  border-color: rgba(150,0,182,0.3);
+  color: #18181b;
+}
+.btn-outline-pill:hover {
+  border-color: rgba(150,0,182,0.6);
+  background: rgba(150,0,182,0.08);
+  transform: translateY(-2px);
+}
+
+/* ========== SCROLL REVEAL ========== */
+.reveal {
+  opacity: 0; transform: translateY(32px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-d1 { transition-delay: 0.1s; }
+.reveal-d2 { transition-delay: 0.2s; }
+.reveal-d3 { transition-delay: 0.3s; }
+.reveal-d4 { transition-delay: 0.4s; }
+
+/* ========== THEME TOGGLE BTN ========== */
+#themeToggle {
+  width: 38px; height: 38px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.06);
+  color: #f4f4f5; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; font-size: 0.95rem;
+}
+html:not(.dark) #themeToggle {
+  border-color: rgba(150,0,182,0.2);
+  background: rgba(150,0,182,0.05);
+  color: #18181b;
+}
+#themeToggle:hover {
+  border-color: rgba(150,0,182,0.5);
+  background: rgba(150,0,182,0.12);
+}
+
+/* ========== MISC ========== */
+@keyframes float-slow {
+  0%,100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+html:not(.dark) section#hero { background: linear-gradient(160deg, #fdf2ff 0%, #f8f5ff 100%); }
+.dark section#hero { background: #09090b; }
+html:not(.dark) .section-works { background: rgba(248,245,255,0.7); }
+.dark .section-works { background: rgba(255,255,255,0.02); }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== NAV ===================== -->
+<nav id="mainNav" 
+  class="fixed w-full z-50 backdrop-blur-xl 
+  bg-white/10 dark:bg-black/50 
+  border-b border-purple-200/30 dark:border-white/10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16 items-center">
+
+      <!-- Logo -->
+      <a href="home.html" class="flex items-center gap-2">
+        <img src="images/logo.png" alt="TalentCircle" class="h-10" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+        <span class="gradient-text text-xl font-black tracking-tight hidden" style="display:none">TalentCircle</span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <ul id="desktopNav" class="hidden lg:flex items-center space-x-8 text-base font-medium dark:text-white text-gray-700">
+        <li><a href="home.html" class="nav-link hover:text-purple-400 transition-colors">Home</a></li>
+        <li><a href="about.html" class="nav-link hover:text-purple-400 transition-colors">About</a></li>
+        <li><a href="features.html" class="nav-link active text-purple-400 font-semibold">Features</a></li>
+        <li><a href="certificates.html" class="nav-link hover:text-purple-400 transition-colors">Certificates</a></li>
+        <li><a href="get-started.html" class="nav-link hover:text-purple-400 transition-colors">Get Started</a></li>
+      </ul>
+
+      <!-- Right actions -->
+      <div class="flex items-center gap-3">
+        <button id="themeToggle" title="Toggle light/dark mode" aria-label="Toggle theme">
+          <i class="fas fa-sun" id="themeIcon"></i>
+        </button>
+        <div id="authContainer" class="hidden lg:flex items-center gap-3">
+          <a href="signin.html" class="text-sm font-semibold dark:text-white/80 text-gray-600 hover:text-purple-500 transition-colors">Log in</a>
+          <a href="signup.html" class="btn-primary-pill !py-2 !px-5 !text-sm !rounded-xl">Sign up</a>
+        </div>
+        <button id="mobileBtn" class="lg:hidden dark:text-white text-gray-800 text-2xl w-9 h-9 flex items-center justify-center" aria-label="Open menu">☰</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile Nav -->
+<div id="mobileNav" class="lg:hidden fixed top-[4rem] left-0 right-0 dark:bg-black/97 bg-white/97 backdrop-blur-xl z-40 p-8 text-center space-y-2 hidden border-b dark:border-white/10 border-purple-100">
+  <a href="home.html" class="block py-3.5 text-lg font-semibold dark:text-white text-gray-800 hover:text-purple-500 transition-colors border-b dark:border-white/5 border-purple-50">Home</a>
+  <a href="about.html" class="block py-3.5 text-lg font-semibold dark:text-white text-gray-800 hover:text-purple-500 transition-colors border-b dark:border-white/5 border-purple-50">About</a>
+  <a href="features.html" class="block py-3.5 text-lg font-semibold text-purple-500 border-b dark:border-white/5 border-purple-50">Features</a>
+  <a href="certificates.html" class="block py-3.5 text-lg font-semibold dark:text-white text-gray-800 hover:text-purple-500 transition-colors border-b dark:border-white/5 border-purple-50">Certificates</a>
+  <a href="get-started.html" class="block py-3.5 text-lg font-semibold dark:text-white text-gray-800 hover:text-purple-500 transition-colors">Get Started</a>
+  <div class="pt-4 flex flex-col gap-3">
+    <a href="login.html" class="btn-outline-pill text-center !py-3">Log in</a>
+    <a href="signup.html" class="btn-primary-pill text-center !py-3">Sign up free</a>
+  </div>
+</div>
+
+
+<!-- ===================== HERO ===================== -->
+<section id="hero" class="pt-36 pb-28 relative overflow-hidden">
+  <div class="hero-grid-bg"></div>
+
+  <!-- Ambient orbs -->
+  <div class="hero-orb" style="width:600px;height:600px;top:-150px;left:50%;transform:translateX(-50%);background:radial-gradient(circle,rgba(150,0,182,0.14) 0%,transparent 65%);animation-delay:0s"></div>
+  <div class="hero-orb" style="width:300px;height:300px;top:40px;left:5%;background:radial-gradient(circle,rgba(0,255,255,0.05) 0%,transparent 70%);animation-delay:-3s"></div>
+  <div class="hero-orb" style="width:250px;height:250px;top:60px;right:8%;background:radial-gradient(circle,rgba(255,0,255,0.05) 0%,transparent 70%);animation-delay:-5s"></div>
+
+  <div class="relative max-w-5xl mx-auto px-6 text-center">
+
+    <!-- Eyebrow badge -->
+    <div class="reveal inline-flex items-center gap-2 px-4 py-1.5 rounded-full dark:bg-purple-500/10 bg-purple-100/70 border dark:border-purple-500/25 border-purple-300/50 text-purple-400 dark:text-purple-300 text-sm font-semibold mb-8 tracking-wide">
+      <i class="fas fa-wand-magic-sparkles text-xs"></i>
+      Everything you need to grow
+    </div>
+
+    <h1 class="reveal text-5xl md:text-7xl lg:text-8xl font-black leading-[1.06] tracking-tight mb-6 dark:text-white text-gray-900" style="transition-delay:0.08s">
+      Discover Everything<br>
+      <span class="gradient-text">TalentCircle</span><br>
+      Can Do for You
+    </h1>
+
+    <p class="reveal text-xl md:text-2xl dark:text-white/70 text-gray-500 max-w-2xl mx-auto mb-12 leading-relaxed" style="transition-delay:0.16s">
+      Powerful tools to learn, teach, and grow — all in one beautifully designed platform.
+    </p>
+
+    <div class="reveal flex flex-col sm:flex-row gap-4 justify-center mb-20" style="transition-delay:0.24s">
+      <a href="signup.html" class="btn-primary-pill">Start Free Trial</a>
+      <a href="#features" class="btn-outline-pill">View All Features ↓</a>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="reveal stats-bar max-w-2xl mx-auto" style="transition-delay:0.32s">
+      <div class="stat-cell">
+        <div class="stat-number" id="stat1">0K+</div>
+        <div class="stat-label">Active learners</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-number" id="stat2">0K+</div>
+        <div class="stat-label">Skills exchanged</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-number" id="stat3">0%</div>
+        <div class="stat-label">Satisfaction rate</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== FEATURES BENTO ===================== -->
+<section id="features" class="py-28 relative">
+  <div class="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent pointer-events-none"></div>
+
+  <div class="relative max-w-7xl mx-auto px-6">
+
+    <!-- Section header -->
+    <div class="reveal mb-16">
+      <div class="section-eyebrow mb-3"><span class="eyebrow-dot"></span>Platform Features</div>
+      <h2 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight dark:text-white text-gray-900 mb-4">
+        Built for learners,<br><span class="gradient-text">designed for doers</span>
+      </h2>
+      <p class="text-lg dark:text-white/60 text-gray-500 max-w-xl leading-relaxed">
+        Every feature crafted to give you the most seamless skill exchange experience possible.
+      </p>
+    </div>
+
+    <!-- TOP ROW: AI Matching + Scheduling -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+      <!-- AI Matching -->
+      <div class="feature-card reveal reveal-d1">
+        <div class="card-img-wrap" style="height:240px">
+          <img src="https://framerusercontent.com/images/wwFeHKebRnOEP470wUXLkUEQA.png" alt="AI Matching" style="height:240px">
+          <div class="video-overlay absolute inset-0 pointer-events-none z-[1]"></div>
+          <video muted loop playsinline poster="https://framerusercontent.com/images/JLZGwOv9H8hkUISUKz4FN0lxVu8.png">
+            <source src="https://framerusercontent.com/assets/LVDFkwZODa68iMjGMU5gZFMS8.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="card-body">
+          <div class="card-icon"><i class="fas fa-brain"></i></div>
+          <h3 class="text-2xl font-bold dark:text-white text-gray-900 mb-3 leading-tight">AI Matching</h3>
+          <p class="dark:text-white/65 text-gray-500 text-base leading-relaxed">Smartly pairs you with the perfect people to teach or learn from — powered by ML that understands your goals and growth trajectory.</p>
+          <div class="flex flex-wrap gap-2 mt-4">
+            <span class="card-tag">AI / ML</span>
+            <span class="card-tag">Smart pairing</span>
+            <span class="card-tag">Real-time</span>
+          </div>
+          <div class="demo-badge"><i class="fas fa-play-circle"></i> Watch demo</div>
+        </div>
+      </div>
+
+      <!-- Flexible Scheduling -->
+      <div class="feature-card reveal reveal-d2">
+        <div class="card-img-wrap" style="height:240px">
+          <img src="images/Scheduling feature background.png" alt="Flexible Scheduling" style="height:240px" onerror="this.style.background='linear-gradient(135deg,#1a003a,#3a0050)';this.style.display='block'">
+        </div>
+        <div class="card-body">
+          <div class="card-icon"><i class="fas fa-calendar-check"></i></div>
+          <h3 class="text-2xl font-bold dark:text-white text-gray-900 mb-3 leading-tight">Flexible Scheduling</h3>
+          <p class="dark:text-white/65 text-gray-500 text-base leading-relaxed">Learn or teach at your own pace. Anytime, anywhere — completely on your terms with an intuitive session booking system.</p>
+          <div class="flex gap-2 mt-4">
+            <div class="sched-tab active">Upcoming</div>
+            <div class="sched-tab">Requests</div>
+            <div class="sched-tab">History</div>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-4">
+            <span class="card-tag">Time zones</span>
+            <span class="card-tag">Smart reminders</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WIDE ROW: Skill Ratings -->
+    <div class="feature-card reveal mb-6" style="transition-delay:0.1s">
+      <div class="grid grid-cols-1 lg:grid-cols-2">
+        <!-- Image/video left -->
+        <div class="card-img-wrap" style="height:300px;border-radius:20px 0 0 20px">
+          <img src="https://framerusercontent.com/images/JQZjSWYYF0NSqrfN1j6IDm9r8.png" alt="Skill Ratings" style="height:300px;border-radius:20px 0 0 20px">
+          <div class="video-overlay absolute inset-0 pointer-events-none z-[1]"></div>
+          <video muted loop playsinline style="border-radius:20px 0 0 20px">
+            <source src="https://framerusercontent.com/assets/ZZvNdMTSKywqKa6SOZ80cMAmT5E.mp4" type="video/mp4">
+          </video>
+        </div>
+        <!-- Content right -->
+        <div class="card-body flex flex-col justify-center p-10 lg:p-14">
+          <div class="card-icon"><i class="fas fa-star"></i></div>
+          <h3 class="text-3xl lg:text-4xl font-bold dark:text-white text-gray-900 mb-4 leading-tight">Skill Ratings</h3>
+          <p class="dark:text-white/65 text-gray-500 text-base leading-relaxed mb-6">Transparent, community-driven ratings that ensure every session delivers real, measurable value. Your reputation grows with every exchange.</p>
+          <div class="flex gap-1 mb-2" id="starRow">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+          </div>
+          <div class="text-2xl font-black" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">4.9 / 5</div>
+          <div class="flex flex-wrap gap-2 mt-5">
+            <span class="card-tag">Community verified</span>
+            <span class="card-tag">Transparent</span>
+            <span class="card-tag">Live feedback</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM ROW: Points + Achievements -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- Points & Wallet -->
+      <div class="feature-card reveal reveal-d1">
+        <div class="card-img-wrap" style="height:160px">
+          <img src="images/points.png" alt="Points Wallet" style="height:160px" onerror="this.style.background='linear-gradient(135deg,#2d1a00,#5a3500)';this.style.display='block'">
+        </div>
+        <div class="card-body">
+          <div class="card-icon"><i class="fas fa-coins"></i></div>
+          <h3 class="text-2xl font-bold dark:text-white text-gray-900 mb-3">Points & Wallet</h3>
+          <p class="dark:text-white/65 text-gray-500 text-sm leading-relaxed">Earn by teaching, spend on learning. A pure skill economy that rewards your expertise and fuels your growth.</p>
+          <div class="wallet-display">
+            <span style="font-size:1.4rem">💰</span>
+            <div>
+              <div class="wallet-pts" id="walletCount">0 TC</div>
+              <div class="wallet-sub">Points balance</div>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-4">
+            <span class="card-tag">Earn & spend</span>
+            <span class="card-tag">Skill economy</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Achievements & Badges -->
+      <div class="feature-card reveal reveal-d2">
+        <div class="card-img-wrap" style="height:160px">
+          <img src="images/badges.png" alt="Achievements and Badges" style="height:160px" onerror="this.style.background='linear-gradient(135deg,#2d0035,#5a0060)';this.style.display='block'">
+        </div>
+        <div class="card-body">
+          <div class="card-icon"><i class="fas fa-trophy"></i></div>
+          <h3 class="text-2xl font-bold dark:text-white text-gray-900 mb-3">Achievements & Badges</h3>
+          <p class="dark:text-white/65 text-gray-500 text-sm leading-relaxed">Milestones, badges, and XP system keep you motivated and showcase your growth to the community.</p>
+          <div class="flex gap-2 flex-wrap mt-4">
+            <div class="ach-badge">🏆</div>
+            <div class="ach-badge">⭐</div>
+            <div class="ach-badge">🎯</div>
+            <div class="ach-badge">🚀</div>
+            <div class="ach-badge">💎</div>
+            <div class="ach-badge">🔥</div>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-4">
+            <span class="card-tag">XP system</span>
+            <span class="card-tag">Milestones</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== CTA ===================== -->
+<section class="py-32 text-center relative overflow-hidden">
+  <div class="cta-bg"></div>
+  <div class="relative max-w-4xl mx-auto px-6">
+    <div class="reveal">
+      <h2 class="text-4xl md:text-5xl lg:text-6xl font-black dark:text-white text-gray-900 mb-6 leading-tight tracking-tight">
+        <span class="gradient-text">Start learning and teaching today</span><br>
+        — your skills can take you anywhere.
+      </h2>
+      <p class="text-lg dark:text-white/60 text-gray-500 max-w-md mx-auto mb-10 leading-relaxed">
+        Join thousands of people already growing their skills and earning on TalentCircle.
+      </p>
+      <a href="signup.html" class="btn-primary-pill text-lg !py-4 !px-10">Get started free →</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== FEATURED WORKS ===================== -->
+<section id="works" class="section-works py-28 border-t dark:border-white/5 border-purple-100">
+  <div class="max-w-7xl mx-auto px-6">
+
+    <div class="reveal mb-16">
+      <div class="section-eyebrow mb-3"><span class="eyebrow-dot"></span>Featured Works</div>
+      <h2 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight dark:text-white text-gray-900 mb-4">
+        Real projects built on <span class="gradient-text">TalentCircle</span>
+      </h2>
+      <p class="text-lg dark:text-white/60 text-gray-500 max-w-xl leading-relaxed">
+        Showcasing cutting-edge talent from our community of builders and learners.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+
+      <!-- Work 1 -->
+      <div class="work-card reveal reveal-d1">
+        <div class="work-num">01</div>
+        <img src="images/ai-work1.png" alt="AI Talent Matcher" class="work-img" onerror="this.style.background='linear-gradient(135deg,#1a003a,#3a0050)';this.style.display='block'">
+        <div class="p-5">
+          <h3 class="text-base font-bold dark:text-white text-gray-900 mb-2">AI Talent Matcher</h3>
+          <p class="dark:text-white/55 text-gray-500 text-sm leading-relaxed mb-3">Intelligent skill-based pairing using advanced ML algorithms.</p>
+          <div class="flex gap-2 flex-wrap"><span class="work-tag">AI/ML</span><span class="work-tag">Matching</span></div>
+        </div>
+      </div>
+
+      <!-- Work 2 -->
+      <div class="work-card reveal reveal-d2">
+        <div class="work-num">02</div>
+        <img src="images/ai-work2.png" alt="Virtual Classroom" class="work-img" onerror="this.style.background='linear-gradient(135deg,#001a0a,#003520)';this.style.display='block'">
+        <div class="p-5">
+          <h3 class="text-base font-bold dark:text-white text-gray-900 mb-2">Virtual Classroom</h3>
+          <p class="dark:text-white/55 text-gray-500 text-sm leading-relaxed mb-3">Interactive learning platform with real-time collaboration.</p>
+          <div class="flex gap-2 flex-wrap"><span class="work-tag">WebRTC</span><span class="work-tag">React</span></div>
+        </div>
+      </div>
+
+      <!-- Work 3 -->
+      <div class="work-card reveal reveal-d3">
+        <div class="work-num">03</div>
+        <img src="images/ai-work3.png" alt="Skill Assessment" class="work-img" onerror="this.style.background='linear-gradient(135deg,#1a0a00,#3a2000)';this.style.display='block'">
+        <div class="p-5">
+          <h3 class="text-base font-bold dark:text-white text-gray-900 mb-2">Skill Assessment Tool</h3>
+          <p class="dark:text-white/55 text-gray-500 text-sm leading-relaxed mb-3">Automated proficiency testing with adaptive difficulty levels.</p>
+          <div class="flex gap-2 flex-wrap"><span class="work-tag">Python</span><span class="work-tag">Data</span></div>
+        </div>
+      </div>
+
+      <!-- Work 4 -->
+      <div class="work-card reveal reveal-d4">
+        <div class="work-num">04</div>
+        <img src="images/ai-work4.png" alt="Mentor Discovery" class="work-img" onerror="this.style.background='linear-gradient(135deg,#0a001a,#20003a)';this.style.display='block'">
+        <div class="p-5">
+          <h3 class="text-base font-bold dark:text-white text-gray-900 mb-2">Mentor Discovery</h3>
+          <p class="dark:text-white/55 text-gray-500 text-sm leading-relaxed mb-3">Personalized mentorship connections based on career goals.</p>
+          <div class="flex gap-2 flex-wrap"><span class="work-tag">GraphQL</span><span class="work-tag">Node.js</span></div>
+        </div>
+      </div>
+
+      <!-- Work 5 -->
+      <div class="work-card reveal reveal-d1">
+        <div class="work-num">05</div>
+        <img src="images/ai-work5.png" alt="Portfolio Builder" class="work-img" onerror="this.style.background='linear-gradient(135deg,#001a1a,#003535)';this.style.display='block'">
+        <div class="p-5">
+          <h3 class="text-base font-bold dark:text-white text-gray-900 mb-2">Portfolio Builder</h3>
+          <p class="dark:text-white/55 text-gray-500 text-sm leading-relaxed mb-3">Professional showcase generator with AI content suggestions.</p>
+          <div class="flex gap-2 flex-wrap"><span class="work-tag">Next.js</span><span class="work-tag">Tailwind</span></div>
+        </div>
+      </div>
+
+      <!-- Work 6 -->
+      <div class="work-card reveal reveal-d2">
+        <div class="work-num">06</div>
+        <img src="images/ai-work6.png" alt="Progress Tracker" class="work-img" onerror="this.style.background='linear-gradient(135deg,#001020,#002040)';this.style.display='block'">
+        <div class="p-5">
+          <h3 class="text-base font-bold dark:text-white text-gray-900 mb-2">Progress Tracker</h3>
+          <p class="dark:text-white/55 text-gray-500 text-sm leading-relaxed mb-3">Learning journey analytics with predictive milestones.</p>
+          <div class="flex gap-2 flex-wrap"><span class="work-tag">D3.js</span><span class="work-tag">Charts</span></div>
+        </div>
+      </div>
+
+      <!-- Work 7 -->
+      <div class="work-card reveal reveal-d3">
+        <div class="work-num">07</div>
+        <img src="images/ai-work7.png" alt="Freelance Marketplace" class="work-img" onerror="this.style.background='linear-gradient(135deg,#001a00,#003500)';this.style.display='block'">
+        <div class="p-5">
+          <h3 class="text-base font-bold dark:text-white text-gray-900 mb-2">Freelance Marketplace</h3>
+          <p class="dark:text-white/55 text-gray-500 text-sm leading-relaxed mb-3">Talent hiring platform with escrow and dispute resolution.</p>
+          <div class="flex gap-2 flex-wrap"><span class="work-tag">Laravel</span><span class="work-tag">Vue.js</span></div>
+        </div>
+      </div>
+
+      <!-- Work 8 -->
+      <div class="work-card reveal reveal-d4">
+        <div class="work-num">08</div>
+        <img src="images/ai-work8.png" alt="Certification Hub" class="work-img" onerror="this.style.background='linear-gradient(135deg,#1a0a00,#3a1a00)';this.style.display='block'">
+        <div class="p-5">
+          <h3 class="text-base font-bold dark:text-white text-gray-900 mb-2">Certification Hub</h3>
+          <p class="dark:text-white/55 text-gray-500 text-sm leading-relaxed mb-3">Digital credential management with blockchain verification.</p>
+          <div class="flex gap-2 flex-wrap"><span class="work-tag">Solidity</span><span class="work-tag">Web3</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================== SCRIPTS ===================== -->
+<script>
+/* ---- THEME TOGGLE ---- */
+const html = document.documentElement;
+const themeBtn = document.getElementById('themeToggle');
+const themeIcon = document.getElementById('themeIcon');
+let isDark = true;
+
+themeBtn.addEventListener('click', () => {
+  isDark = !isDark;
+  html.classList.toggle('dark', isDark);
+  themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+});
+
+/* ---- MOBILE NAV ---- */
+const mobileBtn = document.getElementById('mobileBtn');
+const mobileNav = document.getElementById('mobileNav');
+mobileBtn.addEventListener('click', () => {
+  const open = mobileNav.classList.toggle('hidden');
+  mobileBtn.textContent = open ? '☰' : '✕';
+});
+
+/* ---- NAV SCROLL ---- */
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('mainNav');
+  const scrolled = window.scrollY > 60;
+  if (isDark) {
+    nav.style.background = scrolled ? 'rgba(9,9,11,0.95)' : 'rgba(9,9,11,0.5)';
+  } else {
+    nav.style.background = scrolled ? 'rgba(248,245,255,0.97)' : 'rgba(248,245,255,0.8)';
+  }
+}, { passive: true });
+
+/* ---- SMOOTH SCROLL ---- */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+  });
+});
+
+/* ---- SCROLL REVEAL ---- */
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+/* ---- COUNT-UP STATS ---- */
+function animateCount(el, target, suffix, duration) {
+  let start = 0;
+  const increment = target / (duration / 16);
+  const timer = setInterval(() => {
+    start += increment;
+    if (start >= target) {
+      start = target;
+      clearInterval(timer);
+    }
+    if (target >= 1000) {
+      el.textContent = Math.floor(start / 1000) + 'K+';
+    } else {
+      el.textContent = Math.floor(start) + suffix;
+    }
+  }, 16);
+}
+setTimeout(() => {
+  animateCount(document.getElementById('stat1'), 50000, '', 1200);
+  animateCount(document.getElementById('stat2'), 120000, '', 1400);
+  let pct = 0;
+  const pctTimer = setInterval(() => {
+    pct++;
+    document.getElementById('stat3').textContent = pct + '%';
+    if (pct >= 98) clearInterval(pctTimer);
+  }, 13);
+}, 700);
+
+/* ---- WALLET COUNT-UP ---- */
+setTimeout(() => {
+  let w = 0;
+  const wTimer = setInterval(() => {
+    w += 47;
+    if (w >= 2450) { w = 2450; clearInterval(wTimer); }
+    document.getElementById('walletCount').textContent = w.toLocaleString() + ' TC';
+  }, 16);
+}, 900);
+
+/* ---- STARS ANIMATE ---- */
+setTimeout(() => {
+  document.querySelectorAll('#starRow .star').forEach((star, i) => {
+    setTimeout(() => star.classList.add('lit'), i * 130);
+  });
+}, 1200);
+
+/* ---- SCHEDULING TABS ---- */
+document.querySelectorAll('.sched-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const siblings = tab.closest('.flex').querySelectorAll('.sched-tab');
+    siblings.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+
+/* ---- VIDEO HOVER PLAY ---- */
+document.querySelectorAll('.feature-card').forEach(card => {
+  const video = card.querySelector('video');
+  if (!video) return;
+  card.addEventListener('mouseenter', () => video.play().catch(() => {}));
+  card.addEventListener('mouseleave', () => { video.pause(); video.currentTime = 0; });
+});
+
+/* ---- STAGGERED WORKS REVEAL ---- */
+const worksObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      worksObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('#works .work-card').forEach(card => worksObserver.observe(card));
+</script>
+
+</body>
+</html>

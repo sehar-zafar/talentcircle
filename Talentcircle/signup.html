@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - Talent Circle</title>
+
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.className = savedTheme;
+    })();
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="./src/nav-common.js"></script>
+  <script src="./src/api-base.js"></script>
+
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            purple: {
+              50: '#fdf2ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe',
+              400: '#b300ff', 500: '#9600B6', 600: '#7a0094', 700: '#5a0072',
+              800: '#3a0050', 900: '#1a0f2e', 950: '#0f0a1a',
+            }
+          },
+          animation: {
+            'float': 'float 4s ease-in-out infinite',
+            'glow': 'glow 2s ease-in-out infinite alternate',
+            'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+          },
+          keyframes: {
+            float: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-12px)' } },
+            glow: {
+              '0%': { boxShadow: '0 0 15px rgba(150, 0, 182, 0.2)' },
+              '100%': { boxShadow: '0 0 30px rgba(179, 0, 255, 0.4), 0 0 50px rgba(150, 0, 182, 0.2)' },
+            },
+            slideUp: { '0%': { opacity: '0', transform: 'translateY(30px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    /* =============================================
+       GLASS CARD — dark & light
+       ============================================= */
+    .glass {
+      backdrop-filter: blur(20px);
+      transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
+    }
+    .dark .glass {
+      background: rgba(20, 20, 40, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .light .glass {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(150, 0, 182, 0.18);
+      box-shadow: 0 8px 40px rgba(150, 0, 182, 0.08);
+    }
+
+    /* =============================================
+       FLOATING LABEL
+       ============================================= */
+    .label-float {
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      /* Padding and margin added to cleanly mask the border */
+      padding: 0 0.35rem;
+      margin-left: -0.35rem;
+      border-radius: 4px;
+    }
+
+    input:focus ~ .label-float,
+    input:not(:placeholder-shown) ~ .label-float {
+      transform: translateY(-24px) scale(0.82);
+      transform-origin: left top;
+    }
+
+    /* Dark mode active states with background masking */
+    .dark input:focus ~ .label-float,
+    .dark input:not(:placeholder-shown) ~ .label-float {
+      color: #c084fc;
+      background-color: #19142a; /* Blends with dark glass */
+    }
+
+    /* Light mode active states with background masking */
+    .light input:focus ~ .label-float,
+    .light input:not(:placeholder-shown) ~ .label-float {
+      color: #7e22ce;
+      background-color: #ffffff; /* Blends with light glass */
+    }
+
+    /* =============================================
+       INPUT FIELDS — shared base
+       ============================================= */
+    .tc-input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 0.75rem;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease, color 0.3s ease;
+    }
+    .tc-input::placeholder { color: transparent; }
+
+    /* Dark mode input */
+    .dark .tc-input {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #f1f0ff;
+    }
+    .dark .tc-input:focus {
+      border-color: #9600B6;
+      box-shadow: 0 0 0 3px rgba(150, 0, 182, 0.35);
+    }
+
+    /* Light mode input */
+    .light .tc-input {
+      background: #ffffff;
+      border: 1px solid rgba(150, 0, 182, 0.28);
+      color: #1e1040;
+    }
+    .light .tc-input:focus {
+      border-color: #7e22ce;
+      box-shadow: 0 0 0 3px rgba(126, 34, 206, 0.18);
+    }
+
+    /* =============================================
+       LABEL default color per theme
+       ============================================= */
+    .dark .tc-label  { color: #9ca3af; }
+    .light .tc-label { color: #64748b; }
+
+    /* =============================================
+       COUNTRY BUTTON
+       ============================================= */
+    .tc-country-btn {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 0.75rem;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-color 0.2s ease, background 0.3s ease;
+      cursor: pointer;
+    }
+    .dark .tc-country-btn {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #f1f0ff;
+    }
+    .dark .tc-country-btn:hover { border-color: #9600B6; }
+    .light .tc-country-btn {
+      background: #ffffff;
+      border: 1px solid rgba(150, 0, 182, 0.28);
+      color: #1e1040;
+    }
+    .light .tc-country-btn:hover { border-color: #7e22ce; }
+
+    /* =============================================
+       DIAL CODE PREFIX
+       ============================================= */
+    .tc-dial {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      border-radius: 0.75rem 0 0 0.75rem;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+    .dark .tc-dial {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-right: none;
+      color: #c084fc;
+    }
+    .light .tc-dial {
+      background: #f3e8ff;
+      border: 1px solid rgba(150, 0, 182, 0.28);
+      border-right: none;
+      color: #7e22ce;
+    }
+
+    .tc-input-phone {
+      flex: 1;
+      padding: 14px 16px;
+      border-radius: 0 0.75rem 0.75rem 0;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease, color 0.3s ease;
+    }
+    .tc-input-phone::placeholder { color: transparent; }
+    .dark .tc-input-phone {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #f1f0ff;
+      border-left: none;
+    }
+    .dark .tc-input-phone:focus {
+      border-color: #9600B6;
+      box-shadow: 0 0 0 3px rgba(150, 0, 182, 0.35);
+    }
+    .light .tc-input-phone {
+      background: #ffffff;
+      border: 1px solid rgba(150, 0, 182, 0.28);
+      color: #1e1040;
+      border-left: none;
+    }
+    .light .tc-input-phone:focus {
+      border-color: #7e22ce;
+      box-shadow: 0 0 0 3px rgba(126, 34, 206, 0.18);
+    }
+
+    /* =============================================
+       COUNTRY DROPDOWN
+       ============================================= */
+    .country-dropdown { max-height: 240px; overflow-y: auto; }
+    .country-dropdown::-webkit-scrollbar { width: 6px; }
+    .country-dropdown::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+    .country-dropdown::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+
+    .dark .country-dropdown-panel {
+      background: #0d0620;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .light .country-dropdown-panel {
+      background: #ffffff;
+      border: 1px solid rgba(150, 0, 182, 0.2);
+      box-shadow: 0 8px 30px rgba(150, 0, 182, 0.12);
+    }
+
+    .dark .country-search-input {
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #f1f0ff;
+    }
+    .light .country-search-input {
+      background: #faf5ff;
+      border: 1px solid rgba(150,0,182,0.2);
+      color: #1e1040;
+    }
+    .dark .country-search-input::placeholder  { color: rgba(255,255,255,0.3); }
+    .light .country-search-input::placeholder { color: #94a3b8; }
+
+    .dark .country-item  { color: #e9d5ff; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .light .country-item { color: #1e1040; border-bottom: 1px solid rgba(150,0,182,0.06); }
+    .dark  .country-item:hover { background: rgba(150, 0, 182, 0.15); }
+    .light .country-item:hover { background: #f3e8ff; }
+
+    /* =============================================
+       CHECKBOX
+       ============================================= */
+    input[type="checkbox"] { accent-color: #9600B6; }
+
+    /* =============================================
+       TERMS LABEL
+       ============================================= */
+    .dark  .tc-terms-label { color: #d1d5db; }
+    .light .tc-terms-label { color: #475569; }
+
+    /* =============================================
+       FOOTER / DIVIDER
+       ============================================= */
+    .dark  .tc-divider  { border-color: rgba(255,255,255,0.1); }
+    .light .tc-divider  { border-color: rgba(150,0,182,0.12); }
+    .dark  .tc-muted    { color: #9ca3af; }
+    .light .tc-muted    { color: #64748b; }
+    .dark  .tc-link     { color: #c084fc; }
+    .light .tc-link     { color: #7e22ce; }
+
+    /* =============================================
+       TAB BAR
+       ============================================= */
+    .dark  .tc-tab-bar { background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); }
+    .light .tc-tab-bar { background: rgba(150,0,182,0.06); border: 1px solid rgba(150,0,182,0.15); }
+    .dark  .tc-tab-inactive { color: #9ca3af; }
+    .light .tc-tab-inactive { color: #94a3b8; }
+
+    /* =============================================
+       OTP INPUT
+       ============================================= */
+    .dark  .tc-otp-input {
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #c084fc;
+    }
+    .dark  .tc-otp-input:focus { border-color: #9600B6; box-shadow: 0 0 0 3px rgba(150,0,182,0.35); }
+    .light .tc-otp-input {
+      background: #ffffff;
+      border: 1px solid rgba(150,0,182,0.28);
+      color: #7e22ce;
+    }
+    .light .tc-otp-input:focus { border-color: #7e22ce; box-shadow: 0 0 0 3px rgba(126,34,206,0.18); }
+
+    /* =============================================
+       MISC
+       ============================================= */
+    .dark  .tc-otp-desc { color: #9ca3af; }
+    .light .tc-otp-desc { color: #64748b; }
+  </style>
+</head>
+
+<body class="bg-purple-950 dark:bg-purple-950 light:bg-slate-50 text-white dark:text-white light:text-slate-900 overflow-x-hidden min-h-screen flex flex-col">
+
+  <div class="fixed inset-0 z-0 pointer-events-none transition-opacity duration-500">
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-950 via-black to-purple-900 dark:from-purple-950 dark:via-black dark:to-purple-900 light:from-purple-50 light:via-white light:to-purple-100 opacity-90"></div>
+    <div class="absolute inset-0 bg-[url('images/bg1.png')] bg-cover bg-center opacity-10 dark:opacity-10 light:opacity-5 animate-pulse"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav id="mainNav" class="relative z-30 w-full flex items-center justify-between px-6 md:px-12 lg:px-16 py-5 border-b border-white/10 dark:border-white/10 light:border-purple-500/10 backdrop-blur-md bg-black/20 dark:bg-black/20 light:bg-white/60">
+    <a href="home.html" class="block">
+      <img src="images/logo.png" class="h-9 md:h-11 object-contain transition-all duration-300 dark:invert-0 light:invert light:brightness-50 light:contrast-150" alt="Talent Circle Logo">
+    </a>
+
+    <ul id="desktopNav" class="hidden md:flex space-x-8 lg:space-x-12 text-base font-medium text-inherit">
+      <li><a href="home.html"         class="hover:text-purple-500 transition-colors duration-300">Home</a></li>
+      <li><a href="about.html"        class="hover:text-purple-500 transition-colors duration-300">About</a></li>
+      <li><a href="features.html"     class="hover:text-purple-500 transition-colors duration-300">Features</a></li>
+      <li><a href="certificates.html" class="hover:text-purple-500 transition-colors duration-300">Certificates</a></li>
+      <li><a href="get-started.html"  class="hover:text-purple-500 transition-colors duration-300">Get Started</a></li>
+    </ul>
+
+    <div class="flex items-center space-x-4 ml-auto lg:ml-0">
+      <button id="themeToggle" class="p-2.5 rounded-xl border border-purple-500/20 glass hover:scale-110 active:scale-95 text-xl focus:outline-none" aria-label="Toggle Layout Mode">
+        🌓
+      </button>
+      <div id="authContainer" class="flex items-center space-x-2"></div>
+      <button id="mobileBtn" class="md:hidden text-2xl focus:outline-none">☰</button>
+    </div>
+  </nav>
+
+  <div id="mobileNav" class="md:hidden fixed top-20 left-0 right-0 bg-purple-950/95 dark:bg-purple-950/95 light:bg-white/95 backdrop-blur-xl z-40 p-8 text-center space-y-4 border-b border-purple-500/10 hidden">
+    <a href="home.html"         class="block py-3 text-lg font-medium hover:text-purple-400">Home</a>
+    <a href="about.html"        class="block py-3 text-lg font-medium hover:text-purple-400">About</a>
+    <a href="features.html"     class="block py-3 text-lg font-medium hover:text-purple-400">Features</a>
+    <a href="certificates.html" class="block py-3 text-lg font-medium hover:text-purple-400">Certificates</a>
+    <a href="get-started.html"  class="block py-3 text-lg font-medium hover:text-purple-400">Get Started</a>
+  </div>
+
+ <!-- MOBILE MENU -->
+<div id="mobileMenu"
+  class="fixed inset-0 bg-purple-950/95 dark:bg-purple-950/95 light:bg-white/95 backdrop-blur-xl z-50 p-6 flex flex-col justify-center items-center
+  opacity-0 pointer-events-none transition-all duration-300">
+
+  <button onclick="toggleMenu()"
+    class="absolute top-6 right-6 text-3xl focus:outline-none">
+    ✕
+  </button>
+
+  <a href="home.html" class="block py-6 text-2xl font-semibold hover:text-purple-500">Home</a>
+  <a href="about.html" class="block py-6 text-2xl font-semibold hover:text-purple-500">About</a>
+
+  <a href="signin.html"
+    class="block my-6 py-4 px-12 text-xl text-white font-bold bg-purple-600 rounded-xl hover:bg-purple-700 shadow-lg">
+    Sign In
+  </a>
+</div>
+
+<!-- OPEN BUTTON -->
+<button onclick="toggleMenu()"
+  class="text-white bg-purple-600 px-4 py-2 rounded-lg hidden">
+  Menu
+</button>
+
+<!-- JS -->
+<script>
+  const menu = document.getElementById("mobileMenu");
+
+  function toggleMenu() {
+    const isHidden = menu.classList.contains("opacity-0");
+
+    if (isHidden) {
+      menu.classList.remove("opacity-0", "pointer-events-none");
+      menu.classList.add("opacity-100");
+    } else {
+      menu.classList.add("opacity-0", "pointer-events-none");
+      menu.classList.remove("opacity-100");
+    }
+  }
+</script>
+
+  <!-- MAIN -->
+  <main class="relative z-10 flex-grow flex items-center justify-center py-12 px-4 md:px-8 lg:px-16">
+    <div class="max-w-5xl w-full mx-auto flex flex-col lg:flex-row items-center lg:items-stretch gap-8 lg:gap-16 min-h-[500px]">
+
+      <!-- LEFT COPY -->
+      <div class="w-full lg:w-1/2 flex flex-col justify-center text-center lg:text-left p-4 md:p-8">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-purple-500 via-purple-400 to-pink-500 dark:from-purple-400 dark:via-purple-300 dark:to-purple-200 light:from-purple-700 light:to-purple-500 bg-clip-text text-transparent mb-4">
+          Join Talent Circle
+        </h1>
+        <p class="text-lg md:text-xl text-slate-600 dark:text-gray-200 light:text-slate-600 leading-relaxed font-light max-w-md mx-auto lg:mx-0">
+          Create your account today to access a global, borderless community of decentralized knowledge and skill exchange.
+        </p>
+      </div>
+
+      <!-- FORM CARD -->
+      <div class="w-full lg:w-1/2 flex items-center justify-center animate-slide-up">
+        <div class="w-full max-w-md glass rounded-3xl p-8 md:p-10 shadow-2xl flex flex-col justify-between">
+          <div>
+
+            <!-- TAB TOGGLE -->
+            <div class="tc-tab-bar flex rounded-xl p-1 mb-6">
+              <button id="tabEmail" onclick="switchTab('email')"
+                class="flex-1 py-2.5 rounded-lg text-sm font-medium transition-all bg-purple-600 text-white shadow-lg">
+                Email
+              </button>
+              <button id="tabPhone" onclick="switchTab('phone')"
+                class="tc-tab-inactive flex-1 py-2.5 rounded-lg text-sm font-medium transition-all hover:text-inherit">
+                Phone Number
+              </button>
+            </div>
+
+            <!-- ==================== EMAIL FORM ==================== -->
+            <form id="emailForm" class="space-y-5">
+
+              <!-- Full Name -->
+              <div class="relative w-full">
+                <!-- Added truncate block min-w-0 classes -->
+                <input type="text" id="name" required
+                  class="tc-input truncate block w-full min-w-0"
+                  placeholder=" ">
+                <label for="name" class="tc-label label-float absolute left-4 top-[14px] text-sm">Full Name</label>
+              </div>
+
+              <!-- Email -->
+              <div class="relative w-full">
+                <!-- Added truncate block min-w-0 classes -->
+                <input type="email" id="email" required
+                  class="tc-input truncate block w-full min-w-0"
+                  placeholder=" ">
+                <label for="email" class="tc-label label-float absolute left-4 top-[14px] text-sm">Email Address</label>
+              </div>
+
+              <!-- Password -->
+              <div class="relative w-full">
+                <!-- Added truncate block min-w-0 classes -->
+                <input type="password" id="password" required minlength="6"
+                  class="tc-input truncate block w-full min-w-0"
+                  placeholder=" ">
+                <label for="password" class="tc-label label-float absolute left-4 top-[14px] text-sm">Password</label>
+              </div>
+
+              <!-- Confirm Password -->
+              <div class="relative w-full">
+                <!-- Added truncate block min-w-0 classes -->
+                <input type="password" id="confirmPassword" required
+                  class="tc-input truncate block w-full min-w-0"
+                  placeholder=" ">
+                <label for="confirmPassword" class="tc-label label-float absolute left-4 top-[14px] text-sm">Confirm Password</label>
+              </div>
+
+              <!-- Terms -->
+              <div class="flex items-center space-x-2 pt-1">
+                <input type="checkbox" id="terms" required class="rounded w-4 h-4 focus:ring-0">
+                <label for="terms" class="tc-terms-label text-xs cursor-pointer select-none">
+                  I agree to the global Terms &amp; Privacy Policy
+                </label>
+              </div>
+
+              <button type="submit"
+                class="w-full bg-gradient-to-r from-purple-600 to-purple-500 text-white text-base font-semibold py-3.5 px-8 rounded-xl transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99] hover:shadow-lg disabled:opacity-50"
+                disabled>
+                Sign Up
+              </button>
+            </form>
+
+            <!-- ==================== PHONE FORM ==================== -->
+            <form id="phoneForm" class="space-y-5 hidden">
+
+              <!-- Full Name -->
+              <div class="relative w-full">
+                <input type="text" id="phoneName" required
+                  class="tc-input truncate block w-full min-w-0"
+                  placeholder=" ">
+                <label for="phoneName" class="tc-label label-float absolute left-4 top-[14px] text-sm">Full Name</label>
+              </div>
+
+              <!-- Country Selector -->
+              <div class="relative w-full">
+                <button type="button" id="signupCountryBtn" onclick="toggleSignupCountryDropdown()"
+                  class="tc-country-btn">
+                  <span class="flex items-center gap-2">
+                    <span id="signupCountryFlag">🌐</span>
+                    <span id="signupCountryName" class="text-sm opacity-60">Loading countries…</span>
+                  </span>
+                  <svg class="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+
+                <div id="signupCountryDropdown"
+                  class="hidden absolute left-0 right-0 z-50 mt-2 rounded-xl shadow-2xl country-dropdown country-dropdown-panel">
+                  <div class="p-2 border-b border-purple-500/10">
+                    <input type="text" id="signupCountrySearch"
+                      placeholder="Search country or code…"
+                      oninput="filterSignupCountries(this.value)"
+                      class="country-search-input w-full px-3 py-2 rounded-lg text-sm focus:outline-none truncate block min-w-0">
+                  </div>
+                  <div id="signupCountryList" class="country-dropdown"></div>
+                </div>
+              </div>
+
+              <!-- Phone Input -->
+              <div class="relative w-full">
+                <!-- The label was moved inside the flex container to act as a sibling to the input for CSS selectors -->
+                <div class="flex">
+                  <span id="signupDialCodeDisplay" class="tc-dial font-mono text-sm">+1</span>
+                  <!-- Added truncate block min-w-0 classes -->
+                  <input type="tel" id="signupPhoneInput" required
+                    class="tc-input-phone truncate block w-full min-w-0"
+                    placeholder=" "
+                    oninput="formatSignupPhone(this)">
+                  <label for="signupPhoneInput" class="tc-label label-float absolute left-[72px] top-[14px] text-sm">
+                    Phone Number
+                  </label>
+                </div>
+              </div>
+
+              <!-- Terms -->
+              <div class="flex items-center space-x-2 pt-1">
+                <input type="checkbox" id="phoneTerms" required class="rounded w-4 h-4 focus:ring-0">
+                <label for="phoneTerms" class="tc-terms-label text-xs cursor-pointer select-none">
+                  I agree to the global Terms &amp; Privacy Policy
+                </label>
+              </div>
+
+              <button type="submit"
+                class="w-full bg-gradient-to-r from-purple-600 to-purple-500 text-white text-base font-semibold py-3.5 px-8 rounded-xl transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99] hover:shadow-lg disabled:opacity-50"
+                disabled>
+                Send OTP
+              </button>
+            </form>
+
+            <!-- ==================== OTP STEP ==================== -->
+            <div id="signupOtpStep" class="space-y-5 hidden">
+              <div class="text-center">
+                <h3 class="text-xl font-bold mb-1">Verify Your Account</h3>
+                <p class="tc-otp-desc text-xs">
+                  Enter the 6-digit code sent to
+                  <span id="signupOtpPhone" class="text-purple-500 font-mono font-semibold"></span>
+                </p>
+              </div>
+
+              <input type="text" id="signupOtpInput"
+                maxlength="6" pattern="[0-9]*" inputmode="numeric"
+                class="tc-otp-input w-full px-4 py-4 rounded-xl text-center text-3xl font-mono tracking-widest focus:outline-none transition-all"
+                placeholder="000000"
+                oninput="if(this.value.length===6) verifySignupOTP()">
+
+              <button onclick="verifySignupOTP()"
+                class="w-full bg-gradient-to-r from-purple-600 to-purple-500 text-white py-3.5 rounded-xl font-semibold hover:shadow-lg transition-all duration-300">
+                Verify Code
+              </button>
+
+              <div class="flex justify-between items-center px-1">
+                <button onclick="backToSignupPhone()"
+                  class="tc-muted text-xs hover:text-purple-500 transition-colors focus:outline-none">
+                  Change Number
+                </button>
+                <button onclick="resendSignupOTP()"
+                  class="tc-link text-xs hover:underline focus:outline-none">
+                  Resend Code
+                </button>
+              </div>
+            </div>
+
+          </div><!-- /form wrapper -->
+
+          <!-- FOOTER LINK -->
+          <p class="tc-muted text-center pt-5 mt-5 text-sm tc-divider border-t">
+            Already have an account?
+            <a href="signin.html" class="tc-link font-semibold hover:underline ml-1">Sign in here</a>
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    const htmlDoc       = document.documentElement;
+    const themeToggle   = document.getElementById('themeToggle');
+    const mobileBtn     = document.getElementById('mobileBtn');
+    const mobileNav     = document.getElementById('mobileNav');
+    const emailForm     = document.getElementById('emailForm');
+    const phoneForm     = document.getElementById('phoneForm');
+    const signupOtpStep = document.getElementById('signupOtpStep');
+    const submitBtn     = emailForm.querySelector('button[type="submit"]');
+    const phoneSubmitBtn= phoneForm.querySelector('button[type="submit"]');
+    const terms         = document.getElementById('terms');
+    const phoneTerms    = document.getElementById('phoneTerms');
+    const password      = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+
+    let countriesPhoneData = [];
+    let currentSignupPhone = '';
+    let selectedSignupCountry = { code: 'US', flag: '🇺🇸', name: 'United States', dialCode: '+1' };
+
+    /* ---- Theme Toggle ---- */
+    themeToggle.addEventListener('click', () => {
+      if (htmlDoc.classList.contains('dark')) {
+        htmlDoc.className = 'light';
+        localStorage.setItem('theme', 'light');
+      } else {
+        htmlDoc.className = 'dark';
+        localStorage.setItem('theme', 'dark');
+      }
+    });
+
+    if (mobileBtn && mobileNav) {
+      mobileBtn.addEventListener('click', () => mobileNav.classList.toggle('hidden'));
+    }
+    window.toggleMenu = () => document.getElementById('mobileMenu')?.classList.toggle('hidden');
+
+    /* ---- Tab Switch ---- */
+    function switchTab(tab) {
+      const emailBtn = document.getElementById('tabEmail');
+      const phoneBtn = document.getElementById('tabPhone');
+      if (tab === 'email') {
+        emailForm.classList.remove('hidden');
+        phoneForm.classList.add('hidden');
+        signupOtpStep.classList.add('hidden');
+        emailBtn.classList.add('bg-purple-600', 'text-white', 'shadow-lg');
+        emailBtn.classList.remove('tc-tab-inactive');
+        phoneBtn.classList.remove('bg-purple-600', 'text-white', 'shadow-lg');
+        phoneBtn.classList.add('tc-tab-inactive');
+      } else {
+        emailForm.classList.add('hidden');
+        phoneForm.classList.remove('hidden');
+        signupOtpStep.classList.add('hidden');
+        phoneBtn.classList.add('bg-purple-600', 'text-white', 'shadow-lg');
+        phoneBtn.classList.remove('tc-tab-inactive');
+        emailBtn.classList.remove('bg-purple-600', 'text-white', 'shadow-lg');
+        emailBtn.classList.add('tc-tab-inactive');
+        fetchGlobalCountryData();
+      }
+    }
+
+    /* ---- Country Data ---- */
+    async function fetchGlobalCountryData() {
+      if (countriesPhoneData.length > 0) return;
+      try {
+        const response = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,idd,flag');
+        const data = await response.json();
+        countriesPhoneData = data.map(item => {
+          const rootCode   = item.idd?.root || '';
+          const suffixCode = (item.idd?.suffixes && item.idd.suffixes.length === 1) ? item.idd.suffixes[0] : '';
+          return {
+            code: item.cca2 || 'UN',
+            flag: item.flag || '🌐',
+            name: item.name?.common || 'Global Region',
+            dialCode: rootCode + suffixCode || '+1'
+          };
+        }).sort((a, b) => a.name.localeCompare(b.name));
+
+        const defaultUS = countriesPhoneData.find(c => c.code === 'US') || countriesPhoneData[0];
+        if (defaultUS) { selectedSignupCountry = defaultUS; updateSelectedCountryUI(); }
+        renderSignupCountryList();
+      } catch (err) {
+        countriesPhoneData = [
+          { code: 'US', flag: '🇺🇸', name: 'United States',  dialCode: '+1'  },
+          { code: 'GB', flag: '🇬🇧', name: 'United Kingdom', dialCode: '+44' },
+          { code: 'PK', flag: '🇵🇰', name: 'Pakistan',       dialCode: '+92' },
+          { code: 'IN', flag: '🇮🇳', name: 'India',          dialCode: '+91' },
+          { code: 'CA', flag: '🇨🇦', name: 'Canada',         dialCode: '+1'  }
+        ];
+        renderSignupCountryList();
+      }
+    }
+
+    function toggleSignupCountryDropdown() {
+      const dd = document.getElementById('signupCountryDropdown');
+      dd.classList.toggle('hidden');
+      if (!dd.classList.contains('hidden')) document.getElementById('signupCountrySearch').focus();
+    }
+
+    function selectSignupCountry(code) {
+      const target = countriesPhoneData.find(c => c.code === code);
+      if (target) { selectedSignupCountry = target; updateSelectedCountryUI(); }
+      document.getElementById('signupCountryDropdown').classList.add('hidden');
+    }
+
+    function updateSelectedCountryUI() {
+      document.getElementById('signupCountryFlag').textContent = selectedSignupCountry.flag;
+      document.getElementById('signupCountryName').textContent = `${selectedSignupCountry.name} (${selectedSignupCountry.dialCode})`;
+      document.getElementById('signupDialCodeDisplay').textContent = selectedSignupCountry.dialCode;
+      formatSignupPhone(document.getElementById('signupPhoneInput'));
+    }
+
+    function renderSignupCountryList(filter = '') {
+      const list = document.getElementById('signupCountryList');
+      if (!list) return;
+      const filtered = filter
+        ? countriesPhoneData.filter(c =>
+            c.name.toLowerCase().includes(filter.toLowerCase()) || c.dialCode.includes(filter))
+        : countriesPhoneData;
+      list.innerHTML = filtered.map(c => `
+        <div onclick="selectSignupCountry('${c.code}')"
+          class="country-item flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors">
+          <span class="text-xl">${c.flag}</span>
+          <span class="text-sm flex-1 truncate">${c.name}</span>
+          <span class="text-xs opacity-50 font-mono">${c.dialCode}</span>
+        </div>
+      `).join('');
+    }
+
+    function filterSignupCountries(query) { renderSignupCountryList(query); }
+    function formatSignupPhone(input) { input.value = input.value.replace(/\D/g, '').slice(0, 15); }
+
+    document.addEventListener('click', (e) => {
+      const dropdown = document.getElementById('signupCountryDropdown');
+      const btn      = document.getElementById('signupCountryBtn');
+      if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    /* ---- Validation ---- */
+    terms.addEventListener('change',      () => { submitBtn.disabled      = !terms.checked; });
+    phoneTerms.addEventListener('change', () => { phoneSubmitBtn.disabled = !phoneTerms.checked; });
+    password.addEventListener('input',        validatePasswords);
+    confirmPassword.addEventListener('input', validatePasswords);
+
+    function validatePasswords() {
+      if (confirmPassword.value && password.value !== confirmPassword.value) {
+        confirmPassword.setCustomValidity("Passwords don't match");
+      } else {
+        confirmPassword.setCustomValidity('');
+      }
+    }
+
+    /* ---- Email Submit ---- */
+    emailForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!emailForm.checkValidity()) return;
+      const formData = {
+        name:           document.getElementById('name').value,
+        email:          document.getElementById('email').value,
+        password:       document.getElementById('password').value,
+        image: '', age: 0, education: '', certificates: [],
+        skills_teach: [], skills_learn: [], bio: ''
+      };
+      try {
+        const res  = await fetch(window.apiUrl('/api/register'), {
+
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          window.location.href = data.user.role === 'admin' ? 'admin-panel.html' : 'user-panel.html';
+        } else {
+          alert(data.error || 'Registration failed');
+        }
+      } catch (err) {
+        alert('Server communication error.');
+      }
+    });
+
+    /* ---- Phone Submit ---- */
+    phoneForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!phoneForm.checkValidity()) return;
+      const name         = document.getElementById('phoneName').value.trim();
+      const nationalNumber = document.getElementById('signupPhoneInput').value.trim();
+      const dialCode     = selectedSignupCountry.dialCode;
+      if (!nationalNumber || nationalNumber.length < 5) {
+        alert(`Enter a valid phone number for ${selectedSignupCountry.name}`);
+        return;
+      }
+      const e164 = dialCode + nationalNumber;
+      currentSignupPhone = e164;
+      try {
+        const res  = await fetch(window.apiUrl('/api/otp/send'), {
+          method: 'POST',
+
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: e164, name })
+        });
+        const data = await res.json();
+        if (data.success) {
+          phoneForm.classList.add('hidden');
+          signupOtpStep.classList.remove('hidden');
+          document.getElementById('signupOtpPhone').textContent = e164;
+          document.getElementById('signupOtpInput').focus();
+        } else {
+          alert(data.message || data.error || 'OTP delivery failed');
+        }
+      } catch (err) {
+        alert('Server error.');
+      }
+    });
+
+    /* ---- OTP Verify ---- */
+    async function verifySignupOTP() {
+      const otp  = document.getElementById('signupOtpInput').value.trim();
+      if (otp.length !== 6) return;
+      const name = document.getElementById('phoneName').value.trim();
+      try {
+        const res  = await fetch(window.apiUrl('/api/otp/verify'), {
+
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: currentSignupPhone, code: otp, name, register: true })
+        });
+        const data = await res.json();
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          window.location.href = data.user.role === 'admin' ? 'admin-panel.html' : 'user-panel.html';
+        } else {
+          alert(data.error || 'Verification failed');
+        }
+      } catch (err) {
+        alert('Verification error');
+      }
+    }
+
+    function backToSignupPhone() {
+      phoneForm.classList.remove('hidden');
+      signupOtpStep.classList.add('hidden');
+      document.getElementById('signupOtpInput').value = '';
+    }
+
+    async function resendSignupOTP() {
+      const name = document.getElementById('phoneName').value.trim();
+      try {
+        const res  = await fetch(window.apiUrl('/api/otp/send'), {
+          method: 'POST',
+
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: currentSignupPhone, name })
+        });
+        const data = await res.json();
+        if (data.success) alert('OTP resent!');
+      } catch (err) {
+        alert('Resend failed');
+      }
+    }
+  </script>
+</body>
+</html>

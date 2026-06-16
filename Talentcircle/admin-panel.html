@@ -1,0 +1,1295 @@
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Poppins','sans-serif']}}}}</script>
+ <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+<style>
+*{font-family:'Poppins',sans-serif;box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#07050f;--surf:#0d0920;--card:#120e24;--card2:#18132e;--card3:#1e1840;
+  --bd:rgba(155,48,217,.22);--bd2:rgba(255,255,255,.06);--bd3:rgba(255,255,255,.1);
+  --t1:#f0eeff;--t2:#9ca3af;--t3:#4b5563;
+  --acc:#9b30d9;--acc2:#b855f0;--adim:rgba(155,48,217,.14);
+  --green:#22c55e;--blue:#60a5fa;--amber:#fbbf24;--red:#f87171;--cyan:#22d3ee;
+  --sb:220px;
+}
+.light{
+  --bg:#f0edff;--surf:#ffffff;--card:#ffffff;--card2:#f5f2ff;--card3:#ede9ff;
+  --bd:rgba(155,48,217,.22);--bd2:rgba(0,0,0,.07);--bd3:rgba(0,0,0,.12);
+  --t1:#0f0a1e;--t2:#6b7280;--t3:#9ca3af;
+}
+html,body{background:var(--bg);color:var(--t1);min-height:100vh;}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(155,48,217,.5);border-radius:10px;}
+
+/* ── LAYOUT ── */
+#sidebar{
+  width:var(--sb);background:var(--surf);border-right:1px solid var(--bd2);
+  position:fixed;top:0;left:0;height:100%;z-index:40;
+  overflow-y:auto;display:flex;flex-direction:column;padding:18px 10px;
+  transition:transform .35s cubic-bezier(.4,0,.2,1),width .35s cubic-bezier(.4,0,.2,1);
+}
+#topbar{
+  position:fixed;top:0;left:var(--sb);right:0;height:54px;z-index:30;
+  background:var(--surf);border-bottom:1px solid var(--bd2);
+  display:flex;align-items:center;padding:0 18px;gap:10px;
+  transition:left .35s cubic-bezier(.4,0,.2,1);
+}
+#main{
+  margin-left:var(--sb);padding-top:54px;padding-bottom:40px;
+  transition:margin-left .35s cubic-bezier(.4,0,.2,1);
+  background:var(--bg);min-height:100vh;
+}
+body.sb-collapsed{--sb:0px;}
+body.sb-collapsed #sidebar{transform:translateX(-220px);}
+body.sb-collapsed #topbar{left:0;}
+body.sb-collapsed #main{margin-left:0;}
+
+/* overlay */
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:35;backdrop-filter:blur(3px);}
+body.mob-open #overlay{display:block;}
+body.mob-open #sidebar{transform:translateX(0)!important;z-index:45;}
+
+/* ── NAV ── */
+.nav-item{
+  display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:11px;
+  font-size:.79rem;font-weight:500;cursor:pointer;transition:all .22s;
+  color:var(--t2);text-decoration:none;position:relative;
+}
+.nav-item:hover{color:#e9d5ff;background:rgba(155,48,217,.1);}
+.nav-item.on{
+  color:#fff;
+  background:linear-gradient(135deg,rgba(155,48,217,.9),rgba(184,85,240,.9));
+  box-shadow:0 4px 18px rgba(155,48,217,.32);
+}
+.nav-item .nbadge{
+  margin-left:auto;background:rgba(155,48,217,.2);color:#b855f0;
+  padding:1px 6px;border-radius:20px;font-size:.6rem;font-weight:700;
+}
+.nav-item.on .nbadge{background:rgba(255,255,255,.22);color:#fff;}
+.nav-group{
+  font-size:.58rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--t3);margin:14px 0 4px 6px;
+}
+
+/* ── CARDS ── */
+.card{
+  background:var(--card);border:1px solid var(--bd2);border-radius:16px;
+  transition:border-color .22s,box-shadow .22s,transform .22s;
+}
+.card:hover{border-color:rgba(155,48,217,.3);}
+.card2{background:var(--card2);border:1px solid var(--bd2);border-radius:12px;}
+
+/* ── KPI ── */
+.kpi{
+  background:var(--card);border:1px solid var(--bd2);border-radius:16px;padding:18px;
+  transition:all .28s;animation:slideUp .5s ease both;
+  position:relative;overflow:hidden;
+}
+.kpi::before{
+  content:'';position:absolute;inset:0;border-radius:16px;
+  background:radial-gradient(circle at 80% 20%,rgba(155,48,217,.08),transparent 65%);
+  pointer-events:none;
+}
+.kpi:hover{border-color:rgba(155,48,217,.35);transform:translateY(-3px);box-shadow:0 12px 32px rgba(155,48,217,.14);}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-size:.64rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);padding:10px 14px;text-align:left;border-bottom:1px solid var(--bd2);white-space:nowrap;}
+.tbl td{padding:12px 14px;font-size:.79rem;color:var(--t1);border-bottom:1px solid var(--bd2);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tbody tr{transition:background .15s;}
+.tbl tbody tr:hover{background:var(--card2);}
+
+/* ── CHIPS ── */
+.chip{padding:2px 9px;border-radius:20px;font-size:.63rem;font-weight:700;letter-spacing:.03em;white-space:nowrap;}
+.c-green{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.22);}
+.c-red{background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.2);}
+.c-blue{background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.2);}
+.c-amber{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);}
+.c-purple{background:rgba(155,48,217,.14);color:#b855f0;border:1px solid rgba(155,48,217,.28);}
+.c-gray{background:rgba(107,114,128,.12);color:#9ca3af;border:1px solid rgba(107,114,128,.2);}
+
+/* ── AVATARS ── */
+.av-a{background:linear-gradient(135deg,#9b30d9,#b855f0);}
+.av-b{background:linear-gradient(135deg,#1d4ed8,#60a5fa);}
+.av-c{background:linear-gradient(135deg,#059669,#22c55e);}
+.av-d{background:linear-gradient(135deg,#b45309,#fbbf24);}
+.av-e{background:linear-gradient(135deg,#0891b2,#22d3ee);}
+.av-f{background:linear-gradient(135deg,#dc2626,#f87171);}
+
+/* ── PROGRESS ── */
+.pbar{height:4px;border-radius:20px;background:var(--card3);overflow:hidden;}
+.pf{height:100%;border-radius:20px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.pf-acc{background:linear-gradient(90deg,var(--acc),var(--acc2));}
+.pf-green{background:linear-gradient(90deg,#059669,#22c55e);}
+.pf-blue{background:linear-gradient(90deg,#1d4ed8,#60a5fa);}
+.pf-amber{background:linear-gradient(90deg,#b45309,#fbbf24);}
+
+/* ── GRADIENT TEXT ── */
+.tg{background:linear-gradient(135deg,#b855f0,#9b30d9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* ── BUTTONS ── */
+.btn{padding:7px 16px;border-radius:10px;font-size:.76rem;font-weight:600;cursor:pointer;border:none;transition:all .22s;font-family:'Poppins',sans-serif;}
+.btn-acc{background:linear-gradient(135deg,#9b30d9,#b855f0);color:#fff;box-shadow:0 4px 14px rgba(155,48,217,.3);}
+.btn-acc:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(155,48,217,.45);}
+.btn-ghost{background:var(--card2);border:1px solid var(--bd2);color:var(--t2);}
+.btn-ghost:hover{border-color:var(--bd);color:#b855f0;}
+.btn-danger{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);color:#f87171;}
+.btn-danger:hover{background:rgba(248,113,113,.2);}
+.btn-sm{padding:5px 11px;font-size:.69rem;}
+
+/* ── INPUTS ── */
+.inp{background:var(--card2);border:1px solid var(--bd2);border-radius:10px;padding:8px 12px;font-size:.79rem;color:var(--t1);outline:none;width:100%;font-family:'Poppins',sans-serif;transition:border-color .2s,box-shadow .2s;}
+.inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(155,48,217,.12);}
+.inp::placeholder{color:var(--t3);}
+.sel{background:var(--card2);border:1px solid var(--bd2);border-radius:10px;padding:7px 11px;font-size:.76rem;color:var(--t1);outline:none;cursor:pointer;font-family:'Poppins',sans-serif;transition:border-color .2s;}
+.sel:focus{border-color:var(--acc);}
+
+/* ── TOGGLE ── */
+.tgl{position:relative;display:inline-block;width:38px;height:21px;flex-shrink:0;}
+.tgl input{opacity:0;width:0;height:0;}
+.tgl-slider{position:absolute;cursor:pointer;inset:0;background:var(--card3);border-radius:21px;transition:.3s;border:1px solid var(--bd2);}
+.tgl-slider::before{content:'';position:absolute;height:15px;width:15px;left:2px;bottom:2px;background:var(--t3);border-radius:50%;transition:.3s;}
+.tgl input:checked+.tgl-slider{background:linear-gradient(135deg,#9b30d9,#b855f0);border-color:transparent;box-shadow:0 0 10px rgba(155,48,217,.4);}
+.tgl input:checked+.tgl-slider::before{transform:translateX(17px);background:#fff;}
+
+/* ── TABS ── */
+.page-tab{display:none;}
+.page-tab.active{display:block;}
+.stab{padding:6px 14px;border-radius:9px;font-size:.76rem;font-weight:600;cursor:pointer;border:1px solid var(--bd2);background:var(--card2);color:var(--t2);transition:all .2s;white-space:nowrap;}
+.stab.on{background:linear-gradient(135deg,#9b30d9,#b855f0);color:#fff;border-color:transparent;box-shadow:0 3px 12px rgba(155,48,217,.3);}
+.stab:hover:not(.on){border-color:var(--bd);color:#b855f0;}
+
+/* ── ICON BOX ── */
+.ibox{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem;}
+.ib-acc{background:rgba(155,48,217,.15);box-shadow:inset 0 0 0 1px rgba(155,48,217,.22);}
+.ib-green{background:rgba(34,197,94,.12);box-shadow:inset 0 0 0 1px rgba(34,197,94,.22);}
+.ib-blue{background:rgba(96,165,250,.1);box-shadow:inset 0 0 0 1px rgba(96,165,250,.2);}
+.ib-amber{background:rgba(251,191,36,.1);box-shadow:inset 0 0 0 1px rgba(251,191,36,.2);}
+.ib-red{background:rgba(248,113,113,.1);box-shadow:inset 0 0 0 1px rgba(248,113,113,.2);}
+
+/* ── ONLINE DOT ── */
+.odot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 2px rgba(34,197,94,.25),0 0 8px rgba(34,197,94,.4);flex-shrink:0;animation:pulse 2s ease-in-out infinite;}
+
+/* ── HEATMAP ── */
+.hm{width:10px;height:10px;border-radius:2px;cursor:default;transition:transform .15s;}
+.hm:hover{transform:scale(1.5);}
+.hm0{background:var(--card2);}
+.hm1{background:rgba(155,48,217,.2);}
+.hm2{background:rgba(155,48,217,.42);}
+.hm3{background:rgba(155,48,217,.65);}
+.hm4{background:rgba(155,48,217,.9);}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);animation:fadeIn .2s ease;}
+.modal{background:var(--card);border:1px solid var(--bd);border-radius:20px;width:100%;max-width:480px;padding:28px;position:relative;animation:scaleIn .25s cubic-bezier(.34,1.56,.64,1);}
+
+/* ── ANIMATIONS ── */
+@keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.92);}to{opacity:1;transform:scale(1);}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 2px rgba(34,197,94,.25),0 0 8px rgba(34,197,94,.4);}50%{box-shadow:0 0 0 4px rgba(34,197,94,.15),0 0 14px rgba(34,197,94,.5);}}
+@keyframes shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}
+
+}
+.d1{animation-delay:.05s;}.d2{animation-delay:.1s;}.d3{animation-delay:.15s;}.d4{animation-delay:.2s;}
+.d5{animation-delay:.25s;}.d6{animation-delay:.3s;}.d7{animation-delay:.35s;}.d8{animation-delay:.4s;}
+
+/* ── SCROLLABLE TABLE ── */
+.tbl-scroll{overflow-x:auto;border-radius:0 0 16px 16px;}
+
+/* ── DELTA ── */
+.delta-up{font-size:.67rem;font-weight:700;color:#22c55e;}
+.delta-dn{font-size:.67rem;font-weight:700;color:#f87171;}
+
+/* ── LOGO MARK ── */
+.logo-mark{
+  width:38px;height:38px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,#9b30d9,#b855f0);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(155,48,217,.45);
+  position:relative;overflow:hidden;
+  transition:transform .2s,box-shadow .2s;
+}
+.logo-mark:hover{transform:scale(1.05);box-shadow:0 6px 24px rgba(155,48,217,.6);}
+.logo-mark::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.18),transparent 55%);
+  pointer-events:none;
+}
+
+/* ── SEARCH BAR ── */
+.search-wrap{
+  display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:11px;
+  background:var(--card);border:1px solid var(--bd2);min-width:210px;
+  transition:border-color .2s,box-shadow .2s;
+}
+.search-wrap:focus-within{border-color:rgba(155,48,217,.5);box-shadow:0 0 0 3px rgba(155,48,217,.1);}
+
+/* ── MOBILE ── */
+#mobileBar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--surf);border-top:1px solid var(--bd2);padding:4px 0;}
+
+@media(max-width:768px){
+  :root{--sb:0px;}
+  #sidebar{transform:translateX(-220px);}
+  #topbar{display:none!important;}
+  #main{margin-left:0!important;padding-top:0;padding-bottom:62px;}
+  #mobileBar{display:flex!important;}
+  .kpi-grid{grid-template-columns:1fr 1fr!important;}
+  .main-cols{grid-template-columns:1fr!important;}
+  .chart-row{grid-template-columns:1fr!important;}
+  .table-wrap{overflow-x:auto;}
+  .hide-mobile{display:none!important;}
+}
+@media(max-width:480px){
+  .kpi-grid{grid-template-columns:1fr!important;}
+}
+
+/* ── GLOW PULSE FOR LIVE INDICATORS ── */
+.live-dot{
+  width:7px;height:7px;border-radius:50%;background:#22c55e;
+  animation:livepulse 1.4s ease-in-out infinite;flex-shrink:0;
+}
+@keyframes livepulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.6);opacity:1;}
+  50%{box-shadow:0 0 0 5px rgba(34,197,94,.0);opacity:.8;}
+}
+
+/* ── SIDEBAR DIVIDER ── */
+.sb-divider{height:1px;background:var(--bd2);margin:10px 0;}
+
+/* ── TOPBAR ICON BTN ── */
+.icon-btn{
+  width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  background:var(--card);border:1px solid var(--bd2);color:var(--t2);cursor:pointer;
+  transition:all .2s;flex-shrink:0;
+}
+.icon-btn:hover{border-color:rgba(155,48,217,.4);color:#b855f0;background:rgba(155,48,217,.08);}
+
+/* ── NOTIFICATION BADGE ── */
+.notif-badge{
+  position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;
+  background:#9b30d9;border:2px solid var(--surf);
+}
+
+/* number counter animation */
+.count-anim{transition:all .8s ease;}
+</style>
+</head>
+<body class="dark">
+
+<div id="overlay" onclick="closeMobileMenu()"></div>
+
+<!-- ══════════════════════ SIDEBAR ══════════════════════ -->
+<aside id="sidebar">
+  <!-- Logo only -->
+  <div class="flex items-center gap-3 px-1 mb-6">
+    <div class="logo-mark">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v6H4z" fill="white" opacity=".9"/>
+        <path d="M14 15h6v6h-6z" fill="white" opacity=".5"/>
+      </svg>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div style="font-weight:800;font-size:.88rem;color:var(--t1);letter-spacing:-.01em">Admin Panel</div>
+      <div style="font-size:.57rem;color:var(--t3);font-weight:500;letter-spacing:.04em">PLATFORM CONTROL</div>
+    </div>
+    <button onclick="toggleSidebar()" class="hide-mobile icon-btn" style="width:28px;height:28px;border-radius:8px;flex-shrink:0" title="Collapse">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
+
+  <!-- Admin pill -->
+  <div class="flex items-center gap-2.5 px-2 py-2 rounded-xl mb-5" style="background:rgba(155,48,217,.1);border:1px solid rgba(155,48,217,.2)">
+    <div class="av-a flex-shrink-0" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.68rem">A</div>
+    <div class="flex-1 min-w-0">
+      <div style="font-size:.74rem;font-weight:600;color:#e9d5ff" class="truncate">Super Admin</div>
+      <div style="font-size:.6rem;color:rgba(155,48,217,.8)">admin@prodash.io</div>
+    </div>
+    <div class="odot"></div>
+  </div>
+
+  <div class="nav-group">MAIN</div>
+  <nav class="flex flex-col gap-0.5 mb-2">
+    <a href="#" class="nav-item on" onclick="showPage('overview',this)">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Overview
+    </a>
+    <a href="#" class="nav-item" onclick="showPage('users',this)">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Users
+      <span class="nbadge">1.2k</span>
+    </a>
+    <a href="#" class="nav-item" onclick="showPage('sessions',this)">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      Sessions
+      <span class="nbadge">48</span>
+    </a>
+    <a href="#" class="nav-item" onclick="showPage('coaches',this)">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M2 20c0-4 4-7 10-7s10 3 10 7"/></svg>
+      Coaches
+    </a>
+    <a href="#" class="nav-item" onclick="showPage('reviews',this)">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.18L7 14.14 2 9.27l6.91-1.01z"/></svg>
+      Reviews
+    </a>
+
+  </nav>
+
+  <div class="sb-divider"></div>
+  <div class="nav-group">SYSTEM</div>
+  <nav class="flex flex-col gap-0.5 mb-2">
+    <a href="#" class="nav-item" onclick="showPage('analytics',this)">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </a>
+    <a href="#" class="nav-item" onclick="showPage('settings',this)">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 1.64 13.65M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+      Settings
+    </a>
+    <a href="#" class="nav-item" onclick="showPage('logs',this)">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      System Logs
+    </a>
+  </nav>
+
+  <div class="sb-divider"></div>
+  <div class="nav-group">LINKS</div>
+  <nav class="flex flex-col gap-0.5">
+    <a href="dashboard.html" class="nav-item">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      User Dashboard
+    </a>
+    <a href="notification.html" class="nav-item">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Notifications
+      <span class="nbadge">3</span>
+    </a>
+  </nav>
+</aside>
+
+<!-- ══════════════════════ TOPBAR ══════════════════════ -->
+<header id="topbar">
+  <button onclick="toggleSidebar()" class="icon-btn mr-1">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div>
+    <div style="font-size:.62rem;color:var(--t3)">Admin / <span id="breadcrumb" style="color:#b855f0">Overview</span></div>
+    <div style="font-size:.82rem;font-weight:700;color:var(--t1);letter-spacing:-.01em" id="pageTitle">Platform Overview</div>
+  </div>
+  <div class="search-wrap hide-mobile ml-4">
+    <svg width="13" height="13" style="color:var(--t3);flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" placeholder="Search users, sessions…" style="background:transparent;outline:none;flex:1;font-size:.74rem;color:var(--t1);font-family:'Poppins',sans-serif;border:none;"/>
+  </div>
+  <div class="ml-auto flex items-center gap-2">
+    <div class="relative">
+<button class="icon-btn" aria-label="Notifications">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <div class="notif-badge"></div>
+    </div>
+    <button onclick="toggleTheme()" class="icon-btn" id="themeBtn">
+      <svg id="mi" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg id="si" width="16" height="16" class="hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+    </button>
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl" style="background:rgba(155,48,217,.15);border:1px solid rgba(155,48,217,.3)">
+      <div class="av-a flex items-center justify-center text-white font-bold" style="width:24px;height:24px;border-radius:7px;font-size:.65rem">A</div>
+      <span style="font-size:.76rem;color:#e9d5ff;font-weight:600">Super Admin</span>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════ MOBILE TOP ══════════════════════ -->
+<div style="display:none;position:fixed;top:0;left:0;right:0;z-index:30;height:52px;align-items:center;padding:0 14px;gap:10px;background:var(--surf);border-bottom:1px solid var(--bd2);" id="mobileTopBar">
+  <button onclick="openMobileMenu()" class="icon-btn">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="logo-mark" style="width:30px;height:30px;border-radius:9px;">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+      <path d="M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v6H4z" fill="white" opacity=".9"/>
+      <path d="M14 15h6v6h-6z" fill="white" opacity=".5"/>
+    </svg>
+  </div>
+  <div class="ml-auto flex gap-2">
+    <button onclick="toggleTheme()" class="icon-btn" style="width:30px;height:30px;border-radius:8px">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════ MAIN ══════════════════════ -->
+<main id="main">
+<div class="p-4 md:p-5" style="max-width:1380px;margin:0 auto">
+
+<!-- ▓▓▓ OVERVIEW ▓▓▓ -->
+<div id="page-overview" class="page-tab active">
+
+  <div class="grid gap-4 mb-5 kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi d1">
+      <div class="flex items-start justify-between mb-3">
+        <div class="ibox ib-acc">👥</div>
+        <span class="chip c-green delta-up">↑ 8.2%</span>
+      </div>
+      <div class="tg font-bold mb-0.5" style="font-size:2rem;line-height:1" id="kpi1">1,248</div>
+      <div style="font-size:.73rem;color:var(--t2)">Total Users</div>
+      <div class="pbar mt-3"><div class="pf pf-acc" style="width:0%" id="pb1"></div></div>
+    </div>
+    <div class="kpi d2">
+      <div class="flex items-start justify-between mb-3">
+        <div class="ibox ib-green">📅</div>
+        <span class="chip c-green delta-up">↑ 14%</span>
+      </div>
+      <div class="font-bold mb-0.5" style="font-size:2rem;line-height:1;color:#22c55e" id="kpi2">3,892</div>
+      <div style="font-size:.73rem;color:var(--t2)">Total Sessions</div>
+      <div class="pbar mt-3"><div class="pf pf-green" style="width:0%" id="pb2"></div></div>
+    </div>
+    <div class="kpi d3">
+      <div class="flex items-start justify-between mb-3">
+        <div class="ibox ib-amber">💰</div>
+        <span class="chip c-green delta-up">↑ 22%</span>
+      </div>
+      <div class="font-bold mb-0.5" style="font-size:2rem;line-height:1;color:#fbbf24">$84.2K</div>
+      <div style="font-size:.73rem;color:var(--t2)">Revenue (MTD)</div>
+      <div class="pbar mt-3"><div class="pf pf-amber" style="width:0%" id="pb3"></div></div>
+    </div>
+    <div class="kpi d4">
+      <div class="flex items-start justify-between mb-3">
+        <div class="ibox ib-blue">⭐</div>
+        <span class="chip c-green delta-up">↑ +0.2</span>
+      </div>
+      <div class="font-bold mb-0.5" style="font-size:2rem;line-height:1;color:#60a5fa">4.87</div>
+      <div style="font-size:.73rem;color:var(--t2)">Avg Platform Rating</div>
+      <div class="pbar mt-3"><div class="pf pf-blue" style="width:0%" id="pb4"></div></div>
+    </div>
+  </div>
+
+  <div class="grid gap-4 mb-5 kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi d2" style="padding:13px">
+      <div class="flex items-center gap-3">
+        <div class="ibox ib-acc" style="width:36px;height:36px;font-size:.9rem">🏆</div>
+        <div><div class="font-bold" style="font-size:1.3rem;color:var(--t1)">142</div><div style="font-size:.68rem;color:var(--t2)">Active Coaches</div></div>
+        <span class="chip c-purple ml-auto">Pro</span>
+      </div>
+    </div>
+    <div class="kpi d3" style="padding:13px">
+      <div class="flex items-center gap-3">
+        <div class="ibox ib-red" style="width:36px;height:36px;font-size:.9rem">⚠️</div>
+        <div><div class="font-bold" style="font-size:1.3rem;color:#f87171">7</div><div style="font-size:.68rem;color:var(--t2)">Open Disputes</div></div>
+        <span class="chip c-red ml-auto">Urgent</span>
+      </div>
+    </div>
+    <div class="kpi d4" style="padding:13px">
+      <div class="flex items-center gap-3">
+        <div class="ibox ib-green" style="width:36px;height:36px;font-size:.9rem">✅</div>
+        <div><div class="font-bold" style="font-size:1.3rem;color:#22c55e">98.4%</div><div style="font-size:.68rem;color:var(--t2)">Uptime (30d)</div></div>
+      </div>
+    </div>
+    <div class="kpi d5" style="padding:13px">
+      <div class="flex items-center gap-3">
+        <div class="ibox ib-amber" style="width:36px;height:36px;font-size:.9rem">🪙</div>
+        <div><div class="font-bold" style="font-size:1.3rem;color:#fbbf24">842K</div><div style="font-size:.68rem;color:var(--t2)">Tokens Circulating</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid gap-4 mb-5 chart-row" style="grid-template-columns:2fr 1fr">
+    <div class="card p-5 d2" style="animation:slideUp .5s ease both">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div>
+          <div style="font-weight:700;font-size:.9rem;color:var(--t1)">Revenue &amp; Sessions</div>
+          <div style="font-size:.7rem;color:var(--t2)">Monthly platform performance</div>
+        </div>
+        <div class="flex gap-2">
+          <button class="stab on" onclick="setPeriod(this,'m')">Monthly</button>
+          <button class="stab" onclick="setPeriod(this,'q')">Quarterly</button>
+        </div>
+      </div>
+      <div style="height:220px"><canvas id="revChart"></canvas></div>
+      <div class="flex gap-5 mt-3 flex-wrap">
+        <div class="flex items-center gap-1.5"><span style="width:8px;height:8px;border-radius:50%;background:#9b30d9;display:inline-block"></span><span style="font-size:.7rem;color:var(--t2)">Revenue ($K)</span></div>
+        <div class="flex items-center gap-1.5"><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block"></span><span style="font-size:.7rem;color:var(--t2)">Sessions</span></div>
+      </div>
+    </div>
+    <div class="card p-5 d3" style="animation:slideUp .5s ease both">
+      <div style="font-weight:700;font-size:.9rem;color:var(--t1);margin-bottom:3px">User Breakdown</div>
+      <div style="font-size:.7rem;color:var(--t2);margin-bottom:14px">By account type</div>
+      <div class="flex justify-center mb-4" style="position:relative">
+        <canvas id="userDonut" width="170" height="170"></canvas>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none">
+          <div class="tg font-bold" style="font-size:1.4rem">1,248</div>
+          <div style="font-size:.6rem;color:var(--t2)">Total</div>
+        </div>
+      </div>
+      <div class="flex flex-col gap-2.5">
+        <div class="flex items-center justify-between"><div class="flex items-center gap-2"><span style="width:9px;height:9px;border-radius:2px;background:#9b30d9;display:inline-block"></span><span style="font-size:.72rem;color:var(--t2)">Candidates</span></div><span style="font-size:.72rem;font-weight:700;color:var(--t1)">840</span></div>
+        <div class="flex items-center justify-between"><div class="flex items-center gap-2"><span style="width:9px;height:9px;border-radius:2px;background:#22c55e;display:inline-block"></span><span style="font-size:.72rem;color:var(--t2)">Coaches</span></div><span style="font-size:.72rem;font-weight:700;color:var(--t1)">142</span></div>
+        <div class="flex items-center justify-between"><div class="flex items-center gap-2"><span style="width:9px;height:9px;border-radius:2px;background:#60a5fa;display:inline-block"></span><span style="font-size:.72rem;color:var(--t2)">Pro Users</span></div><span style="font-size:.72rem;font-weight:700;color:var(--t1)">220</span></div>
+        <div class="flex items-center justify-between"><div class="flex items-center gap-2"><span style="width:9px;height:9px;border-radius:2px;background:#fbbf24;display:inline-block"></span><span style="font-size:.72rem;color:var(--t2)">Admins</span></div><span style="font-size:.72rem;font-weight:700;color:var(--t1)">46</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid gap-4 mb-5 chart-row" style="grid-template-columns:1fr 1fr">
+    <div class="card p-5 d3" style="animation:slideUp .5s ease both">
+      <div style="font-weight:700;font-size:.9rem;color:var(--t1);margin-bottom:3px">Platform Activity</div>
+      <div style="font-size:.7rem;color:var(--t2);margin-bottom:14px">Session heatmap — last 84 days</div>
+      <div id="adminHm" class="flex flex-wrap gap-1.5 mb-3"></div>
+      <div class="flex items-center gap-1.5 mt-2">
+        <span style="font-size:.59rem;color:var(--t3)">Less</span>
+        <div class="hm hm0"></div><div class="hm hm1"></div><div class="hm hm2"></div><div class="hm hm3"></div><div class="hm hm4"></div>
+        <span style="font-size:.59rem;color:var(--t3)">More</span>
+      </div>
+    </div>
+    <div class="card p-5 d4" style="animation:slideUp .5s ease both">
+      <div class="flex items-center justify-between mb-4">
+        <div style="font-weight:700;font-size:.9rem;color:var(--t1)">Recent Activity</div>
+        <span style="font-size:.64rem;font-weight:600;color:#b855f0;cursor:pointer">View all →</span>
+      </div>
+      <div class="flex flex-col gap-3" id="recentActivity"></div>
+    </div>
+  </div>
+
+  <div class="card d5" style="animation:slideUp .5s ease both">
+    <div class="flex items-center justify-between p-5 pb-3 flex-wrap gap-2">
+      <div>
+        <div style="font-weight:700;font-size:.9rem;color:var(--t1)">Recent Signups</div>
+        <div style="font-size:.7rem;color:var(--t2)">Latest registered accounts</div>
+      </div>
+      <button class="btn btn-acc btn-sm" onclick="showPage('users',document.querySelector('[onclick*=users]'))">View All Users</button>
+    </div>
+    <div class="tbl-scroll">
+      <table class="tbl"><thead><tr>
+        <th>User</th><th>Role</th><th>Joined</th><th>Status</th><th>Sessions</th><th>Actions</th>
+      </tr></thead><tbody id="signupTbl"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ▓▓▓ USERS ▓▓▓ -->
+<div id="page-users" class="page-tab">
+  <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+    <div>
+      <div style="font-weight:700;font-size:1.05rem;color:var(--t1)">User Management</div>
+      <div style="font-size:.73rem;color:var(--t2)">Manage all 1,248 registered users</div>
+    </div>
+    <div class="flex gap-2 flex-wrap">
+      <button onclick="openModal('addUser')" class="btn btn-acc btn-sm">+ Add User</button>
+      <button class="btn btn-ghost btn-sm">⬇ Export CSV</button>
+    </div>
+  </div>
+  <div class="flex items-center gap-2 mb-4 flex-wrap">
+    <div class="search-wrap flex-1" style="min-width:160px">
+      <svg width="13" height="13" style="color:var(--t3);flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Search users…" oninput="filterUsers(this.value)" style="background:transparent;outline:none;flex:1;font-size:.76rem;color:var(--t1);font-family:'Poppins',sans-serif;border:none;"/>
+    </div>
+    <select class="sel" onchange="filterByRole(this.value)">
+      <option value="">All Roles</option>
+      <option value="Candidate">Candidate</option>
+      <option value="Coach">Coach</option>
+      <option value="Pro">Pro</option>
+      <option value="Admin">Admin</option>
+    </select>
+    <select class="sel" onchange="filterByStatus(this.value)">
+      <option value="">All Status</option>
+      <option value="Active">Active</option>
+      <option value="Suspended">Suspended</option>
+      <option value="Pending">Pending</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="tbl-scroll">
+      <table class="tbl"><thead><tr>
+        <th><input type="checkbox" onclick="toggleAll(this)" style="cursor:pointer"></th>
+        <th>User</th><th>Role</th><th>Email</th>
+        <th class="hide-mobile">Joined</th><th class="hide-mobile">Sessions</th>
+        <th>Status</th><th>Actions</th>
+      </tr></thead><tbody id="userTbl"></tbody></table>
+    </div>
+    <div class="flex items-center justify-between p-4 flex-wrap gap-2" style="border-top:1px solid var(--bd2)">
+      <div style="font-size:.73rem;color:var(--t2)">Showing <span id="userCount">10</span> of 1,248 users</div>
+      <div class="flex gap-1">
+        <button class="btn btn-ghost btn-sm">← Prev</button>
+        <button class="btn btn-acc btn-sm">1</button>
+        <button class="btn btn-ghost btn-sm">2</button>
+        <button class="btn btn-ghost btn-sm">3</button>
+        <button class="btn btn-ghost btn-sm">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ▓▓▓ SESSIONS ▓▓▓ -->
+<div id="page-sessions" class="page-tab">
+  <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+    <div>
+      <div style="font-weight:700;font-size:1.05rem;color:var(--t1)">Session Management</div>
+      <div style="font-size:.73rem;color:var(--t2)">Monitor and manage all platform sessions</div>
+    </div>
+    <button class="btn btn-ghost btn-sm">⬇ Export</button>
+  </div>
+  <div class="grid gap-3 mb-5 kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="card2 p-4"><div style="font-size:.68rem;color:var(--t2);margin-bottom:4px">Today's Sessions</div><div style="font-weight:700;font-size:1.5rem;color:var(--t1)">48</div><div class="delta-up mt-1">↑ 6 from yesterday</div></div>
+    <div class="card2 p-4"><div style="font-size:.68rem;color:var(--t2);margin-bottom:4px">Ongoing Now</div><div class="flex items-center gap-2"><div style="font-weight:700;font-size:1.5rem;color:#22c55e">12</div><div class="live-dot"></div></div><div style="font-size:.66rem;color:var(--t2)">Live right now</div></div>
+    <div class="card2 p-4"><div style="font-size:.68rem;color:var(--t2);margin-bottom:4px">Completed</div><div style="font-weight:700;font-size:1.5rem;color:#60a5fa">3,844</div><div class="delta-up mt-1">All time</div></div>
+    <div class="card2 p-4"><div style="font-size:.68rem;color:var(--t2);margin-bottom:4px">Cancelled</div><div style="font-weight:700;font-size:1.5rem;color:#f87171">48</div><div class="delta-dn mt-1">↑ 3 this week</div></div>
+  </div>
+  <div class="card"><div class="tbl-scroll"><table class="tbl"><thead><tr>
+    <th>#ID</th><th>Candidate</th><th>Coach</th>
+    <th class="hide-mobile">Platform</th><th class="hide-mobile">Date &amp; Time</th>
+    <th>Duration</th><th>Status</th><th>Actions</th>
+  </tr></thead><tbody id="sessionTbl"></tbody></table></div></div>
+</div>
+
+<!-- ▓▓▓ COACHES ▓▓▓ -->
+<div id="page-coaches" class="page-tab">
+  <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+    <div>
+      <div style="font-weight:700;font-size:1.05rem;color:var(--t1)">Coach Management</div>
+      <div style="font-size:.73rem;color:var(--t2)">142 active coaches on the platform</div>
+    </div>
+    <button onclick="openModal('addCoach')" class="btn btn-acc btn-sm">+ Onboard Coach</button>
+  </div>
+  <div class="grid gap-4" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))" id="coachGrid"></div>
+</div>
+
+<!-- ▓▓▓ REVIEWS ▓▓▓ -->
+<div id="page-reviews" class="page-tab">
+  <div style="font-weight:700;font-size:1.05rem;color:var(--t1);margin-bottom:4px">Reviews &amp; Ratings</div>
+  <div style="font-size:.73rem;color:var(--t2);margin-bottom:20px">Monitor platform reviews and take action</div>
+  <div class="grid gap-4 mb-5 chart-row" style="grid-template-columns:1fr 1fr">
+    <div class="card p-5"><div style="font-weight:700;font-size:.88rem;color:var(--t1);margin-bottom:14px">Rating Distribution</div><div style="height:180px"><canvas id="ratingBar"></canvas></div></div>
+    <div class="card p-5">
+      <div style="font-weight:700;font-size:.88rem;color:var(--t1);margin-bottom:10px">Overall Stats</div>
+      <div class="flex items-center gap-4 mb-4">
+        <div class="tg font-bold" style="font-size:3rem;line-height:1">4.87</div>
+        <div><div style="color:#fbbf24;font-size:.95rem;margin-bottom:3px">★★★★★</div><div style="font-size:.73rem;color:var(--t2)">8,420 total reviews</div><div style="font-size:.7rem;color:#22c55e;font-weight:600;margin-top:2px">96% positive</div></div>
+      </div>
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-2"><span style="font-size:.68rem;width:12px;color:var(--t2)">5</span><div class="pbar flex-1"><div class="pf" style="width:72%;background:linear-gradient(90deg,#059669,#22c55e)"></div></div><span style="font-size:.68rem;color:var(--t2)">72%</span></div>
+        <div class="flex items-center gap-2"><span style="font-size:.68rem;width:12px;color:var(--t2)">4</span><div class="pbar flex-1"><div class="pf" style="width:18%;background:linear-gradient(90deg,#1d4ed8,#60a5fa)"></div></div><span style="font-size:.68rem;color:var(--t2)">18%</span></div>
+        <div class="flex items-center gap-2"><span style="font-size:.68rem;width:12px;color:var(--t2)">3</span><div class="pbar flex-1"><div class="pf" style="width:6%;background:linear-gradient(90deg,#b45309,#fbbf24)"></div></div><span style="font-size:.68rem;color:var(--t2)">6%</span></div>
+        <div class="flex items-center gap-2"><span style="font-size:.68rem;width:12px;color:var(--t2)">2</span><div class="pbar flex-1"><div class="pf" style="width:3%;background:linear-gradient(90deg,#dc2626,#f87171)"></div></div><span style="font-size:.68rem;color:var(--t2)">3%</span></div>
+        <div class="flex items-center gap-2"><span style="font-size:.68rem;width:12px;color:var(--t2)">1</span><div class="pbar flex-1"><div class="pf" style="width:1%;background:#f87171"></div></div><span style="font-size:.68rem;color:var(--t2)">1%</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card"><div class="tbl-scroll"><table class="tbl"><thead><tr>
+    <th>Reviewer</th><th>Coach</th><th>Rating</th>
+    <th class="hide-mobile">Review</th><th class="hide-mobile">Date</th>
+    <th>Status</th><th>Actions</th>
+  </tr></thead><tbody id="reviewTbl"></tbody></table></div></div>
+</div>
+
+
+
+<!-- ▓▓▓ ANALYTICS ▓▓▓ -->
+<div id="page-analytics" class="page-tab">
+  <div style="font-weight:700;font-size:1.05rem;color:var(--t1);margin-bottom:4px">Platform Analytics</div>
+  <div style="font-size:.73rem;color:var(--t2);margin-bottom:20px">Deep dive into platform performance metrics</div>
+  <div class="grid gap-4 mb-5 chart-row" style="grid-template-columns:1fr 1fr">
+    <div class="card p-5"><div style="font-weight:700;font-size:.88rem;color:var(--t1);margin-bottom:3px">User Growth</div><div style="font-size:.7rem;color:var(--t2);margin-bottom:14px">Monthly new registrations</div><div style="height:200px"><canvas id="growthChart"></canvas></div></div>
+    <div class="card p-5"><div style="font-weight:700;font-size:.88rem;color:var(--t1);margin-bottom:3px">Traffic Sources</div><div style="font-size:.7rem;color:var(--t2);margin-bottom:14px">Where users come from</div><div style="height:200px"><canvas id="trafficChart"></canvas></div></div>
+  </div>
+  <div class="grid gap-4 chart-row" style="grid-template-columns:1fr 1fr">
+    <div class="card p-5"><div style="font-weight:700;font-size:.88rem;color:var(--t1);margin-bottom:3px">Session Completion Rate</div><div style="font-size:.7rem;color:var(--t2);margin-bottom:14px">Completed vs cancelled</div><div style="height:180px"><canvas id="completionChart"></canvas></div></div>
+    <div class="card p-5"><div style="font-weight:700;font-size:.88rem;color:var(--t1);margin-bottom:14px">Top Performing Coaches</div><div class="flex flex-col gap-3" id="topCoaches"></div></div>
+  </div>
+</div>
+
+<!-- ▓▓▓ SETTINGS ▓▓▓ -->
+<div id="page-settings" class="page-tab">
+  <div style="font-weight:700;font-size:1.05rem;color:var(--t1);margin-bottom:4px">Platform Settings</div>
+  <div style="font-size:.73rem;color:var(--t2);margin-bottom:20px">Configure global platform preferences</div>
+  <div class="grid gap-5 main-cols" style="grid-template-columns:1fr 1fr">
+    <div class="card p-5">
+      <div style="font-weight:700;font-size:.86rem;color:var(--t1);margin-bottom:16px">General Settings</div>
+      <div class="flex flex-col gap-4">
+        <div><label style="font-size:.73rem;color:var(--t2);display:block;margin-bottom:5px">Platform Name</label><input class="inp" value="ProDash"/></div>
+        <div><label style="font-size:.73rem;color:var(--t2);display:block;margin-bottom:5px">Support Email</label><input class="inp" value="support@prodash.io"/></div>
+        <div><label style="font-size:.73rem;color:var(--t2);display:block;margin-bottom:5px">Default Currency</label><select class="sel" style="width:100%"><option>USD ($)</option><option>EUR (€)</option><option>GBP (£)</option></select></div>
+        <div><label style="font-size:.73rem;color:var(--t2);display:block;margin-bottom:5px">Session Duration Default</label><select class="sel" style="width:100%"><option>30 min</option><option>60 min</option><option>90 min</option></select></div>
+        <button class="btn btn-acc" style="width:100%">Save Changes</button>
+      </div>
+    </div>
+    <div class="card p-5">
+      <div style="font-weight:700;font-size:.86rem;color:var(--t1);margin-bottom:16px">Feature Toggles</div>
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center justify-between"><div><div style="font-size:.79rem;font-weight:500;color:var(--t1)">User Registrations</div><div style="font-size:.66rem;color:var(--t2)">Allow new sign-ups</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-slider"></span></label></div>
+        <div class="flex items-center justify-between"><div><div style="font-size:.79rem;font-weight:500;color:var(--t1)">Email Notifications</div><div style="font-size:.66rem;color:var(--t2)">System-wide emails</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-slider"></span></label></div>
+        <div class="flex items-center justify-between"><div><div style="font-size:.79rem;font-weight:500;color:var(--t1)">Coach Verification</div><div style="font-size:.66rem;color:var(--t2)">Require manual approval</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-slider"></span></label></div>
+        <div class="flex items-center justify-between"><div><div style="font-size:.79rem;font-weight:500;color:var(--t1)">Token Economy</div><div style="font-size:.66rem;color:var(--t2)">Enable token transactions</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-slider"></span></label></div>
+        <div class="flex items-center justify-between"><div><div style="font-size:.79rem;font-weight:500;color:var(--t1)">Maintenance Mode</div><div style="font-size:.66rem;color:var(--t2)">Lock platform for users</div></div><label class="tgl"><input type="checkbox"><span class="tgl-slider"></span></label></div>
+        <div class="flex items-center justify-between"><div><div style="font-size:.79rem;font-weight:500;color:var(--t1)">2FA Enforcement</div><div style="font-size:.66rem;color:var(--t2)">Require 2FA for all admins</div></div><label class="tgl"><input type="checkbox" checked><span class="tgl-slider"></span></label></div>
+      </div>
+    </div>
+    <div class="card p-5">
+      <div style="font-weight:700;font-size:.86rem;color:var(--t1);margin-bottom:16px">Commission Settings</div>
+      <div class="flex flex-col gap-4">
+        <div><label style="font-size:.73rem;color:var(--t2);display:block;margin-bottom:5px">Platform Commission (%)</label><input class="inp" value="15" type="number" min="0" max="50"/></div>
+        <div><label style="font-size:.73rem;color:var(--t2);display:block;margin-bottom:5px">Pro User Discount (%)</label><input class="inp" value="20" type="number" min="0" max="100"/></div>
+        <div><label style="font-size:.73rem;color:var(--t2);display:block;margin-bottom:5px">Payout Schedule</label><select class="sel" style="width:100%"><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option></select></div>
+        <button class="btn btn-acc" style="width:100%">Update Commission</button>
+      </div>
+    </div>
+    <div class="card p-5">
+      <div style="font-weight:700;font-size:.86rem;color:var(--t1);margin-bottom:16px">Danger Zone</div>
+      <div class="flex flex-col gap-3">
+        <div class="p-3 rounded-xl" style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.15)">
+          <div style="font-size:.79rem;font-weight:600;color:#f87171;margin-bottom:3px">Reset All Sessions</div>
+          <div style="font-size:.68rem;color:var(--t2);margin-bottom:8px">Permanently delete all session records</div>
+          <button class="btn btn-danger btn-sm">Reset Sessions</button>
+        </div>
+        <div class="p-3 rounded-xl" style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.15)">
+          <div style="font-size:.79rem;font-weight:600;color:#f87171;margin-bottom:3px">Purge Inactive Users</div>
+          <div style="font-size:.68rem;color:var(--t2);margin-bottom:8px">Remove accounts inactive for 90+ days</div>
+          <button class="btn btn-danger btn-sm">Purge Users</button>
+        </div>
+        <div class="p-3 rounded-xl" style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.15)">
+          <div style="font-size:.79rem;font-weight:600;color:#f87171;margin-bottom:3px">Factory Reset</div>
+          <div style="font-size:.68rem;color:var(--t2);margin-bottom:8px">Wipe all data and restore defaults</div>
+          <button class="btn btn-danger btn-sm">Factory Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ▓▓▓ LOGS ▓▓▓ -->
+<div id="page-logs" class="page-tab">
+  <div style="font-weight:700;font-size:1.05rem;color:var(--t1);margin-bottom:4px">System Logs</div>
+  <div style="font-size:.73rem;color:var(--t2);margin-bottom:20px">Real-time platform event log</div>
+  <div class="flex gap-2 mb-4 flex-wrap">
+    <button class="stab on" onclick="filterLogs(this,'all')">All</button>
+    <button class="stab" onclick="filterLogs(this,'error')">Errors</button>
+    <button class="stab" onclick="filterLogs(this,'warning')">Warnings</button>
+    <button class="stab" onclick="filterLogs(this,'info')">Info</button>
+    <button class="stab" onclick="filterLogs(this,'success')">Success</button>
+  </div>
+  <div class="card p-4" style="font-family:'Courier New',monospace;font-size:.72rem;line-height:1.85" id="logContainer"></div>
+</div>
+
+</div>
+</main>
+
+<!-- ══════════════════════ MOBILE BOTTOM NAV ══════════════════════ -->
+<div id="mobileBar">
+  <div class="flex justify-around">
+    <button onclick="showPage('overview',this)" class="flex flex-col items-center gap-0.5 px-3 py-1" style="background:none;border:none;cursor:pointer;color:#b855f0">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span style="font-size:.56rem;font-weight:600">Overview</span>
+    </button>
+    <button onclick="showPage('users',this)" class="flex flex-col items-center gap-0.5 px-3 py-1" style="background:none;border:none;cursor:pointer;color:var(--t2)">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      <span style="font-size:.56rem;font-weight:600">Users</span>
+    </button>
+    <button onclick="showPage('sessions',this)" class="flex flex-col items-center gap-0.5 px-3 py-1" style="background:none;border:none;cursor:pointer;color:var(--t2)">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      <span style="font-size:.56rem;font-weight:600">Sessions</span>
+    </button>
+    <button onclick="showPage('analytics',this)" class="flex flex-col items-center gap-0.5 px-3 py-1" style="background:none;border:none;cursor:pointer;color:var(--t2)">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span style="font-size:.56rem;font-weight:600">Analytics</span>
+    </button>
+    <button onclick="openMobileMenu()" class="flex flex-col items-center gap-0.5 px-3 py-1" style="background:none;border:none;cursor:pointer;color:var(--t2)">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <span style="font-size:.56rem;font-weight:600">Menu</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════ MODAL ══════════════════════ -->
+<div id="modalBg" class="modal-bg hidden" onclick="closeModal(event)">
+  <div id="modalBox" class="modal" onclick="event.stopPropagation()">
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+// Users table is driven by backend.
+// Keep mock arrays for other panels only.
+const USERS=[
+
+  {id:1,name:'Alex Rodriguez',email:'alex@mail.com',role:'Candidate',joined:'May 1, 2026',sessions:24,status:'Active',av:'AR',avc:'av-b'},
+  {id:2,name:'Priya Kapoor',email:'priya@mail.com',role:'Candidate',joined:'Apr 28, 2026',sessions:16,status:'Active',av:'PK',avc:'av-c'},
+  {id:3,name:'James Wilson',email:'james@mail.com',role:'Pro',joined:'Apr 20, 2026',sessions:38,status:'Active',av:'JW',avc:'av-d'},
+  {id:4,name:'Maria Chen',email:'maria@mail.com',role:'Candidate',joined:'Apr 15, 2026',sessions:8,status:'Pending',av:'MC',avc:'av-e'},
+  {id:5,name:'David Park',email:'david@mail.com',role:'Coach',joined:'Mar 30, 2026',sessions:142,status:'Active',av:'DP',avc:'av-a'},
+  {id:6,name:'Emma Thompson',email:'emma@mail.com',role:'Pro',joined:'Mar 22, 2026',sessions:56,status:'Active',av:'ET',avc:'av-c'},
+  {id:7,name:'Kevin Patel',email:'kevin@mail.com',role:'Coach',joined:'Mar 10, 2026',sessions:98,status:'Active',av:'KP',avc:'av-b'},
+  {id:8,name:'Lena Fischer',email:'lena@mail.com',role:'Candidate',joined:'Mar 5, 2026',sessions:4,status:'Suspended',av:'LF',avc:'av-f'},
+  {id:9,name:'Omar Hassan',email:'omar@mail.com',role:'Admin',joined:'Jan 1, 2026',sessions:0,status:'Active',av:'OH',avc:'av-a'},
+  {id:10,name:'Sofia Romero',email:'sofia@mail.com',role:'Candidate',joined:'Feb 14, 2026',sessions:11,status:'Active',av:'SR',avc:'av-d'},
+];
+const SESSIONS_DATA=[
+  {id:'#S-1041',cand:'Alex Rodriguez',coach:'David Park',platform:'Zoom',datetime:'May 16, 10:00 AM',dur:'60 min',status:'Ongoing'},
+  {id:'#S-1040',cand:'Priya Kapoor',coach:'Kevin Patel',platform:'Meet',datetime:'May 16, 9:00 AM',dur:'45 min',status:'Completed'},
+  {id:'#S-1039',cand:'Maria Chen',coach:'David Park',platform:'Teams',datetime:'May 15, 3:00 PM',dur:'60 min',status:'Completed'},
+  {id:'#S-1038',cand:'James Wilson',coach:'Emma Thompson',platform:'Zoom',datetime:'May 15, 1:00 PM',dur:'30 min',status:'Cancelled'},
+  {id:'#S-1037',cand:'Sofia Romero',coach:'Kevin Patel',platform:'Zoom',datetime:'May 14, 11:00 AM',dur:'60 min',status:'Completed'},
+  {id:'#S-1036',cand:'Kevin Patel',coach:'David Park',platform:'Meet',datetime:'May 14, 9:00 AM',dur:'45 min',status:'Upcoming'},
+];
+const COACHES_DATA=[
+  {name:'Sarah Mitchell',role:'Career Coach',rating:4.9,sessions:142,placement:38,status:'Active',av:'SM',avc:'av-a'},
+  {name:'David Park',role:'Tech Coach',rating:4.8,sessions:98,placement:22,status:'Active',av:'DP',avc:'av-b'},
+  {name:'Kevin Patel',role:'DevOps Coach',rating:4.7,sessions:76,placement:18,status:'Active',av:'KP',avc:'av-c'},
+  {name:'Emma Thompson',role:'Marketing Coach',rating:4.6,sessions:54,placement:12,status:'Active',av:'ET',avc:'av-d'},
+  {name:'Lena Fischer',role:'Design Coach',rating:4.9,sessions:112,placement:30,status:'Suspended',av:'LF',avc:'av-f'},
+  {name:'Omar Hassan',role:'Leadership Coach',rating:4.5,sessions:44,placement:9,status:'Pending',av:'OH',avc:'av-e'},
+];
+const REVIEWS_DATA=[
+  {reviewer:'Alex Rodriguez',coach:'David Park',rating:5,text:'Incredible session, highly recommend!',date:'May 7, 2026',status:'Published'},
+  {reviewer:'Priya Kapoor',coach:'Kevin Patel',rating:5,text:'Very knowledgeable and patient.',date:'May 3, 2026',status:'Published'},
+  {reviewer:'Maria Chen',coach:'Sarah Mitchell',rating:4,text:'Good session overall.',date:'Apr 28, 2026',status:'Published'},
+  {reviewer:'James Wilson',coach:'Emma Thompson',rating:2,text:'Session was cut short, disappointing.',date:'Apr 20, 2026',status:'Flagged'},
+  {reviewer:'Sofia Romero',coach:'David Park',rating:5,text:'Amazing! Got my dream job offer!',date:'Apr 15, 2026',status:'Published'},
+];
+const PAYMENTS_DATA=[
+  {id:'#TXN-9841',user:'Alex Rodriguez',amount:'$120.00',type:'Session',date:'May 16, 2026',status:'Completed'},
+  {id:'#TXN-9840',user:'Priya Kapoor',amount:'$80.00',type:'Session',date:'May 15, 2026',status:'Completed'},
+  {id:'#TXN-9839',user:'James Wilson',amount:'$200.00',type:'Pro Upgrade',date:'May 14, 2026',status:'Completed'},
+  {id:'#TXN-9838',user:'Maria Chen',amount:'$120.00',type:'Session',date:'May 13, 2026',status:'Refunded'},
+  {id:'#TXN-9837',user:'David Park',amount:'$840.00',type:'Payout',date:'May 12, 2026',status:'Pending'},
+  {id:'#TXN-9836',user:'Emma Thompson',amount:'$460.00',type:'Payout',date:'May 10, 2026',status:'Completed'},
+];
+const LOGS_DATA=[
+  {t:'2026-05-16 10:42:11',level:'info',msg:'User alex@mail.com started session #S-1041'},
+  {t:'2026-05-16 10:35:02',level:'success',msg:'Payment $120.00 processed for TXN-9841'},
+  {t:'2026-05-16 10:20:44',level:'warning',msg:'Session #S-1038 cancelled by user james@mail.com'},
+  {t:'2026-05-16 10:01:30',level:'error',msg:'Failed login attempt for unknown@hack.com (IP: 192.168.1.x)'},
+  {t:'2026-05-16 09:55:12',level:'info',msg:'New user registered: sofia@mail.com'},
+  {t:'2026-05-16 09:40:08',level:'success',msg:'Coach kevin@mail.com verified and approved'},
+  {t:'2026-05-16 09:22:55',level:'info',msg:'System backup completed successfully (2.4 GB)'},
+  {t:'2026-05-16 09:10:01',level:'warning',msg:'High session load detected — 89% capacity'},
+  {t:'2026-05-16 08:52:33',level:'error',msg:'Email delivery failed for priya@mail.com — SMTP timeout'},
+  {t:'2026-05-16 08:30:00',level:'info',msg:'Daily analytics report generated and sent to admin'},
+  {t:'2026-05-16 08:15:18',level:'success',msg:'Badge unlocked for user alex@mail.com: Placement Pro'},
+  {t:'2026-05-16 07:45:00',level:'info',msg:'Platform started — all services nominal'},
+];
+
+// ── RENDER FUNCTIONS ──
+function renderUsers(data){
+  const t=document.getElementById('userTbl');if(!t)return;
+  const rc=r=>r==='admin'?'c-red':r==='coach'?'c-purple':r==='pro'?'c-blue':'c-gray';
+  const sc=st=>st==='Active'?'c-green':st==='Suspended'?'c-red':'c-amber';
+
+  const fmtJoined=v=>{
+    if(!v) return '—';
+    if(typeof v==='string') return v;
+    try{return new Date(v).toLocaleDateString();}catch(e){return '—';}
+  }
+
+  t.innerHTML=(data||[]).map(u=>{
+    const role=(u.role||u.type||'user');
+    const status=u.status||'Active';
+    const name=u.name||u.full_name||u.email||'User';
+    const email=u.email||'—';
+    const sessions=u.sessions ?? u.tokens ?? 0;
+
+    const avText=(name||'U').trim().split(/\s+/).filter(Boolean).slice(0,2).map(s=>s[0]).join('').toUpperCase().slice(0,2);
+    const avcClass='av-a';
+
+    return `<tr style="animation:slideUp .3s ease both">
+      <td><input type="checkbox" style="cursor:pointer"></td>
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div class="${avcClass}" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.68rem;flex-shrink:0">${avText}</div>
+        <div style="font-weight:600;font-size:.79rem">${name}</div>
+      </div></td>
+      <td><span class="chip ${rc(role)}">${role.charAt(0).toUpperCase()+role.slice(1)}</span></td>
+      <td style="color:var(--t2);font-size:.76rem">${email}</td>
+      <td class="hide-mobile" style="color:var(--t2);font-size:.73rem">${fmtJoined(u.joined_at || u.created_at || u.joined || u.registered_at)}</td>
+      <td class="hide-mobile" style="font-weight:700;color:var(--t1)">${sessions}</td>
+      <td><span class="chip ${sc(status)}">${status}</span></td>
+      <td><div style="display:flex;gap:5px">
+<button class="btn btn-ghost btn-sm" onclick="openModal('editUser',${u.id})" title="Edit user" aria-label="Edit user">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="toggleAdminRole(${u.id},this)" title="Toggle admin role" aria-label="Toggle admin role">Toggle</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('userCount').textContent=(data||[]).length;
+}
+
+function renderSignups(){
+  const t=document.getElementById('signupTbl');if(!t)return;
+  const rc=r=>r==='Admin'?'c-red':r==='Coach'?'c-purple':r==='Pro'?'c-blue':'c-gray';
+
+  t.innerHTML=USERS.slice(0,5).map((u,i)=>`<tr style="animation:slideUp .3s ease both;animation-delay:${i*.05}s">
+    <td><div style="display:flex;align-items:center;gap:10px">
+      <div class="${u.avc}" style="width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.65rem;flex-shrink:0">${u.av}</div>
+      <div style="font-weight:600;font-size:.77rem">${u.name}</div>
+    </div></td>
+    <td><span class="chip ${rc(u.role)}">${u.role}</span></td>
+    <td style="color:var(--t2);font-size:.73rem">${u.joined}</td>
+    <td><span class="chip ${u.status==='Active'?'c-green':u.status==='Suspended'?'c-red':'c-amber'}">${u.status}</span></td>
+    <td style="font-weight:700">${u.sessions}</td>
+    <td><button class="btn btn-ghost btn-sm">View</button></td>
+  </tr>`).join('');
+}
+
+function renderSessions(){
+  const t=document.getElementById('sessionTbl');if(!t)return;
+  const sc=s=>s==='Ongoing'?'c-green':s==='Completed'?'c-blue':s==='Cancelled'?'c-red':'c-amber';
+  t.innerHTML=SESSIONS_DATA.map((s,i)=>`<tr style="animation:slideUp .3s ease both;animation-delay:${i*.04}s">
+    <td style="color:#b855f0;font-weight:600;font-size:.73rem">${s.id}</td>
+    <td style="font-size:.79rem;font-weight:500">${s.cand}</td>
+    <td style="font-size:.76rem;color:var(--t2)">${s.coach}</td>
+    <td class="hide-mobile" style="font-size:.73rem;color:var(--t2)">${s.platform}</td>
+    <td class="hide-mobile" style="font-size:.73rem;color:var(--t2)">${s.datetime}</td>
+    <td style="font-size:.73rem;font-weight:700;color:var(--t1)">${s.dur}</td>
+    <td><span class="chip ${sc(s.status)}">${s.status}</span></td>
+    <td><div style="display:flex;gap:5px">
+      <button class="btn btn-ghost btn-sm">View</button>
+      ${s.status==='Ongoing'?'<button class="btn btn-danger btn-sm">End</button>':''}
+    </div></td>
+  </tr>`).join('');
+}
+
+function renderCoaches(){
+  const g=document.getElementById('coachGrid');if(!g)return;
+  const sc=s=>s==='Active'?'c-green':s==='Suspended'?'c-red':'c-amber';
+  g.innerHTML=COACHES_DATA.map((c,i)=>`
+    <div class="card p-4" style="animation:slideUp .4s ease both;animation-delay:${i*.06}s">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div class="${c.avc}" style="width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.84rem;flex-shrink:0">${c.av}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:.84rem;color:var(--t1)">${c.name}</div>
+          <div style="font-size:.7rem;color:var(--t2)">${c.role}</div>
+        </div>
+        <span class="chip ${sc(c.status)}">${c.status}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+        <div style="text-align:center;padding:8px;border-radius:9px;background:var(--card2)"><div style="font-weight:700;font-size:.95rem;color:var(--t1)">${c.sessions}</div><div style="font-size:.59rem;color:var(--t3)">Sessions</div></div>
+        <div style="text-align:center;padding:8px;border-radius:9px;background:var(--card2)"><div style="font-weight:700;font-size:.95rem;color:#22c55e">${c.placement}</div><div style="font-size:.59rem;color:var(--t3)">Placed</div></div>
+        <div style="text-align:center;padding:8px;border-radius:9px;background:var(--card2)"><div style="font-weight:700;font-size:.95rem;color:#fbbf24">${c.rating}</div><div style="font-size:.59rem;color:var(--t3)">Rating</div></div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-acc btn-sm" style="flex:1">View Profile</button>
+        <button class="btn ${c.status==='Suspended'?'btn-ghost':'btn-danger'} btn-sm">${c.status==='Suspended'?'Activate':'Suspend'}</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderReviews(){
+  const t=document.getElementById('reviewTbl');if(!t)return;
+  t.innerHTML=REVIEWS_DATA.map((r,i)=>`<tr style="animation:slideUp .3s ease both;animation-delay:${i*.04}s">
+    <td style="font-weight:500;font-size:.79rem">${r.reviewer}</td>
+    <td style="font-size:.76rem;color:var(--t2)">${r.coach}</td>
+    <td style="color:#fbbf24;font-weight:700;font-size:.85rem">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</td>
+    <td class="hide-mobile" style="font-size:.73rem;color:var(--t2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.text}</td>
+    <td class="hide-mobile" style="font-size:.71rem;color:var(--t3)">${r.date}</td>
+    <td><span class="chip ${r.status==='Published'?'c-green':'c-red'}">${r.status}</span></td>
+<button class="btn btn-ghost btn-sm" title="View review" aria-label="View review">View</button> <button class="btn btn-danger btn-sm" title="Remove review" aria-label="Remove review">Remove</button>
+  </tr>`).join('');
+}
+
+function renderPayments(){
+  const t=document.getElementById('payTbl');if(!t)return;
+  const sc=s=>s==='Completed'?'c-green':s==='Pending'?'c-amber':'c-red';
+  t.innerHTML=PAYMENTS_DATA.map((p,i)=>`<tr style="animation:slideUp .3s ease both;animation-delay:${i*.04}s">
+    <td style="color:#b855f0;font-weight:600;font-size:.73rem">${p.id}</td>
+    <td style="font-size:.79rem;font-weight:500">${p.user}</td>
+    <td style="font-weight:700;font-size:.84rem;color:var(--t1)">${p.amount}</td>
+    <td class="hide-mobile"><span class="chip c-blue">${p.type}</span></td>
+    <td class="hide-mobile" style="font-size:.71rem;color:var(--t2)">${p.date}</td>
+    <td><span class="chip ${sc(p.status)}">${p.status}</span></td>
+    <td><button class="btn btn-ghost btn-sm">View</button></td>
+  </tr>`).join('');
+}
+
+function renderLogs(filter='all'){
+  const c=document.getElementById('logContainer');if(!c)return;
+  const col={error:'#f87171',warning:'#fbbf24',info:'#60a5fa',success:'#22c55e'};
+  const filtered=filter==='all'?LOGS_DATA:LOGS_DATA.filter(l=>l.level===filter);
+  c.innerHTML=filtered.map((l,i)=>`
+    <div style="display:flex;gap:12px;padding:5px 0;border-bottom:1px solid var(--bd2);animation:slideUp .25s ease both;animation-delay:${i*.02}s">
+      <span style="color:var(--t3);white-space:nowrap;font-size:.68rem">${l.t}</span>
+      <span style="color:${col[l.level]};font-weight:700;min-width:60px;font-size:.68rem">[${l.level.toUpperCase()}]</span>
+      <span style="color:var(--t1);font-size:.68rem">${l.msg}</span>
+    </div>`).join('');
+}
+
+function renderRecentActivity(){
+  const el=document.getElementById('recentActivity');if(!el)return;
+  const items=[
+    {icon:'👤',text:'New user <b>Sofia Romero</b> registered',time:'2 min ago',color:'#b855f0'},
+    {icon:'💳',text:'Payment <b>$120.00</b> completed for Alex R.',time:'8 min ago',color:'#22c55e'},
+    {icon:'📅',text:'Session <b>#S-1041</b> started (Ongoing)',time:'12 min ago',color:'#60a5fa'},
+    {icon:'⭐',text:'5★ review submitted by Priya Kapoor',time:'1 hr ago',color:'#fbbf24'},
+    {icon:'⚠️',text:'Session <b>#S-1038</b> cancelled',time:'2 hr ago',color:'#f87171'},
+  ];
+  el.innerHTML=items.map((item,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;animation:slideUp .35s ease both;animation-delay:${i*.06}s">
+      <div style="width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--card2);flex-shrink:0;font-size:.88rem">${item.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.73rem;color:var(--t1);line-height:1.4">${item.text}</div>
+        <div style="font-size:.63rem;color:var(--t3)">${item.time}</div>
+      </div>
+      <div style="width:3px;height:3px;border-radius:50%;background:${item.color};flex-shrink:0"></div>
+    </div>`).join('');
+}
+
+function renderTopCoaches(){
+  const el=document.getElementById('topCoaches');if(!el)return;
+  el.innerHTML='';
+  COACHES_DATA.slice(0,5).forEach((c,i)=>{
+    const pct=Math.round((c.sessions/150)*100);
+    el.innerHTML+=`<div style="display:flex;align-items:center;gap:10px;animation:slideUp .35s ease both;animation-delay:${i*.06}s">
+      <span style="font-size:.68rem;font-weight:700;color:var(--t3);width:14px">#${i+1}</span>
+      <div class="${c.avc}" style="width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.63rem;flex-shrink:0">${c.av}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.76rem;font-weight:600;color:var(--t1)">${c.name}</div>
+        <div class="pbar" style="margin-top:4px"><div class="pf pf-acc" style="width:${pct}%"></div></div>
+      </div>
+      <span style="font-size:.73rem;font-weight:700;color:var(--t1)">${c.sessions}</span>
+    </div>`;
+  });
+}
+
+// ── FILTER ──
+let userRoleFilter='',userStatusFilter='';
+function filterUsers(q){
+  renderUsers(USERS.filter(u=>{
+    const m=!q||u.name.toLowerCase().includes(q.toLowerCase())||u.email.toLowerCase().includes(q.toLowerCase());
+    return m&&(!userRoleFilter||u.role===userRoleFilter)&&(!userStatusFilter||u.status===userStatusFilter);
+  }));
+}
+function filterByRole(v){userRoleFilter=v;filterUsers('');}
+function filterByStatus(v){userStatusFilter=v;filterUsers('');}
+function filterLogs(el,f){
+  document.querySelectorAll('#page-logs .stab').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');renderLogs(f);
+}
+function toggleAll(cb){document.querySelectorAll('#userTbl input[type=checkbox]').forEach(c=>c.checked=cb.checked);}
+
+// ── PAGE NAV ──
+const pageMeta={
+  overview:{title:'Platform Overview',bc:'Overview'},
+  users:{title:'User Management',bc:'Users'},
+  sessions:{title:'Session Management',bc:'Sessions'},
+  coaches:{title:'Coach Management',bc:'Coaches'},
+  reviews:{title:'Reviews & Ratings',bc:'Reviews'},
+  payments:{title:'Payments & Revenue',bc:'Payments'},
+  analytics:{title:'Platform Analytics',bc:'Analytics'},
+  settings:{title:'Platform Settings',bc:'Settings'},
+  logs:{title:'System Logs',bc:'Logs'},
+};
+
+function showPage(id,el){
+  document.querySelectorAll('.page-tab').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('on'));
+  if(el&&el.classList&&el.classList.contains('nav-item'))el.classList.add('on');
+  const m=pageMeta[id];
+  if(m){
+    const bc=document.getElementById('breadcrumb');
+    const pt=document.getElementById('pageTitle');
+    if(bc)bc.textContent=m.bc;
+    if(pt)pt.textContent=m.title;
+  }
+  if(id==='users')renderUsers(USERS);
+  if(id==='sessions')renderSessions();
+  if(id==='coaches')renderCoaches();
+  if(id==='reviews')renderReviews();
+  if(id==='payments')renderPayments();
+  if(id==='logs')renderLogs();
+  if(id==='analytics'){buildGrowthChart();buildTrafficChart();buildCompletionChart();renderTopCoaches();}
+  closeMobileMenu();
+}
+
+// ── SIDEBAR ──
+function toggleSidebar(){document.body.classList.toggle('sb-collapsed');}
+function openMobileMenu(){document.body.classList.add('mob-open');}
+function closeMobileMenu(){document.body.classList.remove('mob-open');}
+
+// ── MODAL ──
+function openModal(type,id){
+  const bg=document.getElementById('modalBg');
+  const content=document.getElementById('modalContent');
+  if(type==='addUser'){
+    content.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-weight:700;font-size:.95rem;color:var(--t1)">Add New User</div>
+        <button onclick="closeModal()" style="background:none;border:none;color:var(--t2);cursor:pointer;font-size:1.2rem;line-height:1;padding:4px">×</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div><label style="font-size:.72rem;color:var(--t2);display:block;margin-bottom:4px">Full Name</label><input class="inp" placeholder="John Doe"/></div>
+        <div><label style="font-size:.72rem;color:var(--t2);display:block;margin-bottom:4px">Email</label><input class="inp" placeholder="john@example.com" type="email"/></div>
+        <div><label style="font-size:.72rem;color:var(--t2);display:block;margin-bottom:4px">Role</label><select class="sel" style="width:100%"><option>Candidate</option><option>Coach</option><option>Pro</option><option>Admin</option></select></div>
+        <div><label style="font-size:.72rem;color:var(--t2);display:block;margin-bottom:4px">Password</label><input class="inp" placeholder="••••••••" type="password"/></div>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btn btn-acc" style="flex:1" onclick="closeModal()">Create User</button>
+          <button class="btn btn-ghost" style="flex:1" onclick="closeModal()">Cancel</button>
+        </div>
+      </div>`;
+  } else if(type==='editUser'){
+    const u=USERS.find(x=>x.id===id);
+    content.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-weight:700;font-size:.95rem;color:var(--t1)">Edit User — ${u?.name||''}</div>
+        <button onclick="closeModal()" style="background:none;border:none;color:var(--t2);cursor:pointer;font-size:1.2rem;line-height:1;padding:4px">×</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div><label style="font-size:.72rem;color:var(--t2);display:block;margin-bottom:4px">Full Name</label><input class="inp" value="${u?.name||''}"/></div>
+        <div><label style="font-size:.72rem;color:var(--t2);display:block;margin-bottom:4px">Email</label><input class="inp" value="${u?.email||''}"/></div>
+        <div><label style="font-size:.72rem;color:var(--t2);display:block;margin-bottom:4px">Role</label><select class="sel" style="width:100%"><option ${u?.role==='Candidate'?'selected':''}>Candidate</option><option ${u?.role==='Coach'?'selected':''}>Coach</option><option ${u?.role==='Pro'?'selected':''}>Pro</option><option ${u?.role==='Admin'?'selected':''}>Admin</option></select></div>
+        <div><label style="font-size:.72rem;color:var(--t2);display:block;margin-bottom:4px">Status</label><select class="sel" style="width:100%"><option ${u?.status==='Active'?'selected':''}>Active</option><option ${u?.status==='Suspended'?'selected':''}>Suspended</option><option ${u?.status==='Pending'?'selected':''}>Pending</option></select></div>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btn btn-acc" style="flex:1" onclick="closeModal()">Save Changes</button>
+          <button class="btn btn-danger" style="flex:1" onclick="closeModal()">Ban User</button>
+        </div>
+      </div>`;
+  } else if(type==='addCoach'){
+    content.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-weight:700;font-size:.95rem;color:var(--t1)">Onboard New Coach</div>
+        <button onclick="closeModal()" style="background:none;border:none;color:var(--t2);cursor:pointer;font-size:1.2rem;line-height:1;padding:4px">×</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div><label style="font-size:.72rem;color:var(--t2);display:block;margin-bottom:4px">Full Name</label><input class="inp" placeholder="Coach Name"/></div>
+        <div><label style="font-size:.72rem;color:var(--t2);display:block;margin-bottom:4px">Specialization</label><input class="inp" placeholder="e.g. Career Coach, Tech Coach"/></div>
+        <div><label style="font-size:.72rem;color:var(--t2);display:block;margin-bottom:4px">Email</label><input class="inp" placeholder="coach@example.com"/></div>
+        <div><label style="font-size:.72rem;color:var(--t2);display:block;margin-bottom:4px">Experience (years)</label><input class="inp" type="number" placeholder="5"/></div>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btn btn-acc" style="flex:1" onclick="closeModal()">Send Invite</button>
+          <button class="btn btn-ghost" style="flex:1" onclick="closeModal()">Cancel</button>
+        </div>
+      </div>`;
+  }
+  bg.classList.remove('hidden');
+}
+function closeModal(e){if(!e||e.target===document.getElementById('modalBg'))document.getElementById('modalBg').classList.add('hidden');}
+
+// ── CHARTS ──
+const isDark=()=>document.documentElement.classList.contains('dark');
+const gc=()=>isDark()?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)';
+const tc=()=>isDark()?'#4b5563':'#9ca3af';
+const ttOpts=()=>({backgroundColor:isDark()?'#18132e':'#fff',titleColor:isDark()?'#f0eeff':'#0f0a1e',bodyColor:tc(),borderColor:'rgba(155,48,217,.3)',borderWidth:1,cornerRadius:10,padding:10});
+
+let revChart,userDonut,ratingBar,growthChart,trafficChart,completionChart;
+
+const revData={
+  m:{labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+     revenue:[42,55,48,68,75,62,80,72,84,78,88,92],sessions:[180,220,190,280,310,260,340,300,380,320,400,420]},
+  q:{labels:['Q1','Q2','Q3','Q4'],revenue:[145,205,236,280],sessions:[590,850,1020,1140]}
+};
+
+function buildRevChart(period='m'){
+  const d=revData[period];
+  const ctx=document.getElementById('revChart')?.getContext('2d');if(!ctx)return;
+  const g1=ctx.createLinearGradient(0,0,0,220);g1.addColorStop(0,'rgba(155,48,217,.3)');g1.addColorStop(1,'rgba(155,48,217,0)');
+  const g2=ctx.createLinearGradient(0,0,0,220);g2.addColorStop(0,'rgba(34,197,94,.18)');g2.addColorStop(1,'rgba(34,197,94,0)');
+  revChart=new Chart(ctx,{type:'line',data:{labels:d.labels,datasets:[
+    {label:'Revenue ($K)',data:d.revenue,borderColor:'#9b30d9',backgroundColor:g1,borderWidth:2.5,tension:.42,fill:true,pointBackgroundColor:'#9b30d9',pointRadius:3,pointHoverRadius:5},
+    {label:'Sessions',data:d.sessions.map(v=>v/10),borderColor:'#22c55e',backgroundColor:g2,borderWidth:2,tension:.42,fill:true,pointBackgroundColor:'#22c55e',pointRadius:3,pointHoverRadius:5}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttOpts(),mode:'index',intersect:false}},scales:{x:{grid:{color:gc()},ticks:{color:tc(),font:{family:'Poppins',size:10}}},y:{grid:{color:gc()},ticks:{color:tc(),font:{family:'Poppins',size:10}},beginAtZero:true}}}});
+}
+
+function buildUserDonut(){
+  const ctx=document.getElementById('userDonut')?.getContext('2d');if(!ctx)return;
+  userDonut=new Chart(ctx,{type:'doughnut',data:{labels:['Candidates','Coaches','Pro','Admins'],datasets:[{data:[840,142,220,46],backgroundColor:['#9b30d9','#22c55e','#60a5fa','#fbbf24'],borderWidth:0,hoverOffset:6}]},options:{responsive:false,plugins:{legend:{display:false},tooltip:{...ttOpts()}},cutout:'66%'}});
+}
+
+function buildRatingBar(){
+  const ctx=document.getElementById('ratingBar')?.getContext('2d');if(!ctx)return;
+  ratingBar=new Chart(ctx,{type:'bar',data:{labels:['5 ★','4 ★','3 ★','2 ★','1 ★'],datasets:[{label:'Reviews',data:[6062,1516,506,253,84],backgroundColor:['#22c55e','#60a5fa','#fbbf24','#f87171','#dc2626'],borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttOpts()}},scales:{x:{grid:{display:false},ticks:{color:tc(),font:{family:'Poppins',size:10}}},y:{grid:{color:gc()},ticks:{color:tc(),font:{family:'Poppins',size:10}},beginAtZero:true}}}});
+}
+
+function buildGrowthChart(){
+  const ctx=document.getElementById('growthChart')?.getContext('2d');if(!ctx||growthChart)return;
+  const g=ctx.createLinearGradient(0,0,0,200);g.addColorStop(0,'rgba(155,48,217,.3)');g.addColorStop(1,'rgba(155,48,217,0)');
+  growthChart=new Chart(ctx,{type:'line',data:{labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],datasets:[{label:'New Users',data:[62,78,55,90,108,88,120,102,140,118,155,170],borderColor:'#9b30d9',backgroundColor:g,borderWidth:2.5,tension:.42,fill:true,pointBackgroundColor:'#9b30d9',pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...ttOpts()}},scales:{x:{grid:{color:gc()},ticks:{color:tc(),font:{family:'Poppins',size:10}}},y:{grid:{color:gc()},ticks:{color:tc(),font:{family:'Poppins',size:10}},beginAtZero:true}}}});
+}
+
+function buildTrafficChart(){
+  const ctx=document.getElementById('trafficChart')?.getContext('2d');if(!ctx||trafficChart)return;
+  trafficChart=new Chart(ctx,{type:'doughnut',data:{labels:['Organic','Referral','Social','Direct','Email'],datasets:[{data:[42,24,18,10,6],backgroundColor:['#9b30d9','#22c55e','#60a5fa','#fbbf24','#f87171'],borderWidth:0,hoverOffset:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:tc(),font:{family:'Poppins',size:10},boxWidth:9}},tooltip:{...ttOpts()}},cutout:'55%'}});
+}
+
+function buildCompletionChart(){
+  const ctx=document.getElementById('completionChart')?.getContext('2d');if(!ctx||completionChart)return;
+  completionChart=new Chart(ctx,{type:'bar',data:{labels:['Jan','Feb','Mar','Apr','May','Jun'],datasets:[{label:'Completed',data:[88,82,90,86,92,95],backgroundColor:'rgba(34,197,94,.7)',borderRadius:6,borderSkipped:false},{label:'Cancelled',data:[12,18,10,14,8,5],backgroundColor:'rgba(248,113,113,.6)',borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc(),font:{family:'Poppins',size:10},boxWidth:9}},tooltip:{...ttOpts()}},scales:{x:{grid:{display:false},ticks:{color:tc(),font:{family:'Poppins',size:10}},stacked:true},y:{grid:{color:gc()},ticks:{color:tc(),font:{family:'Poppins',size:10}},beginAtZero:true,stacked:true}}}});
+}
+
+function setPeriod(el,period){
+  document.querySelectorAll('#page-overview .stab').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  if(revChart){revChart.destroy();revChart=null;}
+  buildRevChart(period);
+}
+
+function updateChartColors(chart){
+  if(!chart)return;
+  const opts=chart.options||{};
+  const s=opts.scales;
+  if(s){
+    if(s.x){s.x.grid&&(s.x.grid.color=gc());s.x.ticks&&(s.x.ticks.color=tc());}
+    if(s.y){s.y.grid&&(s.y.grid.color=gc());s.y.ticks&&(s.y.ticks.color=tc());}
+  }
+  const leg=opts.plugins&&opts.plugins.legend;
+  if(leg&&leg.labels)leg.labels.color=tc();
+  chart.update();
+}
+
+// ── THEME ──
+function toggleTheme(){
+  const h=document.documentElement;
+  const dark=h.classList.contains('dark');
+  h.classList.toggle('dark',!dark);
+  h.classList.toggle('light',dark);
+  document.getElementById('mi')?.classList.toggle('hidden',dark);
+  document.getElementById('si')?.classList.toggle('hidden',!dark);
+  [revChart,userDonut,ratingBar,growthChart,trafficChart,completionChart].forEach(updateChartColors);
+}
+
+// ── HEATMAP ──
+const hmEl=document.getElementById('adminHm');
+if(hmEl){for(let i=0;i<84;i++){const d=document.createElement('div');d.className=`hm hm${Math.floor(Math.random()*5)}`;hmEl.appendChild(d);}}
+
+// ── PROGRESS BAR ANIMATIONS ──
+function animateBars(){
+  setTimeout(()=>{document.getElementById('pb1')&&(document.getElementById('pb1').style.width='62%');},100);
+  setTimeout(()=>{document.getElementById('pb2')&&(document.getElementById('pb2').style.width='78%');},200);
+  setTimeout(()=>{document.getElementById('pb3')&&(document.getElementById('pb3').style.width='84%');},300);
+  setTimeout(()=>{document.getElementById('pb4')&&(document.getElementById('pb4').style.width='97%');},400);
+}
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded',()=>{
+  renderSignups();
+  renderRecentActivity();
+  buildRevChart('m');
+  buildUserDonut();
+  buildRatingBar();
+  animateBars();
+
+  const isMob=window.innerWidth<=768;
+  const mob=document.getElementById('mobileTopBar');
+  const mbar=document.getElementById('mobileBar');
+  if(isMob&&mob)mob.style.display='flex';
+  if(isMob&&mbar)mbar.style.display='flex';
+  if(isMob){document.getElementById('main').style.paddingTop='52px';}
+
+  window.addEventListener('resize',()=>{
+    const m=window.innerWidth<=768;
+    if(mob)mob.style.display=m?'flex':'none';
+    if(mbar)mbar.style.display=m?'flex':'none';
+    document.getElementById('main').style.paddingTop=m?'52px':'';
+  });
+});
+</script>
+</body>
+</html>

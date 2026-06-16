@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Search Peers — TalentCircle</title>
+  
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.className = savedTheme;
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+   <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+  <script>
+    tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Poppins','sans-serif']}}}}
+  </script>
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--t1);
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+    :root {
+      --bg:#07050f;--surf:#0d0920;--card:rgba(18,14,36,0.45);--card2:#18132e;--bd:rgba(155,48,217,.16);--bd2:rgba(255,255,255,.05);
+      --t1:#f0eeff;--t2:#9ca3af;--t3:#4b5563;
+      --acc:#9b30d9;--acc2:#b855f0;--adim:rgba(155,48,217,.14);
+    }
+    .light {
+      --bg:#f8f6fc;--surf:#ffffff;--card:rgba(255,255,255,0.75);--card2:#f5f2ff;--bd:rgba(155,48,217,.2);--bd2:rgba(0,0,0,.06);
+      --t1:#0f0a1e;--t2:#6b7280;--t3:#9ca3af;
+    }
+    
+    ::-webkit-scrollbar{width:4px;height:4px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:var(--acc);border-radius:10px;}
+    
+    .glass{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+    
+    .card { background:var(--card); border:1px solid var(--bd2); border-radius:16px; transition:all .25s cubic-bezier(0.16, 1, 0.3, 1); }
+    .card:hover { border-color:var(--bd); box-shadow:0 8px 32px rgba(155,48,217,.1); transform:translateY(-2px); }
+    
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .2s;color:var(--t2);text-decoration:none;}
+    .nav-item:hover { color:#e9d5ff; background:rgba(155,48,217,.1); }
+    .nav-item.on { color:#fff; background:linear-gradient(135deg,#9b30d9,#b855f0); box-shadow:0 4px 16px rgba(155,48,217,.35); }
+    
+    .nbadge{margin-left:auto;background:rgba(155,48,217,.18);color:#b855f0;padding:1px 7px;border-radius:20px;font-size:.65rem;font-weight:700;}
+    .slbl{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:6px;padding-left:2px;}
+    
+    .badge-poly {
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    }
+
+    @keyframes fu{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+    .fu-card { animation: fu 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+    @media(max-width:1024px){
+      #sb{display:none;}
+      #tb{left:0!important;}
+      #mn{margin-left:0!important; padding-left:16px; padding-right:16px;}
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="min-h-screen">
+
+<aside id="sb" class="fixed left-0 top-0 h-full w-56 z-40 flex flex-col py-5 px-3 overflow-y-auto glass" style="background:var(--surf);border-right:1px solid var(--bd2);">
+  <div class="flex items-center gap-3 px-2 mb-7">
+    <div class="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0 shadow-lg">
+      <img src="images/logo.png" alt="TalentCircle Logo" class="w-full h-full object-contain dark:invert-0 light:invert light:brightness-50 light:contrast-150"/>
+    </div>
+    <div>
+      <div class="font-black text-sm tracking-tight" style="color:var(--t1)">TalentCircle</div>
+      <div style="font-size:.62rem;color:var(--t3)" class="font-medium">Ecosystem Discovery</div>
+    </div>
+  </div>
+
+  <div class="slbl px-1">Menu</div>
+  <nav class="flex flex-col gap-0.5 mb-5">
+    <a href="dashboard.html" class="nav-item"><i class="fas fa-th-large w-4 text-center mr-1"></i>Dashboard</a>
+    <a href="calendar.html" class="nav-item"><i class="fas fa-calendar-alt w-4 text-center mr-1"></i>Calendar<span class="nbadge">3</span></a>
+    <a href="chat-list.html" class="nav-item"><i class="fas fa-comment-alt w-4 text-center mr-1"></i>Messages<span class="nbadge">5</span></a>
+    <a href="matches.html" class="nav-item on"><i class="fas fa-search w-4 text-center mr-1"></i>Discover Peers</a>
+    <a href="matches.html" class="nav-item"><i class="fas fa-users-cog w-4 text-center mr-1"></i>Matches</a>
+    <a href="community-forum.html" class="nav-item"><i class="fas fa-comments w-4 text-center mr-1"></i>Community Hub</a>
+    <a href="ranking.html" class="nav-item"><i class="fas fa-trophy w-4 text-center mr-1"></i>Rankings</a>
+    <a href="badges.html" class="nav-item"><i class="fas fa-award w-4 text-center mr-1"></i>Badges</a>
+    <a href="certificate.html" class="nav-item"><i class="fas fa-certificate w-4 text-center mr-1"></i>Certificates</a>
+    <a href="chat-bot.html" class="nav-item"><i class="fas fa-robot w-4 text-center mr-1"></i>AI Assistant</a>
+  </nav>
+</aside>
+
+<header id="tb" class="fixed top-0 left-56 right-0 h-14 z-30 flex items-center px-5 gap-3 glass" style="background:var(--surf);border-bottom:1px solid var(--bd2)">
+  <div>
+    <div style="font-size:.67rem;color:var(--t3)">Ecosystem / <span style="color:#b855f0">Discovery Engine</span></div>
+    <div style="font-size:.82rem;font-weight:600;color:var(--t1)">Find Knowledge Networks</div>
+  </div>
+
+  <div class="ml-auto flex items-center gap-2">
+    <button onclick="toggleTheme()" id="tbtn" aria-label="Toggle Theme" class="w-8 h-8 rounded-xl flex items-center justify-center transition-all border" style="background:var(--card);border-color:var(--bd2);color:var(--t2)">
+    <svg id="mi" class="w-4 h-4" ...>...</svg>
+    <svg id="si" class="w-4 h-4 hidden" ...>...</svg>
+</button>
+    <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center font-bold text-xs text-white shadow-md">AK</div>
+  </div>
+</header>
+
+<main id="mn" class="pt-20 min-h-screen p-5" style="margin-left:224px;">
+  <div class="max-w-7xl mx-auto space-y-6">
+    
+    <div class="card p-6 space-y-4">
+      <div class="relative flex items-center">
+        <span class="absolute left-4 text-gray-400"><i class="fas fa-search"></i></span>
+        <input type="text" id="globalSearchInput" oninput="executeSearchFilter()" placeholder="Search peers by name, skills to teach, or expertise targets..." 
+          class="w-full pl-11 pr-32 py-3.5 bg-black/10 dark:bg-black/30 light:bg-purple-500/5 border border-purple-500/20 rounded-xl text-inherit placeholder-gray-400/70 text-sm focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"/>
+        <div class="absolute right-3 flex items-center gap-1.5 text-xs opacity-40 font-mono sm:flex">
+          <span class="px-2 py-1 bg-black/30 rounded border border-white/10">Ctrl</span>+<span class="px-2 py-1 bg-black/30 rounded border border-white/10">F</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 pl-1">Skills to Teach</label>
+          <select title="Skills to Teach" id="filterTeach" onchange="executeSearchFilter()" class="w-full px-3 py-2 bg-black/20 dark:bg-black/40 light:bg-white border border-purple-500/10 rounded-xl text-xs font-medium focus:outline-none focus:border-purple-500 text-inherit">
+            <option value="all">All Skills</option>
+            <option value="python">Python Dev</option>
+            <option value="uiux">UI/UX Design</option>
+            <option value="laravel">Laravel Architecture</option>
+            <option value="network">Network Admin</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 pl-1">Skills to Learn</label>
+          <select title="Skills to Learn" id="filterLearn" onchange="executeSearchFilter()" class="w-full px-3 py-2 bg-black/20 dark:bg-black/40 light:bg-white border border-purple-500/10 rounded-xl text-xs font-medium focus:outline-none focus:border-purple-500 text-inherit">
+            <option value="all">All Requirements</option>
+            <option value="typescript">TypeScript</option>
+            <option value="figma">Figma Workflows</option>
+            <option value="webrtc">WebRTC Streaming</option>
+            <option value="seo">SEO Strategy</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 pl-1">Location Vector</label>
+          <select title="Location Vector" id="filterLocation" onchange="executeSearchFilter()" class="w-full px-3 py-2 bg-black/20 dark:bg-black/40 light:bg-white border border-purple-500/10 rounded-xl text-xs font-medium focus:outline-none focus:border-purple-500 text-inherit">
+            <option value="all">Global (All Nodes)</option>
+            <option value="pk">Pakistan</option>
+            <option value="us">United States</option>
+            <option value="uk">United Kingdom</option>
+            <option value="de">Germany</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1.5 pl-1">Node Availability</label>
+          <select title="Node Availability" id="filterStatus" onchange="executeSearchFilter()" class="w-full px-3 py-2 bg-black/20 dark:bg-black/40 light:bg-white border border-purple-500/10 rounded-xl text-xs font-medium focus:outline-none focus:border-purple-500 text-inherit">
+            <option value="all">Any Status</option>
+            <option value="online">Active Now (Online)</option>
+            <option value="offline">Offline</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-between items-center text-xs opacity-60 px-1">
+      <span>Discovered <strong id="peerCountDisplay" class="text-purple-500 font-bold font-mono">0</strong> functional network nodes</span>
+      <span class="font-mono text-[10px] tracking-wider uppercase">Talent Pool Registry</span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="peerGridResults"></div>
+
+    <div id="emptySearchFallback" class="hidden card p-16 text-center text-gray-400 max-w-md mx-auto space-y-3">
+      <div class="text-4xl"><i class="fas fa-radar text-purple-500"></i></div>
+      <h3 class="text-base font-bold text-inherit">No Mapped Sibling Nodes Found</h3>
+      <p class="text-xs opacity-70">No platform profiles matched your combined contextual parameters. Modify your text strings queries or parameters options tracking loops.</p>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  const htmlDoc = document.documentElement;
+
+  // Peer Database Mapping Registry (fallback)
+  const PEERS_POOL_DATA = [
+    { id: 1, name: "Aisha Khan", locationCode: "pk", locationName: "Lahore, PK", online: true, teachCode: "python", teachLabel: "Python Dev", learnCode: "figma", learnLabel: "Figma Workflows", xp: "9,980", avatarClass: "av-a" },
+    { id: 2, name: "Liam O'Donnell", locationCode: "uk", locationName: "London, UK", online: true, teachCode: "uiux", teachLabel: "UI/UX Design", learnCode: "typescript", learnLabel: "TypeScript", xp: "9,850", avatarClass: "av-b" },
+    { id: 3, name: "Yuki Tanaka", locationCode: "de", locationName: "Berlin, DE", online: false, teachCode: "network", teachLabel: "Network Admin", learnCode: "webrtc", learnLabel: "WebRTC Streaming", xp: "9,710", avatarClass: "av-c" },
+    { id: 4, name: "Sarah Rahman", locationCode: "pk", locationName: "Sialkot, PK", online: true, teachCode: "uiux", teachLabel: "UI/UX Design", learnCode: "typescript", learnLabel: "TypeScript", xp: "9,120", avatarClass: "av-d" },
+    { id: 5, name: "James Wilson", locationCode: "us", locationName: "New York, US", online: false, teachCode: "python", teachLabel: "Python Dev", learnCode: "seo", learnLabel: "SEO Strategy", xp: "8,400", avatarClass: "av-e" },
+    { id: 6, name: "Elena Castro", locationCode: "de", locationName: "Munich, DE", online: true, teachCode: "laravel", teachLabel: "Laravel Architecture", learnCode: "figma", learnLabel: "Figma Workflows", xp: "7,960", avatarClass: "av-a" }
+  ];
+
+  async function fetchPeersFromBackend(payload) {
+    try {
+      const res = await fetch('backend/api/search/peers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      return data && Array.isArray(data.peers) ? data.peers : [];
+    } catch (e) {
+      return null; // signals fallback
+    }
+  }
+
+
+  function toggleTheme(){
+    const isDark = htmlDoc.classList.contains('dark');
+    htmlDoc.className = isDark ? 'light' : 'dark';
+    document.getElementById('mi').classList.toggle('hidden', isDark);
+    document.getElementById('si').classList.toggle('hidden', !isDark);
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+  }
+
+  function renderPeerCards(list) {
+    const grid = document.getElementById('peerGridResults');
+    const fallback = document.getElementById('emptySearchFallback');
+    const counterText = document.getElementById('peerCountDisplay');
+
+    grid.innerHTML = '';
+    counterText.textContent = list.length;
+
+    if (list.length === 0) {
+      fallback.classList.remove('hidden');
+      return;
+    }
+    fallback.classList.add('hidden');
+
+    list.forEach((p, index) => {
+      const card = document.createElement('div');
+      card.className = 'card p-5 text-center flex flex-col justify-between relative overflow-hidden glass group fu-card';
+      card.style.animationDelay = `${index * 0.02}s`;
+
+      const avatarClass = p.avatarClass || 'av-a';
+      const initials = (p.name || '')
+        .split(' ')
+        .filter(Boolean)
+        .map(n => n[0])
+        .join('')
+        .slice(0, 2);
+
+      const locationName = p.locationName || p.location || 'Global Node';
+      const teachLabel = p.teachLabel || p.teach || '—';
+      const learnLabel = p.learnLabel || p.learn || '—';
+      const xp = p.xp || p.scoreText || '0';
+      const online = typeof p.online === 'boolean' ? p.online : (p.online === 1 || p.online === '1');
+
+      card.innerHTML = `
+        <div class="space-y-4">
+          <div class="relative w-16 h-16 mx-auto">
+            <div class="badge-poly w-full h-full ${avatarClass} flex items-center justify-center font-bold text-white text-base shadow-md transition-all group-hover:scale-105 group-hover:rotate-3">
+              ${initials}
+            </div>
+            ${online ? '<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-[#0d0920] dark:border-[#0d0920] light:border-white shadow-[0_0_8px_#22c55e]"></div>' : ''}
+          </div>
+
+          <div>
+            <h3 class="font-extrabold text-sm text-slate-800 dark:text-white truncate transition-colors group-hover:text-purple-500">${p.name || ''}</h3>
+            <p class="text-[10px] opacity-40 font-mono mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i>${locationName}</p>
+          </div>
+
+          <div class="space-y-2 text-left">
+            <div class="p-2 bg-purple-500/5 border border-purple-500/10 rounded-xl">
+              <span class="block text-[8px] uppercase tracking-wider text-gray-400 font-bold">Can Teach</span>
+              <span class="text-xs font-semibold text-purple-500 dark:text-purple-400 mt-0.5 block truncate"><i class="fas fa-chalkboard-teacher mr-1.5 opacity-50"></i>${teachLabel}</span>
+            </div>
+            <div class="p-2 bg-purple-500/5 border border-purple-500/10 rounded-xl">
+              <span class="block text-[8px] uppercase tracking-wider text-gray-400 font-bold">Wants to Learn</span>
+              <span class="text-xs font-semibold text-inherit mt-0.5 block truncate"><i class="fas fa-book-reader mr-1.5 opacity-50"></i>${learnLabel}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-5 pt-3 border-t border-purple-500/5 flex items-center justify-between">
+          <span class="text-[10px] font-bold font-mono opacity-50"><i class="fas fa-shield-alt mr-1"></i>${xp} XP</span>
+          <button onclick="event.stopPropagation(); location.href='chat.html'" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg shadow-md transition-all active:scale-95">
+            <i class="fas fa-bolt mr-1"></i>Swap Pair
+          </button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  async function executeSearchFilter() {
+    const query = document.getElementById('globalSearchInput').value.trim().toLowerCase();
+    const teachFilter = document.getElementById('filterTeach').value;
+    const learnFilter = document.getElementById('filterLearn').value;
+    const locationFilter = document.getElementById('filterLocation').value;
+    const statusFilter = document.getElementById('filterStatus').value;
+
+    // 1) Try backend search first
+    const payload = {
+      q: query,
+      teach: teachFilter,
+      learn: learnFilter,
+      location: locationFilter,
+      status: statusFilter
+    };
+
+    const peers = await fetchPeersFromBackend(payload);
+    if (peers && peers.length) {
+      // Map backend peers into the UI card schema (best-effort)
+      const mapped = peers.map((p, i) => ({
+        id: p.id,
+        name: p.name,
+        location: p.location,
+        locationName: p.locationName || p.location,
+        online: typeof p.online === 'boolean' ? p.online : p.online === 1,
+        teachLabel: p.teachLabel || p.teach || '—',
+        learnLabel: p.learnLabel || p.learn || '—',
+        xp: (p.xp || p.scoreText || p.score || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+        avatarClass: p.avatarClass || PEERS_POOL_DATA[i % PEERS_POOL_DATA.length].avatarClass,
+        teachCode: p.teachCode || teachFilter,
+        learnCode: p.learnCode || learnFilter,
+      }));
+      renderPeerCards(mapped);
+      return;
+    }
+
+    // 2) Fallback to local list if backend is unavailable / no data
+    const filteredList = PEERS_POOL_DATA.filter(p => {
+      const matchText = !query || p.name.toLowerCase().includes(query) || p.teachLabel.toLowerCase().includes(query) || p.learnLabel.toLowerCase().includes(query);
+      const matchTeach = teachFilter === 'all' || p.teachCode === teachFilter;
+      const matchLearn = learnFilter === 'all' || p.learnCode === learnFilter;
+      const matchLoc = locationFilter === 'all' || p.locationCode === locationFilter;
+      const matchStatus = statusFilter === 'all' || (statusFilter === 'online' ? p.online : !p.online);
+      return matchText && matchTeach && matchLearn && matchLoc && matchStatus;
+    });
+
+    renderPeerCards(filteredList);
+  }
+
+  // Bootstrap operational loops directly on initialization paint lifecycle
+  (function initDiscoverySearch() {
+    const activeTheme = localStorage.getItem('theme') || 'dark';
+    const mi = document.getElementById('mi');
+    const si = document.getElementById('si');
+    if (mi && si) {
+      mi.classList.toggle('hidden', activeTheme === 'light');
+      si.classList.toggle('hidden', activeTheme === 'dark');
+    }
+
+    // Bind document keyboard interceptor shortcut loops (Ctrl+F focusing search input box)
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        const input = document.getElementById('globalSearchInput');
+        if (input && document.activeElement !== input) {
+          e.preventDefault();
+          input.focus();
+          input.select();
+        }
+      }
+    });
+
+    executeSearchFilter();
+  })();
+</script>
+</body>
+</html>

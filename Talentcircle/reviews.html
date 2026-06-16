@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reviews | Talent Circle</title>
+  
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.className = savedTheme;
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <script>
+    tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Poppins','sans-serif']}}}}
+  </script>
+ <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--t1);
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+    :root {
+      --bg:#07050f;--surf:#0d0920;--card:rgba(18,14,36,0.45);--card2:#18132e;--bd:rgba(155,48,217,.16);--bd2:rgba(255,255,255,.05);
+      --t1:#f0eeff;--t2:#9ca3af;--t3:#4b5563;
+      --acc:#9b30d9;--acc2:#b855f0;--adim:rgba(155,48,217,.14);
+      --star:#f0b429;--star-bg:rgba(240,180,41,0.12);
+      --reply-border:rgba(155,48,217,0.35);--reply-bg:rgba(155,48,217,0.05);
+    }
+    .light {
+      --bg:#f8f6fc;--surf:#ffffff;--card:rgba(255,255,255,0.75);--card2:#f5f2ff;--bd:rgba(155,48,217,.2);--bd2:rgba(0,0,0,.06);
+      --t1:#0f0a1e;--t2:#6b7280;--t3:#9ca3af;
+      --star:#d4920e;--star-bg:rgba(212,146,14,0.1);
+      --reply-border:rgba(133,33,200,0.3);--reply-bg:rgba(133,33,200,0.04);
+    }
+    
+    ::-webkit-scrollbar{width:4px;height:4px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:var(--acc);border-radius:10px;}
+    
+    .glass{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+    .tg{background:linear-gradient(135deg,#b855f0,#9b30d9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    
+    .card{background:var(--card);border:1px solid var(--bd2);border-radius:16px;transition:all .22s;}
+    .card:hover{border-color:var(--bd);box-shadow:0 8px 32px rgba(155,48,217,.1);transform:translateY(-2px);}
+    .card2{background:var(--card2);border:1px solid var(--bd2);border-radius:12px;}
+    
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .2s;color:var(--t2);text-decoration:none;}
+    .nav-item:hover{color:#e9d5ff;background:rgba(155,48,217,.1);}
+    .nav-item.on{color:#fff;background:linear-gradient(135deg,#9b30d9,#b855f0);box-shadow:0 4px 16px rgba(155,48,217,.35);}
+    
+    .nbadge{margin-left:auto;background:rgba(155,48,217,.18);color:#b855f0;padding:1px 7px;border-radius:20px;font-size:.65rem;font-weight:700;}
+    .nav-item.on .nbadge{background:rgba(255,255,255,.22);color:#fff;}
+    .slbl{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:6px;padding-left:2px;}
+    
+    .pbar{height:5px;border-radius:20px;background:var(--card2);overflow:hidden;}
+    .pf{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--acc),var(--acc2));}
+    .tag{padding:2px 9px;border-radius:20px;font-size:.65rem;font-weight:600;letter-spacing:.03em;background:var(--pibg);border:1px solid var(--border);}
+    
+    .stab{padding:8px 16px;font-size:.78rem;font-weight:600;border-bottom:2px solid transparent;background:none;cursor:pointer;transition:all .2s;color:var(--t2);}
+    .stab.on{border-bottom-color:#9b30d9;color:#b855f0;}
+    
+    .review-card{background:var(--card);border:1px solid var(--bd2);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:all .22s;animation:fu .45s ease both;}
+    .review-card:hover{border-color:var(--bd);box-shadow:0 8px 28px rgba(155,48,217,.12);transform:translateY(-2px);}
+    
+    .card-reply{margin-top:12px;margin-left:16px;padding:10px 14px;border-left:2px solid var(--reply-border);background:var(--reply-bg);border-radius:0 8px 8px 0;}
+    
+    .hmc{width:11px;height:11px;border-radius:3px;transition:transform .15s;cursor:default;}
+    .hmc:hover{transform:scale(1.35);}
+    
+    .av-a{background:linear-gradient(135deg,#9b30d9,#b855f0);}
+    .av-b{background:linear-gradient(135deg,#2060e0,#40b0f0);}
+    .av-c{background:linear-gradient(135deg,#059669,#10b981);}
+    
+    .gd{width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.22);flex-shrink:0;}
+    
+    .badge-poly{clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);}
+
+    @keyframes fu{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+    .d1{animation-delay:.05s;}.d2{animation-delay:.1s;}.d3{animation-delay:.15s;}.d4{animation-delay:.2s;}
+    
+    @media(max-width:1100px){
+      #rp{display:none;}
+    }
+    @media(max-width:1024px) {
+      #sb{display:none;}
+      #tb{left:0!important;}
+      #mn{margin-left:0!important; padding-left:16px; padding-right:16px;}
+    }
+    @media(max-width:640px) {
+      .strip-container { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important;}
+      .strip-divider { display: none !important;}
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <div class="fixed inset-0 z-0 pointer-events-none transition-opacity duration-500">
+    <div class="absolute w-[600px] h-[600px] -top-32 -right-32 bg-purple-500/10 rounded-full blur-[120px]"></div>
+    <div class="absolute w-[500px] h-[500px] -bottom-32 -left-32 bg-purple-700/5 rounded-full blur-[120px]"></div>
+  </div>
+
+  <div class="app flex h-screen w-screen overflow-hidden relative z-10">
+
+    <aside id="sb" class="fixed left-0 top-0 h-full w-56 z-40 flex flex-col py-5 px-3 overflow-y-auto glass" style="background:var(--surf);border-right:1px solid var(--bd2);">
+      <div class="flex items-center gap-3 px-2 mb-7">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-lg">
+          <img src="images/logo.png" alt="TalentCircle Logo" class="w-full h-full object-contain dark:invert-0 light:invert light:brightness-50 light:contrast-150"/>
+        </div>
+        <div>
+          <div class="font-black text-sm tracking-tight" style="color:var(--t1)">TalentCircle</div>
+          <div style="font-size:.62rem;color:var(--t3)" class="font-medium">Reputation Hub</div>
+        </div>
+      </div>
+
+      <div class="slbl px-1">Menu</div>
+      <nav class="flex flex-col gap-0.5 mb-5">
+        <a href="dashboard.html" class="nav-item"><i class="fas fa-th-large w-4 text-center mr-1"></i>Dashboard</a>
+        <a href="calendar.html" class="nav-item"><i class="fas fa-calendar-alt w-4 text-center mr-1"></i>Calendar<span class="nbadge">3</span></a>
+        <a href="chat-list.html" class="nav-item"><i class="fas fa-comment-alt w-4 text-center mr-1"></i>Messages<span class="nbadge">5</span></a>
+        <a href="matches.html" class="nav-item"><i class="fas fa-users-cog w-4 text-center mr-1"></i>Matches</a>
+        <a href="community-forum.html" class="nav-item"><i class="fas fa-comments w-4 text-center mr-1"></i>Community Hub</a>
+        <a href="ranking.html" class="nav-item"><i class="fas fa-trophy w-4 text-center mr-1"></i>Rankings</a>
+        <a href="badges.html" class="nav-item"><i class="fas fa-award w-4 text-center mr-1"></i>Badges</a>
+        <a href="certificate.html" class="nav-item"><i class="fas fa-certificate w-4 text-center mr-1"></i>Certificates</a>
+        <a href="#" class="nav-item on"><i class="fas fa-star w-4 text-center mr-1"></i>Reviews<span class="nd w-1.5 h-1.5 ml-auto rounded-full bg-purple-400 shadow-[0_0_8px_#9b30d9]"></span></a>
+        <a href="chat-bot.html" class="nav-item"><i class="fas fa-robot w-4 text-center mr-1"></i>AI Assistant</a>
+      </nav>
+
+      <div class="mt-auto">
+        <div class="flex items-center gap-2.5 p-2.5 rounded-xl" style="background:var(--card2);border:1px solid var(--bd2)">
+          <div class="av-a w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0">A</div>
+          <div class="min-w-0 flex-1">
+            <div style="font-size:.75rem;font-weight:600;color:var(--t1)" class="truncate">Alex Rivera</div>
+            <div style="font-size:.65rem;color:var(--t3)" class="truncate">Full-Stack Dev</div>
+          </div>
+          <div class="gd"></div>
+        </div>
+      </div>
+    </aside>
+
+    <main id="mn" class="main flex-1 flex flex-col overflow-hidden h-full" style="margin-left:224px;">
+      
+      <header id="tb" class="topbar flex items-center justify-between py-3 px-6 border-b flex-shrink-0 glass" style="background:var(--surf); border-color:var(--bd2);">
+        <div>
+          <div class="text-xl font-black tracking-tight" style="color:var(--t1)">Reviews</div>
+          <div style="font-size:.72rem;color:var(--t3)" class="font-medium mt-0.5">Post-session telemetry matrices &amp; peer signatures evaluation.</div>
+        </div>
+        <div class="topbar-right flex items-center gap-3">
+          <button class="theme-toggle w-9 h-9 rounded-xl border flex items-center justify-center text-xs opacity-60 hover:opacity-100 glass focus:outline-none" onclick="toggleTheme()" title="Toggle layout view system" id="theme-btn">
+            <i id="mi" class="fas fa-moon"></i>
+            <i id="si" class="fas fa-sun hidden"></i>
+          </button>
+          
+          <div class="rating-pill flex items-center gap-2 px-3 py-1.5 border rounded-xl glass" style="border-color:var(--bd2)">
+            <i class="fas fa-star" style="color:var(--star)"></i>
+            <span class="rating-pill-val text-sm font-black" id="header-avg">4.8</span>
+            <span class="rating-pill-sub text-[10px] opacity-40 lowercase">Avg</span>
+          </div>
+
+          <a href="add-review.html" class="write-link bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold text-xs tracking-wider px-4 py-2.5 rounded-xl hover:shadow-lg transition-all flex items-center gap-2 relative transform active:scale-98">
+            <i class="fas fa-pen-nib"></i> Write Review
+            <span class="btn-badge absolute -top-1.5 -right-1.5 bg-yellow-500 text-slate-900 font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-mono shadow-md" id="pending-count-badge">2</span>
+          </a>
+        </div>
+      </header>
+
+      <div class="stat-strip p-5 border-b flex items-center gap-6 overflow-x-auto custom-scroll strip-container flex-shrink-0 transition-colors" style="background:var(--surf); border-color:var(--bd2);">
+        <div class="flex items-end gap-3 flex-shrink-0">
+          <span class="big-avg text-4xl font-black font-mono tracking-tight" id="big-avg">4.8</span>
+          <div class="pb-1">
+            <div class="stars-display flex gap-0.5 text-xs text-yellow-500" id="avg-stars-strip"></div>
+            <div class="text-[10px] font-medium opacity-50 mt-1"><span id="total-count" class="font-bold font-mono">0</span> global evaluations</div>
+          </div>
+        </div>
+        <div class="strip-divider w-px h-10 bg-purple-500/10 flex-shrink-0"></div>
+        <div id="rating-bars-wrap" class="flex-shrink-0 flex flex-col gap-1 min-w-[140px]"></div>
+        <div class="strip-divider w-px h-10 bg-purple-500/10 flex-shrink-0"></div>
+        <div id="cat-scores-wrap" class="flex gap-4 flex-shrink-0 items-center"></div>
+        <div class="strip-divider w-px h-10 bg-purple-500/10 flex-shrink-0"></div>
+        <div class="top-praised flex flex-col gap-1.5 flex-shrink-0">
+          <div class="praised-label text-[9px] font-bold opacity-40 uppercase tracking-widest">Top Praised Vectors</div>
+          <div class="praised-tags flex flex-wrap gap-1" id="praised-tags-wrap"></div>
+        </div>
+      </div>
+
+      <div class="content-wrap flex-1 flex overflow-hidden min-h-0 w-full">
+        
+        <div class="review-area flex-1 flex flex-col overflow-hidden min-w-0">
+          <div class="tabs-bar p-4 border-b flex items-center justify-between flex-shrink-0 gap-4 flex-wrap" style="background:var(--surf); border-color:var(--bd2);">
+            <div class="tabs flex bg-purple-900/5 dark:bg-black/40 light:bg-purple-500/5 border border-purple-500/10 rounded-xl p-1 text-xs font-semibold glass">
+              <button class="tab px-4 py-2 rounded-lg transition-all focus:outline-none active" data-tab="received" onclick="setTab('received')">Received</button>
+              <button class="tab px-4 py-2 rounded-lg transition-all focus:outline-none text-gray-400" data-tab="given" onclick="setTab('given')">Given</button>
+              <button class="tab px-4 py-2 rounded-lg transition-all focus:outline-none text-gray-400" data-tab="pending" onclick="setTab('pending')">
+                Pending <span class="tab-count bg-purple-500/10 text-purple-500 text-[9px] font-black font-mono px-1.5 py-0.5 rounded-full ml-1" id="pending-tab-count">2</span>
+              </button>
+            </div>
+            
+            <div class="sort-controls flex items-center gap-2 text-xs font-semibold">
+              <span class="sort-label opacity-40 font-bold uppercase tracking-wider text-[10px]">Sort:</span>
+             <select 
+  class="sort-sel px-3 py-1.5 bg-black/10 dark:bg-[#120e24] light:bg-white border border-purple-500/15 rounded-xl text-inherit cursor-pointer focus:outline-none focus:border-purple-500" 
+  id="sort-sel" 
+  onchange="renderReviews()" 
+  aria-label="Sort reviews">
+
+  <option value="newest">Newest first</option>
+  <option value="highest">Highest rated</option>
+  <option value="lowest">Lowest rated</option>
+</select>
+
+<select 
+  class="sort-sel px-3 py-1.5 bg-black/10 dark:bg-[#120e24] light:bg-white border border-purple-500/15 rounded-xl text-inherit cursor-pointer focus:outline-none focus:border-purple-500" 
+  id="filter-type" 
+  onchange="renderReviews()" 
+  aria-label="Filter review channels">
+
+  <option value="all">All Channels</option>
+  <option value="teaching">Instructional Loops</option>
+  <option value="learning">Wishlist Swaps</option>
+</select>
+            </div>
+          </div>
+
+          <div class="review-list flex-1 overflow-y-auto custom-scroll px-6 py-4" id="review-list">
+            <div class="review-list-inner flex flex-col gap-4 pb-8" id="review-list-inner"></div>
+          </div>
+        </div>
+
+        <aside id="rp" class="right-panel w-[260px] bg-black/5 dark:bg-black/10 light:bg-purple-500/5 border-l p-5 flex flex-col overflow-y-auto custom-scroll flex-shrink-0 transition-colors" style="border-color:var(--bd2);">
+          <div class="space-y-6">
+            <div>
+              <p class="panel-section-label text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono mb-3">Earned Badges Matrix</p>
+              <div id="badges-list" class="space-y-3"></div>
+            </div>
+            
+            <div class="w-full h-px bg-purple-500/5"></div>
+            
+            <div>
+              <p class="panel-section-label text-[10px] font-bold text-gray-400 uppercase tracking-widest font-mono mb-3">Skill Topology Ratings</p>
+              <div id="skill-ratings-list" class="space-y-3"></div>
+            </div>
+            
+            <div class="w-full h-px bg-purple-500/5"></div>
+            
+            <div class="pro-tip p-4 rounded-xl border border-purple-500/20 bg-purple-500/5 text-xs text-left glass">
+              <div class="pro-tip-title font-bold text-purple-500 dark:text-purple-400 mb-1">💡 Optimization Tip</div>
+              <div class="pro-tip-text font-light opacity-70 leading-relaxed">Responding to peer signatures demonstrates high latency commitment metrics. Mapped networks indicate a 2× recurrence value boost.</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+<div
+  id="toast"
+  class="toast hidden fixed bottom-6 right-6 z-50 items-center gap-2 rounded-xl p-3 px-4 text-xs md:text-sm font-semibold shadow-xl glass border border-purple-500/30 transition-all"
+  role="alert"
+  aria-live="assertive"
+  aria-atomic="true"
+>
+  <span id="toast-message"></span>
+</div>
+    <div class="toast-icon w-5 h-5 rounded-full flex items-center justify-center text-xs" id="toast-icon"></div>
+    <span class="toast-msg font-bold" id="toast-msg"></span>
+  </div>
+
+  <script>
+    const REVIEWS_RECEIVED = [
+      { id:1,  from:'Sam K.',    avatar:'S', topic:'React Hooks',   type:'teaching', date:'2026-05-06', rating:5, knowledge:5, clarity:5, punctuality:4, tags:['Great explanations','Well prepared','Clear code examples'], text:"Alex's breakdown of useEffect dependencies finally made things click for me. The session was structured, practical, and paced perfectly. I came in confused and left with working code.", helpful:12, reply:null },
+      { id:2,  from:'Nadia R.',  avatar:'N', topic:'Python Basics', type:'learning',  date:'2026-05-08', rating:5, knowledge:5, clarity:4, punctuality:5, tags:['Good listener','Patient teacher','Encouraging'], text:"Really patient and thorough. Alex asked the right questions to figure out exactly where I was stuck instead of just lecturing. Genuinely felt like a two-way conversation.", helpful:8,  reply:"Thanks Nadia! It was a pleasure — your questions pushed me to think more deeply about fundamentals too." },
+      { id:3,  from:'Jin L.',    avatar:'J', topic:'UI/UX Review',  type:'teaching', date:'2026-05-11', rating:4, knowledge:4, clarity:5, punctuality:4, tags:['Great explanations','On time'], text:"Solid session. Alex gave concrete, actionable feedback on my portfolio designs. Would've loved a bit more time on motion principles but overall very valuable.", helpful:5,  reply:null },
+      { id:4,  from:'Priya S.',  avatar:'P', topic:'Node.js APIs',  type:'teaching', date:'2026-05-14', rating:5, knowledge:5, clarity:5, punctuality:5, tags:['Well prepared','Clear code examples','Inspiring'], text:"One of the best technical sessions I've had on Talent Circle. Alex walked through building a REST API from scratch, explained every decision, and even shared a GitHub gist. 10/10.", helpful:19, reply:"It was awesome Priya! Your intuition for API design is already strong — excited to see where you take it." },
+      { id:5,  from:'Tom W.',    avatar:'T', topic:'Git Workflows', type:'learning',  date:'2026-05-16', rating:4, knowledge:4, clarity:4, punctuality:3, tags:['Good listener','Encouraging'], text:"Good session overall. We covered branching strategies and merge conflicts. Alex was a bit late but made up for it with great depth on rebase vs merge.", helpful:4,  reply:null },
+      { id:6,  from:'Fatima A.', avatar:'F', topic:'CSS Animation', type:'teaching', date:'2026-05-18', rating:5, knowledge:5, clarity:5, punctuality:5, tags:['Great explanations','Inspiring','Well prepared'], text:"Alex turned a dry topic into something magical. The live demos of keyframe animations and the transition timing deep-dive were exactly what I needed for my project. Booked a follow-up already!", helpful:7,  reply:null },
+    ];
+    const REVIEWS_GIVEN = [
+      { id:101, to:'Lee C.',    avatar:'L', topic:'Vue.js Intro',  type:'learning',  date:'2026-05-20', rating:4, knowledge:4, clarity:4, punctuality:4, tags:['Well prepared','On time'], text:"Lee had great examples ready and the session flowed naturally. Covered Composition API thoroughly.", helpful:0, reply:null },
+      { id:102, to:'Marco B.',  avatar:'M', topic:'TypeScript',     type:'teaching', date:'2026-05-23', rating:5, knowledge:5, clarity:5, punctuality:5, tags:['Great explanations','Clear code examples','Patient teacher'], text:"Marco is an exceptional TypeScript teacher. Went beyond the basics into generics and utility types in a way that actually stuck.", helpful:0, reply:null },
+      { id:103, to:'Sana Q.',   avatar:'S', topic:'Docker Basics',  type:'learning',  date:'2026-05-25', rating:5, knowledge:5, clarity:4, punctuality:5, tags:['Inspiring','Well prepared'], text:"Sana's passion for DevOps is infectious. The Docker Compose walkthrough was the highlight — went from zero to running a full stack app in containers by the end.", helpful:0, reply:"Thank you Alex! You were super quick to pick things up — makes teaching so rewarding!" },
+    ];
+    const PENDING_SESSIONS = [
+      { id:201, partner:'Dev P.',   avatar:'D', topic:'Testing in JS', type:'learning',  date:'2026-05-30', time:'11:30 AM' },
+      { id:202, partner:'Amara N.', avatar:'A', topic:'GraphQL',        type:'teaching', date:'2026-05-28', time:'2:30 PM'  },
+    ];
+    const BADGES_LIST_DATA = [
+      { icon:'🏆', label:'Top Teacher',       desc:'Rated 5★ five times',      earned:true  },
+      { icon:'💬', label:'Great Communicator', desc:'Clarity avg above 4.5',    earned:true  },
+      { icon:'⚡', label:'Punctuality Pro',    desc:'On time every session',     earned:false },
+      { icon:'🌟', label:'Rising Star',        desc:'10+ sessions completed',    earned:true  },
+    ];
+    const SKILL_RATINGS = [
+      { skill:'React',   avg:4.9, count:4 },
+      { skill:'Node.js', avg:4.8, count:3 },
+      { skill:'CSS',     avg:5.0, count:2 },
+      { skill:'Git',     avg:4.2, count:2 },
+    ];
+
+    let currentTab = 'received';
+    const votedHelpful = new Set();
+    const htmlDoc = document.documentElement;
+
+    function toggleTheme() {
+      const isDark = htmlDoc.classList.contains('dark');
+      htmlDoc.className = isDark ? 'light' : 'dark';
+      document.getElementById('mi').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+
+    function starsHTML(rating) {
+      let s = '';
+      for (let i = 1; i <= 5; i++) s += `<span class="${rating >= i ? 'text-yellow-500' : 'text-gray-400 dark:text-purple-950/50'}">★</span>`;
+      return `<span>${s}</span>`;
+    }
+    function fmtDate(d) { return new Date(d + 'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+    function avg(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
+
+    function renderStats() {
+      const all = REVIEWS_RECEIVED;
+      const av = avg(all.map(r=>r.rating));
+      const catK = avg(all.map(r=>r.knowledge));
+      const catC = avg(all.map(r=>r.clarity));
+      const catP = avg(all.map(r=>r.punctuality));
+
+      document.getElementById('big-avg').textContent = av.toFixed(1);
+      document.getElementById('header-avg').textContent = av.toFixed(1);
+      document.getElementById('avg-stars-strip').innerHTML = starsHTML(av);
+      document.getElementById('total-count').textContent = all.length;
+
+      const counts = [0,0,0,0,0];
+      all.forEach(r => { if(r.rating>=1&&r.rating<=5) counts[5-r.rating]++; });
+      const barsEl = document.getElementById('rating-bars-wrap');
+      barsEl.innerHTML = [5,4,3,2,1].map((star,i) => {
+        const pct = all.length ? Math.round(counts[i]/all.length*100) : 0;
+        return `<div class="rating-bar-row flex items-center gap-1.5 text-[10px] opacity-70 font-semibold font-mono">
+          <span class="w-2.5 text-right">${star}</span>
+          <span class="text-yellow-500">★</span>
+          <div class="bar-track w-24 h-1.5 bg-purple-500/10 rounded-full overflow-hidden"><div class="bar-fill h-full bg-yellow-500 rounded-full transition-all duration-700" style="width:0%" data-target="${pct}%"></div></div>
+          <span class="w-3 text-left opacity-40">${counts[i]}</span>
+        </div>`;
+      }).join('');
+
+      document.getElementById('cat-scores-wrap').innerHTML = [
+        {l:'Knowledge',v:catK},{l:'Clarity',v:catC},{l:'Punctuality',v:catP}
+      ].map(c=>`<div class="text-center">
+        <div class="text-sm font-black tracking-tight leading-none">${c.v.toFixed(1)}</div>
+        <div class="text-[9px] opacity-40 font-bold uppercase mt-1 tracking-wider">${c.l}</div>
+        <div class="mt-1 text-[10px] flex gap-0.5 justify-center">${starsHTML(c.v)}</div>
+      </div>`).join('');
+
+      const tagMap = {};
+      all.forEach(r => r.tags.forEach(t => { tagMap[t]=(tagMap[t]||0)+1; }));
+      const sorted = Object.entries(tagMap).sort((a,b)=>b[1]-a[1]).slice(0,3);
+      document.getElementById('praised-tags-wrap').innerHTML = sorted.map(([t,n])=>
+        `<span class="px-2 py-0.5 rounded-lg border border-purple-500/10 bg-purple-500/5 text-purple-500 dark:text-purple-400 font-bold text-[9px]">${t} <span class="opacity-40 font-mono font-normal">×${n}</span></span>`).join('');
+
+      setTimeout(() => {
+        document.querySelectorAll('.bar-fill').forEach(b => b.style.width = b.dataset.target);
+      }, 100);
+    }
+
+    function renderPanel() {
+      document.getElementById('badges-list').innerHTML = BADGES_LIST_DATA.map(b => `
+        <div class="flex items-center gap-3 p-2 rounded-xl bg-purple-500/5 border border-purple-500/5 ${b.earned?'':'opacity-30'}">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm border flex-shrink-0 ${b.earned?'bg-purple-500/10 border-yellow-500/30':'bg-black/10 border-transparent'}">${b.icon}</div>
+          <div class="flex-1 min-w-0 text-left">
+            <div class="text-xs font-bold truncate">${b.label}</div>
+            <div class="text-[10px] opacity-50 truncate">${b.desc}</div>
+          </div>
+          ${b.earned ? '<i class="fas fa-check-circle text-[10px] text-yellow-500"></i>' : '<i class="fas fa-lock text-[10px] opacity-40"></i>'}
+        </div>`).join('');
+
+      document.getElementById('skill-ratings-list').innerHTML = SKILL_RATINGS.map(s => `
+        <div class="space-y-1 text-left p-1">
+          <div class="flex justify-between items-center text-xs font-semibold">
+            <span>${s.skill}</span>
+            <span class="text-yellow-500 font-mono font-bold">${s.avg.toFixed(1)} ★</span>
+          </div>
+          <div class="skill-track h-1 bg-purple-500/10 rounded-full overflow-hidden"><div class="skill-fill h-full bg-gradient-to-r from-purple-600 to-yellow-500 rounded-full transition-all duration-700 w-0" data-target="${(s.avg/5*100).toFixed(0)}%"></div></div>
+          <div class="text-[9px] opacity-40 font-medium">${s.count} evaluation${s.count!==1?'s':''}</div>
+        </div>`).join('');
+
+      setTimeout(() => {
+        document.querySelectorAll('.skill-fill').forEach(b => b.style.width = b.dataset.target);
+      }, 150);
+    }
+
+    function renderReviews() {
+      const inner = document.getElementById('review-list-inner');
+      inner.innerHTML = '';
+      const sort  = document.getElementById('sort-sel').value;
+      const ftype = document.getElementById('filter-type').value;
+
+      if (currentTab === 'pending') { renderPending(inner); return; }
+
+      let items = currentTab === 'received' ? [...REVIEWS_RECEIVED] : [...REVIEWS_GIVEN];
+      if (ftype !== 'all') items = items.filter(r => r.type === ftype);
+      if (sort === 'newest')  items.sort((a,b) => b.date.localeCompare(a.date));
+      if (sort === 'highest') items.sort((a,b) => b.rating - a.rating);
+      if (sort === 'lowest')  items.sort((a,b) => a.rating - b.rating);
+
+      if (!items.length) {
+        inner.innerHTML = `<div class="empty-state py-16 text-center opacity-40 font-medium text-xs"><div class="text-3xl mb-2">⭐</div>No matching peer reviews recorded.</div>`;
+        return;
+      }
+
+      const isReceived = currentTab === 'received';
+      items.forEach((r, idx) => {
+        const name = isReceived ? r.from : r.to;
+        const card = document.createElement('div');
+        card.className = 'review-card relative overflow-hidden transition-all';
+        card.style.animationDelay = `${idx * 0.03}s`;
+        
+        card.innerHTML = `
+          <div class="absolute -top-3 -left-1 opacity-[0.03] text-6xl font-display font-black pointer-events-none select-none">“</div>
+          <div class="flex items-start justify-between gap-4 flex-wrap sm:flex-nowrap">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-800 to-purple-950 flex items-center justify-center font-bold text-xs text-purple-400 font-mono shadow-sm flex-shrink-0">${r.avatar}</div>
+              <div class="text-left">
+                <div class="text-sm font-bold text-slate-800 dark:text-white">${name}</div>
+                <div class="text-[11px] opacity-50 font-medium">${r.topic} · <span class="capitalize text-purple-500 font-bold">${r.type}</span></div>
+              </div>
+            </div>
+            <div class="text-right sm:ml-auto flex flex-col items-end gap-1 flex-shrink-0">
+              <div class="text-xs flex gap-0.5">${starsHTML(r.rating)}</div>
+              <div class="text-[10px] opacity-40 font-mono">${fmtDate(r.date)}</div>
+            </div>
+          </div>
+          
+          <div class="flex flex-wrap gap-4 text-[10px] font-mono opacity-50 my-3 font-semibold text-left">
+            <span>Knowledge: ${r.knowledge}/5</span>
+            <span>Clarity: ${r.clarity}/5</span>
+            <span>Punctuality: ${r.punctuality}/5</span>
+          </div>
+
+          ${r.tags.length ? `<div class="flex flex-wrap gap-1 mb-3 text-left">${r.tags.map(t=>`<span class="px-2 py-0.5 rounded border border-purple-500/10 bg-purple-500/5 text-[9px] font-bold text-purple-400">${t}</span>`).join('')}</div>` : ''}
+          <div class="text-xs md:text-sm opacity-70 font-light leading-relaxed text-left">${r.text}</div>
+          
+          ${r.reply ? `<div class="card-reply text-left"><div class="text-[10px] font-bold text-purple-500 mb-0.5">${isReceived?'You replied:':name+' replied:'}</div><div class="text-xs font-light opacity-70 leading-relaxed">${r.reply}</div></div>` : ''}
+          
+          <div class="flex justify-between items-center mt-4 pt-3 border-t border-purple-500/5 text-xs font-semibold">
+            <div id="reply-area-${r.id}">
+              ${isReceived && !r.reply ? `<button class="text-gray-400 hover:text-purple-500 flex items-center gap-1.5 focus:outline-none transition-colors" onclick="showReplyBox(${r.id})"><i class="fas fa-reply text-[10px]"></i> Reply</button>` : ''}
+            </div>
+            <button class="flex items-center gap-1.5 font-bold ${votedHelpful.has(r.id)?'text-purple-500 cursor-default':'text-gray-400 hover:text-purple-500'}" id="helpful-btn-${r.id}" onclick="markHelpful(${r.id})" ${votedHelpful.has(r.id)?'disabled':''}>
+              <i class="far fa-thumbs-up"></i> Helpful (<span id="helpful-n-${r.id}">${r.helpful}</span>)
+            </button>
+          </div>`;
+        inner.appendChild(card);
+      });
+    }
+
+    function renderPending(inner) {
+      if (!PENDING_SESSIONS.length) {
+        inner.innerHTML = `<div class="empty-state py-16 text-center opacity-40 font-medium text-xs"><div class="text-3xl mb-2">✅</div>All operational review loops successfully synchronized!</div>`;
+        return;
+      }
+      PENDING_SESSIONS.forEach((s, idx) => {
+        const card = document.createElement('div');
+        card.className = 'review-card text-left space-y-4';
+        card.style.animationDelay = `${idx * 0.04}s`;
+        card.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-xs font-mono shadow-sm flex-shrink-0">${s.avatar}</div>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-bold text-slate-800 dark:text-white truncate">${s.partner}</div>
+              <div class="text-xs opacity-60 truncate mt-0.5">${s.topic}</div>
+              <div class="text-[10px] opacity-40 font-mono mt-1">${fmtDate(s.date)} · ${s.time}</div>
+            </div>
+            <span class="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-500 dark:text-purple-400 text-[9px] font-black uppercase tracking-wider ml-auto capitalize">${s.type}</span>
+          </div>
+          <div class="flex justify-between items-center pt-3 border-t border-purple-500/5 text-xs font-semibold">
+            <span class="opacity-50 font-light">Awaiting your reputation payload signature...</span>
+            <a href="add-review.html?session=${s.id}" class="bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-lg shadow-md hover:shadow-purple-500/10 transition-all transform active:scale-95">
+              <i class="fas fa-star mr-1"></i> Sign Review
+            </a>
+          </div>`;
+        inner.appendChild(card);
+      });
+    }
+
+    function setTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach(b => {
+        b.className = b.dataset.tab === tab ? 'tab px-4 py-2 rounded-lg bg-purple-600 text-white shadow-sm transition-all focus:outline-none' : 'tab px-4 py-2 rounded-lg text-gray-400 hover:text-inherit transition-all focus:outline-none';
+      });
+      renderReviews();
+    }
+
+    function showReplyBox(id) {
+      const area = document.getElementById(`reply-area-${id}`);
+      area.innerHTML = `<div class="flex gap-2 mt-2 w-full max-w-md">
+        <input class="flex-1 bg-black/10 dark:bg-black/30 border border-purple-500/20 rounded-xl px-3 py-2 text-xs text-inherit focus:outline-none focus:border-purple-500" id="reply-in-${id}" placeholder="Write back response mapping…"/>
+        <button class="px-3 py-2 bg-purple-600 text-white font-bold text-[11px] uppercase tracking-wider rounded-xl hover:bg-purple-500 transition-all" onclick="submitReply(${id})">Broadcast</button>
+      </div>`;
+      document.getElementById(`reply-in-${id}`)?.focus();
+    }
+
+    function submitReply(id) {
+      const val = document.getElementById(`reply-in-${id}`)?.value.trim();
+      if (!val) return;
+      const r = REVIEWS_RECEIVED.find(x => x.id === id);
+      if (r) r.reply = val;
+      renderReviews();
+      showToast('Response signature successfully posted!', 'success');
+    }
+
+    function markHelpful(id) {
+      if (votedHelpful.has(id)) return;
+      votedHelpful.add(id);
+      const r = [...REVIEWS_RECEIVED, ...REVIEWS_GIVEN].find(x => x.id === id);
+      if (r) r.helpful++;
+      const span = document.getElementById(`helpful-n-${id}`);
+      if (span) span.textContent = r.helpful;
+      const btn = document.getElementById(`helpful-btn-${id}`);
+      if (btn) { btn.className = 'text-purple-500 cursor-default flex items-center gap-1.5 focus:outline-none'; btn.disabled = true; }
+    }
+
+    let toastTimer;
+    function showToast(msg, type='success') {
+      clearTimeout(toastTimer);
+      const toast = document.getElementById('toast');
+      const icon  = document.getElementById('toast-icon');
+      
+      icon.className = `toast-icon w-5 h-5 rounded-full flex items-center justify-center text-xs ${type==='success'?'bg-emerald-500/10 text-emerald-500':'bg-red-500/10 text-red-500'}`;
+      icon.innerHTML = type==='success' ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-times-circle"></i>';
+      
+      document.getElementById('toast-msg').textContent = msg;
+      toast.classList.remove('hidden');
+      toastTimer = setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    function updatePendingCount() {
+      const n = PENDING_SESSIONS.length;
+      document.getElementById('pending-tab-count').textContent = n;
+      const badge = document.getElementById('pending-count-badge');
+      badge.textContent = n;
+      badge.style.display = n ? '' : 'none';
+    }
+
+    const initialThemeValue = localStorage.getItem('theme') || 'dark';
+    document.getElementById('mi').className = initialThemeValue === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+
+    renderStats();
+    renderPanel();
+    renderReviews();
+    updatePendingCount();
+  </script>
+</body>
+</html>

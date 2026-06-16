@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Set Up Your Profile — Talent Circle</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+    <style>
+        /* CSS Variables for Seamless Dynamic Theme Switching */
+        :root {
+            --bg-color: #F4F0FF;
+            --bg-gradient: radial-gradient(circle at 30% 20%, #E8DFFFFF 0%, #F4F0FF 100%);
+            --card-bg: #FFFFFF;
+            --input-bg: #F9F6FF;
+            --text-main: #1E1B4B;
+            --text-muted: #6B7280;
+            --neon-purple: #7C5CB7;
+            --neon-glow: rgba(124, 92, 183, 0.15);
+            --input-border: #E4D9FF;
+            --btn-bg: #7C5CB7;
+            --btn-hover: #6A4CA3;
+        }
+
+        html.dark {
+            --bg-color: #030107;
+            --bg-gradient: radial-gradient(circle at 30% 20%, #160D2B 0%, #030107 100%);
+            --card-bg: #090514;
+            --input-bg: #120B24;
+            --text-main: #FFFFFF;
+            --text-muted: #9CA3AF;
+            --neon-purple: #BC77FF;
+            --neon-glow: rgba(188, 119, 255, 0.35);
+            --input-border: #3B1B6B;
+            --btn-bg: #7C5CB7;
+            --btn-hover: #906FCE;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: var(--bg-gradient);
+            color: var(--text-main);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+            /* Disable Selection to protect quiz answers */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 25px -5px var(--neon-glow); }
+            50% { box-shadow: 0 0 35px 2px var(--neon-glow); }
+        }
+
+        .animate-card {
+            animation: floatUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .neon-card-glow {
+            animation: pulseGlow 4s infinite ease-in-out;
+            border: 1px solid var(--input-border);
+        }
+
+        select option {
+            background-color: var(--input-bg);
+            color: var(--text-main);
+        }
+        select optgroup {
+            background-color: var(--card-bg);
+            color: var(--neon-purple);
+            font-style: normal;
+            font-weight: 700;
+        }
+
+        .premium-input:focus-within {
+            box-shadow: 0 0 15px var(--neon-glow);
+            border-color: var(--neon-purple);
+        }
+
+        /* Anti-Copy Protection Flash Overlay */
+        .secure-lockdown {
+            animation: flashRed 0.3s ease-out;
+        }
+        @keyframes flashRed {
+            0%, 100% { background-color: transparent; }
+            50% { background-color: rgba(239, 68, 68, 0.15); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 font-sans antialiased relative">
+
+    <!-- Theme Control Floating Toggle Switcher -->
+    <div class="absolute top-6 right-6 z-50">
+        <button 
+  id="themeToggle" 
+  aria-label="Toggle dark mode"
+  class="p-3.5 rounded-2xl bg-[var(--card-bg)] border border-[var(--input-border)] shadow-lg cursor-pointer hover:scale-105 active:scale-95 transition-all">
+
+  <i id="themeIcon" class="fas fa-sun text-xl text-yellow-400 dark:text-[#BC77FF]"></i>
+
+</button>
+    </div>
+
+    <!-- Main Dynamic Card Platform Framework -->
+    <div style="background-color: var(--card-bg);" 
+         class="w-full max-w-xl rounded-[2.5rem] p-6 md:p-10 shadow-2xl neon-card-glow animate-card relative z-10">
+        
+        <!-- App Header Logo Block -->
+        <div class="flex justify-center mb-6 relative">
+            <div class="absolute w-24 h-24 border border-dashed border-purple-500/30 rounded-full animate-spin" style="animation-duration: 25s;"></div>
+            <div class="relative z-10 bg-[var(--card-bg)] p-3 rounded-full border border-[var(--input-border)]">
+                <img src="images/logo.png" alt="Talent Circle Logo" class="h-16 w-16 object-contain" onerror="this.src='https://placehold.co/100/090514/BC77FF?text=TC'">
+            </div>
+        </div>
+
+        <h1 class="text-3xl md:text-4xl font-extrabold text-center tracking-tight mb-8">
+            Set Up Your Profile
+        </h1>
+
+        <form class="space-y-4" onsubmit="return validateProfileSubmission(event)">
+            
+            <!-- Input Area: Name -->
+            <div style="background-color: var(--input-bg); border-color: var(--input-border);"
+                 class="relative flex items-center premium-input border-2 rounded-2xl transition-all duration-300 group">
+                <span class="absolute left-5 text-lg text-purple-400"><i class="fas fa-user"></i></span>
+                <input type="text" placeholder="Name" required autocomplete="off"
+                    class="w-full pl-14 pr-5 py-3.5 bg-transparent text-[var(--text-main)] font-medium placeholder-gray-500 focus:outline-none">
+            </div>
+
+            <!-- Input Area: Short Bio -->
+            <div style="background-color: var(--input-bg); border-color: var(--input-border);"
+                 class="relative flex items-center premium-input border-2 rounded-2xl transition-all duration-300 group">
+                <span class="absolute left-5 text-lg text-purple-400"><i class="fas fa-comment-dots"></i></span>
+                <input type="text" placeholder="Short Bio" required autocomplete="off"
+                    class="w-full pl-14 pr-5 py-3.5 bg-transparent text-[var(--text-main)] font-medium placeholder-gray-500 focus:outline-none">
+            </div>
+
+            <!-- Custom Category Dropdown Configuration Trigger -->
+            <div style="background-color: var(--input-bg); border-color: var(--input-border);"
+                 class="relative flex items-center premium-input border-2 rounded-2xl transition-all duration-300 group">
+                <span class="absolute left-5 text-lg text-purple-400"><i class="fas fa-share-nodes"></i></span>
+                <select 
+  required 
+  id="skillsToShare" 
+  onchange="handleSkillSelectionChange()"
+  aria-label="Skills you want to share"
+  class="w-full pl-14 pr-12 py-3.5 bg-transparent text-[var(--text-main)] font-medium appearance-none cursor-pointer focus:outline-none">
+
+  <option value="" disabled selected hidden>Skills you want to share</option>
+
+</select>
+                <span class="absolute right-5 pointer-events-none text-purple-400"><i class="fas fa-chevron-down"></i></span>
+            </div>
+
+            <!-- Input Area: Skills to Learn -->
+            <div style="background-color: var(--input-bg); border-color: var(--input-border);"
+                 class="relative flex items-center premium-input border-2 rounded-2xl transition-all duration-300 group">
+                <span class="absolute left-5 text-lg text-purple-400"><i class="fas fa-graduation-cap"></i></span>
+              <select 
+  required 
+  id="skillsToLearn"
+  aria-label="Skills you want to learn"
+  class="w-full pl-14 pr-12 py-3.5 bg-transparent text-[var(--text-main)] font-medium appearance-none cursor-pointer focus:outline-none">
+
+  <option value="" disabled selected hidden>Skills you want to learn</option>
+
+</select>
+                <span class="absolute right-5 pointer-events-none text-purple-400"><i class="fas fa-chevron-down"></i></span>
+            </div>
+
+            <!-- Partition Meta Tag Styling line -->
+            <div class="relative py-2 flex items-center justify-center">
+                <div class="absolute w-full border-t border-purple-500/10"></div>
+                <span class="relative bg-[var(--card-bg)] px-4 text-[10px] tracking-widest uppercase text-purple-400/60 font-bold">Verification & Data Security</span>
+            </div>
+
+            <!-- Upload Matrix Row: Certificate (Optional) -->
+            <div style="background-color: var(--input-bg); border-color: var(--input-border);"
+                 class="flex items-center justify-between border-2 rounded-2xl p-2 pl-5 transition-all duration-300 premium-input group">
+                <div class="flex items-center space-x-4 overflow-hidden">
+                    <span class="text-lg text-purple-400"><i class="fas fa-certificate"></i></span>
+                    <span id="certLabel" class="font-medium text-gray-400 truncate text-sm md:text-base">Certificate (Optional)</span>
+                </div>
+                <label class="px-5 py-2.5 rounded-xl text-sm font-bold bg-[var(--text-main)] text-[var(--card-bg)] hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-md shrink-0">
+                    Browse
+                    <input type="file" id="certFile" accept=".pdf,image/*" multiple class="hidden" onchange="updateRowLabel(this, 'certLabel', 'Certificate Attached')">
+                </label>
+            </div>
+
+            <!-- Upload Matrix Row: CNIC / Birth Certificate -->
+            <div style="background-color: var(--input-bg); border-color: var(--input-border);"
+                 class="flex items-center justify-between border-2 rounded-2xl p-2 pl-5 transition-all duration-300 premium-input group">
+                <div class="flex items-center space-x-4 overflow-hidden">
+                    <span class="text-lg text-purple-400"><i class="fas fa-id-card"></i></span>
+                    <span id="idLabel" class="font-medium text-gray-400 truncate text-sm md:text-base">CNIC / Birth Certificate</span>
+                </div>
+                <label class="px-5 py-2.5 rounded-xl text-sm font-bold bg-[var(--text-main)] text-[var(--card-bg)] hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-md shrink-0">
+                    Browse
+                    <input type="file" id="identityFile" required accept=".pdf,image/*" class="hidden" onchange="updateRowLabel(this, 'idLabel', 'ID Document Secured')">
+                </label>
+            </div>
+
+            <!-- Secure Anti-Cheat Timer Quiz Engine Container Interface Layout Grid -->
+            <div id="quizContainerBox" style="background-color: var(--input-bg); border-color: var(--input-border);"
+                 class="flex flex-col border-2 rounded-2xl p-4 transition-all duration-300 premium-input relative overflow-hidden">
+                <div id="quizIndicatorBar" class="absolute top-0 left-0 h-1 w-full bg-red-500 transition-all duration-300"></div>
+                
+                <div class="flex items-center justify-between w-full">
+                    <div class="flex items-center space-x-4 overflow-hidden">
+                        <span class="text-lg text-purple-400"><i class="fas fa-stopwatch"></i></span>
+                        <span id="testLabel" class="font-medium text-gray-400 text-sm md:text-base">Select a skill to launch quiz</span>
+                    </div>
+                    <button type="button" onclick="startSecureQuizWithTimer()" id="testBtn" disabled
+                            class="px-5 py-2.5 rounded-xl text-sm font-bold bg-gray-600 text-gray-400 cursor-not-allowed transition-all shadow-md shrink-0">
+                        Take Quiz
+                    </button>
+                </div>
+
+                <!-- Hidden Inline Realtime Active Interactive Multi-choice Board Section Layout -->
+                <div id="activeQuizWrapper" class="hidden mt-4 pt-4 border-t border-purple-500/10 space-y-3">
+                    <div class="flex justify-between items-center bg-red-500/10 p-2 rounded-xl border border-red-500/20">
+                        <span class="text-xs font-bold text-red-400 uppercase tracking-wider animate-pulse"><i class="fas fa-shield-halved mr-1"></i> Anti-Cheat Active</span>
+                        <span class="text-sm font-black text-red-400" id="liveTimerDisplay">Time Left: 30s</span>
+                    </div>
+                    <p id="inlineQuestionText" class="text-sm font-semibold leading-relaxed text-[var(--text-main)] select-none prevent-copy"></p>
+                    <div id="quizOptionsContainer" class="grid grid-cols-1 gap-2"></div>
+                </div>
+            </div>
+
+            <!-- Submit Engine Control Activation Switch button -->
+            <div class="pt-4">
+                <button type="submit" 
+                    style="background-color: var(--btn-bg);"
+                    class="w-full py-4 rounded-2xl font-bold text-lg text-white shadow-xl hover:bg-[var(--btn-hover)] active:scale-[0.99] transition-all cursor-pointer">
+                    Continue
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Logical Script Data Engines -->
+    <script>
+        // Ensure window.apiurl exists for pages that expect it
+        // (api-base.js provides window.apiUrl; normalize to requested name)
+        window.apiurl = window.apiUrl;
+
+        let quizPassed = false;
+
+        let selectedSkillName = "";
+        let countdownTimerRef = null;
+        let activeCategoryKey = "";
+
+        // 1. Theme Toggling Control State Manager Engine
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const htmlElement = document.documentElement;
+
+        themeToggleBtn.addEventListener('click', () => {
+            if (htmlElement.classList.contains('dark')) {
+                htmlElement.classList.remove('dark');
+                htmlElement.classList.add('light');
+                themeIcon.className = 'fas fa-moon text-xl text-purple-700';
+            } else {
+                htmlElement.classList.remove('light');
+                htmlElement.classList.add('dark');
+                themeIcon.className = 'fas fa-sun text-xl text-[#BC77FF]';
+            }
+        });
+
+        // 2. Strict Anti Copy-Paste & Inspection Prevention Rules Controller
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        
+        // Prevent keyboard shortcuts for inspection or copying
+        document.addEventListener('keydown', (e) => {
+            if (
+                e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) || 
+                (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V'))
+            ) {
+                e.preventDefault();
+                triggerLockdownFlash();
+                return false;
+            }
+        });
+
+        // Block Drag/Drop copying operations completely
+        document.addEventListener('copy', e => { e.preventDefault(); triggerLockdownFlash(); });
+        document.addEventListener('paste', e => { e.preventDefault(); triggerLockdownFlash(); });
+        document.addEventListener('dragstart', e => e.preventDefault());
+
+        function triggerLockdownFlash() {
+            document.body.classList.add('secure-lockdown');
+            setTimeout(() => document.body.classList.remove('secure-lockdown'), 300);
+        }
+
+const uiCategoryToDbCategoryName = {
+            // These values must match the `skills.category` values in your DB.
+            // If your DB category names differ, update them here.
+            "creative---arts": "Creative & Arts",
+            "tech---development": "Tech & Development",
+            "language---communication": "Language & Communication",
+            "health--fitness---lifestyle": "Health, Fitness & Lifestyle",
+            "business---marketing": "Business & Marketing",
+            "career---soft-skills": "Career & Soft Skills",
+            "lifestyle--games---hobbies": "Lifestyle, Games & Hobbies",
+        };
+
+
+        // Standardized Question Bank
+        const quizBank = {
+            "creative---arts": {
+                question: "Which option handles structural layout relationships across UI frameworks to balance screen visual densities?",
+                options: ["A) High Canvas Saturation", "B) Negative / White Space", "C) Strict Vector Rasterization"],
+                correct: "B"
+            },
+            "tech---development": {
+                question: "In full-stack event cycles, what engine protocol handles race conditions cleanly inside high-concurrency storage pipelines?",
+                options: ["A) Blocking Event Synchronizers", "B) Thread-safe Mutexes / Promises", "C) LocalStorage Client Buffers"],
+                correct: "B"
+            },
+            "language---communication": {
+                question: "When crafting standard conversion copies, which sequential marketing format is commonly structured to target client interests?",
+                options: ["A) AIDA (Attention, Interest, Desire, Action)", "B) Passive Syntax Compression", "C) Narrative Chronological Logging"],
+                correct: "A"
+            },
+            "health--fitness---lifestyle": {
+                question: "To help your muscles rebuild efficiently after a heavy workout, which nutrient target is the most essential?",
+                options: ["A) Concentrated Carbohydrates", "B) Amino Acids / Proteins", "C) Citric Acids"],
+                correct: "B"
+            },
+            "business---marketing": {
+                question: "Which system mapping layout allows external web bots to index semantic connections inside modular structures?",
+                options: ["A) Text Keyword Stuffing arrays", "B) Internal Interlinking Networks & Schema markup", "C) Asset Compression configurations"],
+                correct: "B"
+            },
+            "career---soft-skills": {
+                question: "What is the critical initial baseline step when analyzing operational project bottlenecks?",
+                options: ["A) Moving structural target deadlines", "B) Isolating and defining root cause factors objectively", "C) Reallocating staff tasks randomly"],
+                correct: "B"
+            },
+            "lifestyle--games---hobbies": {
+                question: "Under standard positional strategy parameters in chess, where should your King generally be positioned during the endgame?",
+                options: ["A) Safely active and centralized", "B) Sealed inside back rank corners", "C) Used as isolated bait"],
+                correct: "A"
+            }
+        };
+
+        // Render Dropdown Content Options
+        async function populateDynamicSelectorsFromBackend() {
+            const shareSelect = document.getElementById('skillsToShare');
+            const learnSelect = document.getElementById('skillsToLearn');
+
+            // Clear any existing options (except first placeholder)
+            shareSelect.querySelectorAll('optgroup').forEach(n => n.remove());
+            learnSelect.querySelectorAll('optgroup').forEach(n => n.remove());
+
+            // For quiz compatibility we need a deterministic category key.
+            // We store value as `${categoryKey}||${skillName}`.
+            const categoryEntries = Object.entries(uiCategoryToDbCategoryName);
+
+            for (const [categoryKey, dbCategoryName] of categoryEntries) {
+                try {
+                    const res = await fetch(window.apiUrl(`/api/skills?category=${encodeURIComponent(dbCategoryName)}`), { method: 'GET' });
+                    if (!res.ok) continue;
+                    const data = await res.json();
+
+                    const skills = Array.isArray(data?.skills) ? data.skills : [];
+                    if (!skills.length) continue;
+
+                    const groupShare = document.createElement('optgroup');
+                    groupShare.label = dbCategoryName;
+
+                    const groupLearn = document.createElement('optgroup');
+                    groupLearn.label = dbCategoryName;
+
+                    skills.forEach((sk) => {
+                        const skillName = sk.name || sk.skill_name || sk.title;
+                        if (!skillName) return;
+                        groupShare.appendChild(new Option(skillName, `${categoryKey}||${skillName}`));
+                        groupLearn.appendChild(new Option(skillName, skillName));
+                    });
+
+                    shareSelect.appendChild(groupShare);
+                    learnSelect.appendChild(groupLearn);
+                } catch (_) {
+                    // ignore this category
+                }
+            }
+        }
+
+        // initial load
+        populateDynamicSelectorsFromBackend();
+
+        function normalizeSavedToken(token) {
+            return token || localStorage.getItem('talentcircle_token') || '';
+        }
+
+        function handleSkillSelectionChange() {
+            const selectVal = document.getElementById('skillsToShare').value;
+            if (!selectVal) return;
+
+            const [catKey, skillName] = selectVal.split("||");
+            selectedSkillName = skillName;
+            activeCategoryKey = catKey;
+
+            if (!quizPassed) {
+                // Reset ongoing tests if switching midway
+                clearInterval(countdownTimerRef);
+                document.getElementById('activeQuizWrapper').classList.add('hidden');
+
+                const testLabel = document.getElementById('testLabel');
+                const testBtn = document.getElementById('testBtn');
+
+                testLabel.innerText = `Quiz Unlocked: Verify ${skillName}`;
+                testBtn.disabled = false;
+                testBtn.className = "px-5 py-2.5 rounded-xl text-sm font-bold bg-[var(--text-main)] text-[var(--card-bg)] hover:opacity-90 cursor-pointer shadow-md shrink-0 transition-all";
+            }
+        }
+
+        // 3. Secure Quiz Engine with Active Countdown Timer Functionality
+        async function startSecureQuizWithTimer() {
+            // DB-driven quiz for selected skill (skill name -> quiz questions by skill_id)
+            if (!selectedSkillName || quizPassed) return;
+
+            const testBtn = document.getElementById('testBtn');
+            const activeQuizWrapper = document.getElementById('activeQuizWrapper');
+            const questionTextElement = document.getElementById('inlineQuestionText');
+            const optionsBox = document.getElementById('quizOptionsContainer');
+            const timerDisplay = document.getElementById('liveTimerDisplay');
+
+            // Prevent starting without token-backed backend routes that require auth.
+            // This page currently uses token only for /api/profile/setup.
+            // Quiz endpoints in backend are public GET /api/quiz/start/:skillId.
+
+            // Disable UI
+            testBtn.disabled = true;
+            testBtn.className = "px-5 py-2.5 rounded-xl text-sm font-bold bg-gray-600 text-gray-400 cursor-not-allowed shrink-0";
+            activeQuizWrapper.classList.remove('hidden');
+
+            // Fetch skill_id by searching skills (same category used for dropdown)
+            // Backend supports GET /api/skills/search?q=...&category=...
+            const dbCategoryName = uiCategoryToDbCategoryName[activeCategoryKey] || null;
+            let skillId = null;
+            try {
+                const res = await fetch(window.apiUrl(`/api/skills/search?q=${encodeURIComponent(selectedSkillName)}&category=${encodeURIComponent(dbCategoryName || '')}`), { method: 'GET' });
+                const data = await res.json().catch(() => ({}));
+                if (Array.isArray(data?.skills) && data.skills.length) {
+                    // Prefer exact match by name
+                    const exact = data.skills.find(s => (s.name || s.skill_name) === selectedSkillName);
+                    skillId = (exact || data.skills[0]).id;
+                }
+            } catch (e) {}
+
+            if (!skillId) {
+                alert('Skill not found in database, cannot start verification quiz.');
+                resetQuizBoxState();
+                return;
+            }
+
+            // Load questions from backend DB
+            let questions = [];
+            try {
+                const res = await fetch(window.apiUrl(`/api/quiz/start/${encodeURIComponent(skillId)}`), { method: 'GET' });
+                const payload = await res.json();
+                questions = Array.isArray(payload?.questions) ? payload.questions : [];
+            } catch (e) {
+                questions = [];
+            }
+
+            if (!questions.length) {
+                alert('No quiz questions found for this skill in database.');
+                resetQuizBoxState();
+                return;
+            }
+
+            // Render first question + multi-step local selection
+            let currentIndex = 0;
+            const selectedIndices = [];
+            const startTime = Date.now();
+
+            function renderQuestion(idx) {
+                const q = questions[idx];
+                selectedIndices[idx] = null;
+                questionTextElement.innerText = `${idx + 1}/${questions.length}: ${q.question}`;
+                optionsBox.innerHTML = '';
+
+                (q.options || []).forEach((opt, optIndex) => {
+                    const optionBtn = document.createElement('button');
+                    optionBtn.type = 'button';
+                    optionBtn.innerText = opt;
+                    optionBtn.className = "w-full text-left px-4 py-3 bg-[var(--card-bg)] hover:bg-purple-500/10 border border-[var(--input-border)] rounded-xl font-medium text-xs md:text-sm transition-all focus:outline-none select-none";
+                    optionBtn.onclick = () => {
+                        selectedIndices[idx] = optIndex;
+                        // Move next
+                        if (idx + 1 < questions.length) {
+                            currentIndex++;
+                            renderQuestion(currentIndex);
+                        } else {
+                            // Submit when all answered
+                            submitQuiz(skillId, selectedIndices, startTime);
+                        }
+                    };
+                    optionsBox.appendChild(optionBtn);
+                });
+            }
+
+            async function submitQuiz(skillIdToSubmit, answers, startTimeMs) {
+                // Stop timer
+                clearInterval(countdownTimerRef);
+
+                const testLabel = document.getElementById('testLabel');
+                const indicator = document.getElementById('quizIndicatorBar');
+                const durationSec = Math.max(1, Math.floor((Date.now() - startTimeMs) / 1000));
+
+                // Ensure all answered
+                if (!Array.isArray(answers) || answers.length !== questions.length || answers.some(a => a === null || typeof a === 'undefined')) {
+                    alert('Please answer all questions before submitting.');
+                    resetQuizBoxState();
+                    return;
+                }
+
+                try {
+                    const token = normalizeSavedToken(localStorage.getItem('talentcircle_token'));
+                    const res = await fetch(window.apiUrl('/api/quiz/submit'), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': token
+                        },
+                        body: JSON.stringify({
+                            token,
+                            skill_id: skillIdToSubmit,
+                            answers,
+                            start_time: Math.floor(startTimeMs / 1000)
+                        })
+                    });
+                    const data = await res.json();
+
+                    if (!res.ok || data?.error) throw new Error(data?.error || 'Quiz submit failed');
+
+                    quizPassed = !!data.verified;
+                    if (quizPassed) {
+                        testLabel.innerText = `🎉 ${selectedSkillName} Verified`;
+                        testLabel.style.color = "#BC77FF";
+                        indicator.style.backgroundColor = "#22C55E";
+                        activeQuizWrapper.classList.add('hidden');
+                        testBtn.innerText = "Passed";
+                        testBtn.className = "px-5 py-2.5 rounded-xl text-sm font-bold bg-purple-950/30 text-purple-400 border border-purple-500/20 cursor-not-allowed shrink-0";
+                    } else {
+                        alert('❌ Verification failed. Try again.');
+                        resetQuizBoxState();
+                    }
+                } catch (e) {
+                    alert(e.message || 'Verification failed');
+                    resetQuizBoxState();
+                }
+            }
+
+            // Timer: 30 seconds total for whole quiz box
+            let timeRemaining = 30;
+            timerDisplay.innerText = `Time Left: ${timeRemaining}s`;
+
+            countdownTimerRef = setInterval(() => {
+                timeRemaining--;
+                timerDisplay.innerText = `Time Left: ${timeRemaining}s`;
+                if (timeRemaining <= 0) {
+                    clearInterval(countdownTimerRef);
+                    alert("⏳ Time's up! The verification quiz locked out. Please re-select your skill parameters to attempt again.");
+                    resetQuizBoxState();
+                }
+            }, 1000);
+
+            // Render first question
+            renderQuestion(currentIndex);
+        }
+
+
+        // Legacy client-only quiz function (no longer used after DB-driven quiz update)
+        function verifyActiveQuizAnswer(userPickedLetter, correctLetter) {
+            clearInterval(countdownTimerRef);
+        }
+
+
+        function resetQuizBoxState() {
+            clearInterval(countdownTimerRef);
+            document.getElementById('activeQuizWrapper').classList.add('hidden');
+            const testBtn = document.getElementById('testBtn');
+            testBtn.disabled = false;
+            testBtn.className = "px-5 py-2.5 rounded-xl text-sm font-bold bg-[var(--text-main)] text-[var(--card-bg)] hover:opacity-90 cursor-pointer shadow-md shrink-0 transition-all";
+            document.getElementById('testLabel').innerText = `Retry Verification Quiz for ${selectedSkillName}`;
+        }
+
+        function updateRowLabel(fileInputElement, labelElementId, fallbackMessage) {
+            const currentLabel = document.getElementById(labelElementId);
+            if (fileInputElement.files && fileInputElement.files.length > 0) {
+                const name = fileInputElement.files[0].name;
+                currentLabel.innerText = `✓ ${name.length > 20 ? name.substring(0, 18) + '...' : name}`;
+                currentLabel.style.color = "#BC77FF";
+            } else {
+                currentLabel.innerText = fallbackMessage;
+                currentLabel.style.color = "";
+            }
+        }
+
+        async function validateProfileSubmission(event) {
+            event.preventDefault();
+
+            if (!quizPassed) {
+                const proceed = confirm("Notice: Your skills have not been verified via the dynamic test yet. Proceed without the verification badge?");
+                if (!proceed) return false;
+            }
+
+            // NOTE: This page currently does not collect auth token.
+            // It assumes your login flow stores token in localStorage under `talentcircle_token`.
+            const token = normalizeSavedToken(localStorage.getItem('talentcircle_token'));
+            if (!token) {
+                alert('Unauthorized: missing login token. Please sign in again.');
+                return false;
+            }
+
+
+            const name = event.target.querySelector('input[placeholder="Name"]')?.value?.trim();
+            const bio = event.target.querySelector('input[placeholder="Short Bio"]')?.value?.trim();
+
+            const skillsHaveSel = document.getElementById('skillsToShare');
+            const skillsLearnSel = document.getElementById('skillsToLearn');
+
+            const skillsHaveVal = skillsHaveSel?.value || '';
+            const skillsLearnVal = skillsLearnSel?.value || '';
+
+            // skillsToShare stores `${normalizedCategoryKey}||${skill}`
+            const skillsHave = skillsHaveVal ? [skillsHaveVal.split('||')[1] || skillsHaveVal] : [];
+            const skillsLearn = skillsLearnVal ? [skillsLearnVal] : [];
+
+            const payload = {
+                token,
+                name,
+                bio,
+                skills_have: skillsHave,
+                skills_learn: skillsLearn,
+                // certificates upload is not wired yet; keep as empty array
+                certificates: [],
+            };
+
+          
+
+            try {
+                const res = await fetch('/api/profile/setup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || data.error) {
+                    throw new Error(data.error || 'Profile setup failed');
+                }
+
+                alert('Success! Profile setup completed.');
+                // Redirect to profile page
+                window.location.href = 'profile.html';
+                return true;
+            } catch (e) {
+                alert(e.message || 'Profile setup failed');
+                return false;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentCircle — Learn. Teach. Grow — Together.</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- THREE.JS REQUIRED FOR 3D GLOBE MODEL -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+  tailwind.config = {
+    darkMode: ['class', '[data-theme="dark"]'],
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Poppins','sans-serif'],
+          mono: ['JetBrains Mono','monospace'],
+        },
+      }
+    }
+  }
+</script>
+
+<style>
+  /* ===== DYNAMIC THEME VARIABLES ===== */
+  
+  /* Dark Theme (Cyber-Noir / Default) */
+  :root[data-theme="dark"] {
+    --bg: #000000;          
+    --surface: #0c0510;     
+    --surface2: #190a21;
+    --border: rgba(189, 36, 210, 0.25);
+    --border2: rgba(255, 255, 255, 0.08);
+    
+    --text: #ffffff;
+    --muted: #b9a9be;       
+    
+    --violet: #bd24d2;     
+    --violet2: #e163f2;
+    --purple: #861996;
+    
+    --glow-v: rgba(189, 36, 210, 0.45);
+    --glow-bg: rgba(189, 36, 210, 0.15);
+  }
+
+  /* Light Theme (Clean & Professional) */
+  :root[data-theme="light"] {
+    --bg: #ffffff;          
+    --surface: #fdfafc;     
+    --surface2: #f4eef7;
+    --border: rgba(189, 36, 210, 0.2);
+    --border2: rgba(0, 0, 0, 0.08);
+    
+    --text: #0f0514;
+    --muted: #6b5a7a;       
+    
+    --violet: #bd24d2;     
+    --violet2: #bd24d2; 
+    --purple: #861996;
+    
+    --glow-v: rgba(189, 36, 210, 0.25);
+    --glow-bg: rgba(189, 36, 210, 0.05);
+  }
+
+  * { scroll-behavior: smooth; box-sizing: border-box; }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Poppins', sans-serif;
+    overflow-x: hidden;
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  /* ===== GRADIENTS & BUTTONS ===== */
+  .grad-text {
+    background: linear-gradient(135deg, var(--violet) 0%, var(--violet2) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .grad-btn {
+    background: linear-gradient(135deg, var(--violet) 0%, var(--purple) 100%);
+    color: #ffffff !important;
+    font-weight: 600;
+  }
+  .grad-btn:hover { 
+    opacity: 0.95; 
+    transform: translateY(-2px); 
+    box-shadow: 0 10px 25px var(--glow-v);
+  }
+  .outline-btn {
+    border: 1px solid var(--violet2);
+    color: var(--violet2);
+    font-weight: 600;
+  }
+  .outline-btn:hover {
+    background: rgba(189, 36, 210, 0.1);
+  }
+
+  /* ===== ANIMATIONS ===== */
+  .float-img { animation: floaty 6s ease-in-out infinite; }
+  .float-chip { animation: floaty 6s ease-in-out infinite; }
+  @keyframes floaty {
+    0%,100% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+  }
+
+  .reveal { opacity: 0; transform: translateY(40px); transition: all .7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-left { opacity: 0; transform: translateX(-40px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal-left.visible { opacity: 1; transform: translateX(0); }
+  .reveal-right { opacity: 0; transform: translateX(40px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+  /* ===== CARDS & PLACEHOLDERS ===== */
+  .glass-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease, background-color 0.4s ease;
+  }
+  .glass-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--violet2);
+    box-shadow: 0 10px 40px rgba(189, 36, 210, 0.15);
+  }
+
+  .img-placeholder {
+    background: linear-gradient(135deg, var(--surface2), var(--bg));
+    border: 1px dashed var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 0.8rem; text-align: center;
+  }
+
+  /* ===== 3D CANVAS ===== */
+  #globe-container { width: 100%; height: 520px; position: relative; }
+
+  /* ===== SCROLLBAR & DIVIDERS ===== */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+
+  .gradient-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--purple), var(--violet2), var(--purple), transparent);
+  }
+
+  .star-bg { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .star {
+    position: absolute; border-radius: 50%;
+    background: var(--text); opacity: 0;
+    animation: twinkle var(--dur, 4s) ease-in-out var(--delay, 0s) infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: var(--max-opacity, 0.4); transform: scale(1); }
+  }
+</style>
+</head>
+
+<body class="antialiased">
+
+<!-- AMBIENT GLOWS & STARS -->
+<div class="star-bg" id="star-bg" aria-hidden="true"></div>
+<div aria-hidden="true" class="fixed inset-0 pointer-events-none z-0 transition-opacity duration-500">
+  <div class="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-[var(--violet)] blur-[150px]" style="background-color: var(--glow-bg);"></div>
+  <div class="absolute bottom-1/4 right-0 w-[400px] h-[400px] rounded-full bg-[var(--violet2)] blur-[150px]" style="background-color: var(--glow-bg);"></div>
+</div>
+
+<!-- ================= HEADER ================= -->
+<header class="fixed top-0 left-0 w-full z-50 backdrop-blur-xl border-b border-[var(--border)] bg-[var(--bg)]/80 transition-colors duration-300">
+  <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+    <a href="#" class="flex items-center gap-2">
+      <img src="images/logo.png" alt="TalentCircle" width="140" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" class="object-contain filter">
+      <span class="text-xl font-bold tracking-tight text-[var(--text)] hidden" id="logo-fallback">Talent<span class="text-[var(--violet2)]">Circle</span></span>
+    </a>
+
+    <nav class="hidden lg:flex items-center gap-8 text-sm font-medium text-[var(--muted)]">
+      <a href="#" class="text-[var(--text)]">Home</a>
+      <a href="#features" class="hover:text-[var(--violet2)] transition">Explore Skills</a>
+      <a href="#community" class="hover:text-[var(--violet2)] transition">Community</a>
+      <a href="#how" class="hover:text-[var(--violet2)] transition">How It Works</a>
+      <a href="#about" class="hover:text-[var(--violet2)] transition">About Us</a>
+    </nav>
+
+    <div class="flex items-center gap-4">
+      <button id="theme-toggle" aria-label="Toggle theme" class="w-10 h-10 rounded-full border border-[var(--border)] bg-[var(--surface)] flex items-center justify-center text-sm hover:border-[var(--violet2)] transition-colors">
+        <span id="theme-icon">🌙</span>
+      </button>
+      <div class="hidden md:flex items-center bg-[var(--surface2)] border border-[var(--border)] rounded-full px-4 py-2 transition-colors duration-300">
+        <input type="text" placeholder="Search skills, people..." class="bg-transparent border-none outline-none text-sm text-[var(--text)] placeholder-[var(--muted)] w-48">
+        <span class="text-[var(--muted)] text-sm">🔍</span>
+      </div>
+      <a href="#" class="text-sm font-semibold text-[var(--text)] hover:text-[var(--violet2)] transition hidden sm:block">Log In</a>
+      <a href="#" class="grad-btn text-sm px-5 py-2.5 rounded-full transition-all">Sign Up</a>
+    </div>
+  </div>
+  
+  <!-- Ticker -->
+  <div class="border-t border-[var(--border)] bg-[var(--bg)]/90 overflow-hidden transition-colors duration-300">
+    <div class="ticker-track py-2 font-mono text-[11px] text-[var(--muted)] tracking-wide flex gap-8">
+      <span>🟣 Aisha taught <b class="text-[var(--text)]">UI Design</b> · +40 pts &nbsp;·&nbsp;</span>
+      <span>🔮 Marcus learned <b class="text-[var(--violet2)]">Spanish</b> · −25 pts &nbsp;·&nbsp;</span>
+      <span>🟣 Lina taught <b class="text-[var(--text)]">Python Basics</b> · +50 pts &nbsp;·&nbsp;</span>
+      <span>⭐ Badge unlocked: <b class="text-[var(--text)]">Mentor Lvl 2</b> &nbsp;·&nbsp;</span>
+      <span>🔮 Devon learned <b class="text-[var(--violet2)]">Guitar</b> · −30 pts &nbsp;·&nbsp;</span>
+      <span>🟣 Ahmed taught <b class="text-[var(--text)]">3D Modeling</b> · +60 pts &nbsp;·&nbsp;</span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= HERO SECTION (WITH IMAGE) ================= -->
+<section class="pt-40 pb-20 px-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-screen relative z-10">
+  <div class="space-y-6 reveal-left">
+    <div class="inline-flex items-center gap-2 text-xs font-medium bg-[var(--surface2)] border border-[var(--border)] px-4 py-2 rounded-full text-[var(--violet2)]">
+      👥 Learn. Teach. Grow — Together.
+    </div>
+
+    <h1 class="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] text-[var(--text)]">
+      Learn. Teach.<br>
+      Grow — <span class="grad-text">Together.</span>
+    </h1>
+
+    <p class="text-[var(--muted)] text-lg leading-relaxed max-w-md">
+      TalentCircle is a peer-to-peer platform where you can exchange skills, not money. Teach what you know and learn what you need — all in one place.
+    </p>
+
+    <div class="flex flex-wrap gap-4 pt-2">
+      <a href="#cta" class="grad-btn px-8 py-3.5 rounded-full transition-all flex items-center gap-2">Get Started <span>→</span></a>
+      <a href="#features" class="outline-btn px-8 py-3.5 rounded-full transition-all flex items-center gap-2"><span>▷</span> Explore Features</a>
+    </div>
+
+    <div class="pt-6 flex items-center gap-4">
+      <div class="flex -space-x-3">
+        <div class="w-10 h-10 rounded-full border-2 border-[var(--bg)] img-placeholder overflow-hidden"><img src="images/avatar1.png" onerror="this.style.display='none'"></div>
+        <div class="w-10 h-10 rounded-full border-2 border-[var(--bg)] img-placeholder overflow-hidden"><img src="images/avatar2.png" onerror="this.style.display='none'"></div>
+        <div class="w-10 h-10 rounded-full border-2 border-[var(--bg)] img-placeholder overflow-hidden"><img src="images/avatar3.png" onerror="this.style.display='none'"></div>
+      </div>
+      <div class="text-sm text-[var(--muted)]">
+        <b class="text-[var(--text)]">25,000+</b> learners<br>already growing together
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO IMAGE LAYER (Replaced 3D Model) -->
+  <div class="relative flex items-center justify-center min-h-[460px] reveal-right">
+    <div class="absolute inset-0 z-0 opacity-40 bg-[radial-gradient(circle,var(--violet)_0%,transparent_62%)] blur-3xl rounded-full mix-blend-screen"></div>
+    
+    <div class="relative z-10 w-full flex justify-center float-img">
+      <!-- Main Hero Illustration Placeholder -->
+      <img src="images/hero-img.png" alt="Hero Illustration" class="w-full max-w-[600px] h-auto object-contain drop-shadow-2xl" onerror="this.outerHTML='<div class=\'w-full max-w-[500px] aspect-square img-placeholder rounded-full border-2 border-[var(--violet)]\'>Add images/hero-img.png here</div>'">
+      
+      <!-- Floating Earn Points Card -->
+      <div class="absolute bottom-4 left-0 glass-card p-4 flex items-center gap-4 shadow-2xl">
+        <div class="w-10 h-10 rounded-full bg-[var(--violet)] flex items-center justify-center text-xl text-white">⭐</div>
+        <div>
+          <div class="font-bold text-sm text-[var(--text)]">Earn Points</div>
+          <div class="text-[10px] text-[var(--muted)]">Teach and learn<br>to earn points</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Floating Data Chips -->
+    <div class="float-chip absolute top-4 left-2 bg-[var(--surface2)] border border-[var(--border)] text-[var(--text)] rounded-2xl px-4 py-2 text-xs font-semibold shadow-xl z-20" style="animation-delay:0s">💬 Chat</div>
+    <div class="float-chip absolute bottom-12 right-0 bg-[var(--surface2)] border border-[var(--border)] text-[var(--text)] rounded-2xl px-4 py-2 text-xs font-semibold shadow-xl z-20" style="animation-delay:1.2s">📚 Learn</div>
+    <div class="float-chip absolute top-10 right-2 bg-[var(--surface2)] border border-[var(--border)] text-[var(--text)] rounded-2xl px-4 py-2 text-xs font-semibold shadow-xl z-20" style="animation-delay:2.1s">🏆 Badges</div>
+  </div>
+</section>
+
+<div class="gradient-divider"></div>
+
+<!-- ================= COMPREHENSIVE FEATURES GRID ================= -->
+<section id="features" class="py-24 px-6 max-w-7xl mx-auto relative z-10">
+  <div class="text-center mb-16 reveal">
+    <div class="inline-block text-[11px] font-mono uppercase tracking-[0.2em] bg-[var(--surface2)] border border-[var(--border)] px-4 py-1.5 rounded-full text-[var(--violet2)] mb-4">✨ Platform Capabilities</div>
+    <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight text-[var(--text)]">Our <span class="text-[var(--violet2)]">Features</span></h2>
+    <p class="text-[var(--muted)] mt-3 max-w-2xl mx-auto">Everything you need to trade skills efficiently, securely, and seamlessly. Designed to replicate the best parts of a university campus.</p>
+  </div>
+
+  <!-- 12-Card Feature Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    
+    <!-- Feature 1 -->
+    <div class="glass-card p-6 reveal">
+      <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-2xl mb-4 border border-[var(--border)]">🤖</div>
+      <h3 class="font-bold text-lg text-[var(--text)] mb-2">AI Assistant Chatbot</h3>
+      <p class="text-sm text-[var(--muted)] leading-relaxed">Get instant help with our smart AI chatbot. Ask questions, get guidance, and improve your learning anytime.</p>
+    </div>
+
+    <!-- Feature 2 -->
+    <div class="glass-card p-6 reveal" style="transition-delay: 0.1s;">
+      <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-2xl mb-4 border border-green-500/20">🚀</div>
+      <h3 class="font-bold text-lg text-[var(--text)] mb-2">Skill Exchange System</h3>
+      <p class="text-sm text-[var(--muted)] leading-relaxed">Teach your skills and learn new ones through a powerful, seamless barter-based model.</p>
+    </div>
+
+    <!-- Feature 3 -->
+    <div class="glass-card p-6 reveal" style="transition-delay: 0.2s;">
+      <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-2xl mb-4 border border-blue-500/20">🔍</div>
+      <h3 class="font-bold text-lg text-[var(--text)] mb-2">Advanced Skill Search</h3>
+      <p class="text-sm text-[var(--muted)] leading-relaxed">Quickly find users based on specific skills, niche interests, availability, and learning goals.</p>
+    </div>
+
+    <!-- Feature 4 -->
+    <div class="glass-card p-6 reveal" style="transition-delay: 0.3s;">
+      <div class="w-12 h-12 rounded-xl bg-pink-500/10 flex items-center justify-center text-2xl mb-4 border border-pink-500/20">🤝</div>
+      <h3 class="font-bold text-lg text-[var(--text)] mb-2">Smart Matching</h3>
+      <p class="text-sm text-[var(--muted)] leading-relaxed">Get personalized algorithmic recommendations to connect with the perfect learning partners.</p>
+    </div>
+
+    <!-- Feature 5 -->
+    <div class="glass-card p-6 reveal">
+      <div class="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-2xl mb-4 border border-cyan-500/20">💬</div>
+      <h3 class="font-bold text-lg text-[var(--text)] mb-2">Real-Time Chat</h3>
+      <p class="text-sm text-[var(--muted)] leading-relaxed">Communicate instantly with users using a smooth, secure, and lightning-fast chat system.</p>
+    </div>
+
+    <!-- Feature 6 -->
+    <div class="glass-card p-6 reveal" style="transition-delay: 0.1s;">
+      <div class="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-2xl mb-4 border border-orange-500/20">📅</div>
+      <h3 class="font-bold text-lg text-[var(--text)] mb-2">Session Scheduling</h3>
+      <p class="text-sm text-[var(--muted)] leading-relaxed">Book, sync, and manage sessions easily with a smart timezone-aware interactive calendar.</p>
+    </div>
+
+    <!-- Feature 7 -->
+    <div class="glass-card p-6 reveal" style="transition-delay: 0.2s;">
+      <div class="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center text-2xl mb-4 border border-yellow-500/20">🏆</div>
+      <h3 class="font-bold text-lg text-[var(--text)] mb-2">Points Reward System</h3>
+      <p class="text-sm text-[var(--muted)] leading-relaxed">Earn points by teaching your expertise, and spend those accumulated points to learn from others.</p>
+    </div>
+
+    <!-- Feature 8 -->
+    <div class="glass-card p-6 reveal" style="transition-delay: 0.3s;">
+      <div class="w-12 h-12 rounded-xl bg-[var(--violet)]/10 flex items-center justify-center text-2xl mb-4 border border-[var(--violet)]/20">⭐</div>
+      <h3 class="font-bold text-lg text-[var(--text)] mb-2">Reviews & Ratings</h3>
+      <p class="text-sm text-[var(--muted)] leading-relaxed">Build undeniable trust with transparent, verified feedback and ratings from the community.</p>
+    </div>
+
+    <!-- Feature 9 -->
+    <div class="glass-card p-6 reveal">
+      <div class="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center text-2xl mb-4 border border-red-500/20">🎖️</div>
+      <h3 class="font-bold text-lg text-[var(--text)] mb-2">Badges & Achievements</h3>
+      <p class="text-sm text-[var(--muted)] leading-relaxed">Stay motivated by earning distinct rewards, certificates, and profile achievements.</p>
+    </div>
+
+    <!-- Feature 10 -->
+    <div class="glass-card p-6 reveal" style="transition-delay: 0.1s;">
+      <div class="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-2xl mb-4 border border-indigo-500/20">🔔</div>
+      <h3 class="font-bold text-lg text-[var(--text)] mb-2">Notifications</h3>
+      <p class="text-sm text-[var(--muted)] leading-relaxed">Get real-time push and email updates for messages, upcoming sessions, and new exchange requests.</p>
+    </div>
+
+    <!-- Feature 11 -->
+    <div class="glass-card p-6 reveal" style="transition-delay: 0.2s;">
+      <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-2xl mb-4 border border-emerald-500/20">📹</div>
+      <h3 class="font-bold text-lg text-[var(--text)] mb-2">Integrated Video Calls</h3>
+      <p class="text-sm text-[var(--muted)] leading-relaxed">Host your learning sessions directly on the platform with built-in high-quality WebRTC video tools.</p>
+    </div>
+
+    <!-- Feature 12 -->
+    <div class="glass-card p-6 reveal" style="transition-delay: 0.3s;">
+      <div class="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center text-2xl mb-4 border border-rose-500/20">🛡️</div>
+      <h3 class="font-bold text-lg text-[var(--text)] mb-2">Verified Portfolios</h3>
+      <p class="text-sm text-[var(--muted)] leading-relaxed">Showcase your real-world projects and verify your identity to boost credibility among learners.</p>
+    </div>
+
+  </div>
+</section>
+
+<div class="gradient-divider"></div>
+
+<section id="how" class="py-24 px-6 relative z-10 bg-[var(--surface2)]/50 border-y border-[var(--border)] transition-colors duration-300">
+  <div class="max-w-7xl mx-auto">
+    
+    <div class="text-center mb-24 reveal">
+      <h2 class="text-4xl md:text-6xl font-black text-[var(--text)] tracking-tight">How <span class="grad-text">It Works</span></h2>
+    </div>
+
+    <div class="space-y-24">
+      
+      <div class="grid lg:grid-cols-12 gap-12 items-center reveal-left">
+        <div class="lg:col-span-7">
+          <img src="images/step1.png" class="w-full h-auto max-h-[400px] object-contain transition-transform duration-700 hover:scale-105" onerror="this.outerHTML='<div class=\'w-full h-80 img-placeholder flex items-center justify-center\'>1</div>'">
+        </div>
+        <div class="lg:col-span-5 glass-card p-10 border border-[var(--border)] shadow-xl">
+          <span class="text-[var(--violet2)] font-mono font-bold tracking-widest text-sm">01</span>
+          <h3 class="text-4xl font-black text-[var(--text)] mt-3 mb-6 leading-tight">Create Your Profile</h3>
+          <p class="text-[var(--muted)] text-xl font-medium leading-relaxed">Build your professional identity by listing the skills you master and the goals you want to achieve.</p>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-12 gap-12 items-center lg:flex-row-reverse reveal-right" style="transition-delay: 0.1s;">
+        <div class="lg:col-span-7 lg:order-2">
+          <img src="images/step2.png" class="w-full h-auto max-h-[400px] object-contain transition-transform duration-700 hover:scale-105" onerror="this.outerHTML='<div class=\'w-full h-80 img-placeholder flex items-center justify-center\'>2</div>'">
+        </div>
+        <div class="lg:col-span-5 lg:order-1 glass-card p-10 border border-[var(--border)] shadow-xl">
+          <span class="text-[var(--violet2)] font-mono font-bold tracking-widest text-sm">02</span>
+          <h3 class="text-4xl font-black text-[var(--text)] mt-3 mb-6 leading-tight">Find Your Match</h3>
+          <p class="text-[var(--muted)] text-xl font-medium leading-relaxed">Get AI-powered recommendations to connect with peers who complement your unique learning path.</p>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-12 gap-12 items-center reveal-left" style="transition-delay: 0.2s;">
+        <div class="lg:col-span-7">
+          <img src="images/step3.png" class="w-full h-auto max-h-[400px] object-contain transition-transform duration-700 hover:scale-105" onerror="this.outerHTML='<div class=\'w-full h-80 img-placeholder flex items-center justify-center\'>3</div>'">
+        </div>
+        <div class="lg:col-span-5 glass-card p-10 border border-[var(--border)] shadow-xl">
+          <span class="text-[var(--violet2)] font-mono font-bold tracking-widest text-sm">03</span>
+          <h3 class="text-4xl font-black text-[var(--text)] mt-3 mb-6 leading-tight">Connect & Chat</h3>
+          <p class="text-[var(--muted)] text-xl font-medium leading-relaxed">Start instant conversations and break the ice through our secure, real-time messaging hub.</p>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-12 gap-12 items-center lg:flex-row-reverse reveal-right" style="transition-delay: 0.3s;">
+        <div class="lg:col-span-7 lg:order-2">
+          <img src="images/step4.png" class="w-full h-auto max-h-[400px] object-contain transition-transform duration-700 hover:scale-105" onerror="this.outerHTML='<div class=\'w-full h-80 img-placeholder flex items-center justify-center\'>4</div>'">
+        </div>
+        <div class="lg:col-span-5 lg:order-1 glass-card p-10 border border-[var(--border)] shadow-xl">
+          <span class="text-[var(--violet2)] font-mono font-bold tracking-widest text-sm">04</span>
+          <h3 class="text-4xl font-black text-[var(--text)] mt-3 mb-6 leading-tight">Schedule Sessions</h3>
+          <p class="text-[var(--muted)] text-xl font-medium leading-relaxed">Sync your calendars seamlessly to book productive sessions that fit your busy lifestyle.</p>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-12 gap-12 items-center reveal-left" style="transition-delay: 0.4s;">
+        <div class="lg:col-span-7">
+          <img src="images/step5.png" class="w-full h-auto max-h-[400px] object-contain transition-transform duration-700 hover:scale-105" onerror="this.outerHTML='<div class=\'w-full h-80 img-placeholder flex items-center justify-center\'>5</div>'">
+        </div>
+        <div class="lg:col-span-5 glass-card p-10 border border-[var(--border)] shadow-xl">
+          <span class="text-[var(--violet2)] font-mono font-bold tracking-widest text-sm">05</span>
+          <h3 class="text-4xl font-black text-[var(--text)] mt-3 mb-6 leading-tight">Learn & Teach</h3>
+          <p class="text-[var(--muted)] text-xl font-medium leading-relaxed">Exchange your expertise directly using our high-quality video calling tools.</p>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-12 gap-12 items-center lg:flex-row-reverse reveal-right" style="transition-delay: 0.5s;">
+        <div class="lg:col-span-7 lg:order-2">
+          <img src="images/step6.png" class="w-full h-auto max-h-[400px] object-contain transition-transform duration-700 hover:scale-105" onerror="this.outerHTML='<div class=\'w-full h-80 img-placeholder flex items-center justify-center\'>6</div>'">
+        </div>
+        <div class="lg:col-span-5 lg:order-1 glass-card p-10 border border-[var(--border)] shadow-xl">
+          <span class="text-[var(--violet2)] font-mono font-bold tracking-widest text-sm">06</span>
+          <h3 class="text-4xl font-black text-[var(--text)] mt-3 mb-6 leading-tight">Earn Rewards</h3>
+          <p class="text-[var(--muted)] text-xl font-medium leading-relaxed">Get rewarded for your time and unlock exclusive badges that showcase your status.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<!-- ================= ZIG-ZAG FEATURES (IMAGES) ================= -->
+<section id="explore" class="py-24 px-6 max-w-7xl mx-auto relative z-10 space-y-24">
+  
+  <!-- ZigZag 1 (Image Left, Text Right) -->
+  <div class="flex flex-col md:flex-row items-center gap-12 reveal">
+    <div class="w-full md:w-1/2">
+      <img src="images/f1.png" alt="Feature 1" class="w-full h-auto rounded-3xl object-cover shadow-2xl shadow-[var(--violet)]/20" onerror="this.outerHTML='<div class=\'w-full aspect-[4/3] img-placeholder rounded-3xl\'>Add images/f1.png here</div>'">
+    </div>
+    <div class="w-full md:w-1/2 space-y-6">
+      <div class="inline-block text-xs font-mono uppercase tracking-[0.2em] text-[var(--violet2)]">Explore Limits</div>
+      <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight text-[var(--text)]">Discover a new way to <span class="text-[var(--violet2)]">exchange knowledge</span>.</h2>
+      <p class="text-[var(--muted)] leading-relaxed">
+        Break free from expensive courses. Our platform empowers you to trade your existing expertise for the skills you want to acquire. Built securely with peer-to-peer verification.
+      </p>
+      <ul class="space-y-3 text-sm text-[var(--muted)]">
+        <li class="flex items-center gap-2"><span class="text-[var(--violet2)]">✔</span> No financial barriers</li>
+        <li class="flex items-center gap-2"><span class="text-[var(--violet2)]">✔</span> Direct 1-on-1 mentorship</li>
+        <li class="flex items-center gap-2"><span class="text-[var(--violet2)]">✔</span> Scalable learning curve</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ZigZag 2 (Text Left, Image Right) -->
+  <div class="flex flex-col md:flex-row-reverse items-center gap-12 reveal">
+    <div class="w-full md:w-1/2">
+      <img src="images/f2.png" alt="Feature 2" class="w-full h-auto rounded-3xl object-cover shadow-2xl shadow-[var(--violet)]/20" onerror="this.outerHTML='<div class=\'w-full aspect-[4/3] img-placeholder rounded-3xl\'>Add images/f2.png here</div>'">
+    </div>
+    <div class="w-full md:w-1/2 space-y-6">
+      <div class="inline-block text-xs font-mono uppercase tracking-[0.2em] text-[var(--violet2)]">Earn Recognition</div>
+      <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight text-[var(--text)]">Build a reputation that <span class="text-[var(--violet2)]">speaks for itself</span>.</h2>
+      <p class="text-[var(--muted)] leading-relaxed">
+        Every successful session contributes to your global rank. Unlock verified certificates, expert badges, and trusted community reviews that you can showcase on your professional portfolio.
+      </p>
+      <a href="#" class="inline-block outline-btn px-6 py-2.5 rounded-full text-sm mt-2">View Leaderboard</a>
+    </div>
+  </div>
+
+</section>
+
+<div class="gradient-divider"></div>
+
+<!-- ================= GLOBAL COMMUNITY (3D MODEL) ================= -->
+<section id="community" class="py-24 px-6 relative z-10 bg-[var(--surface2)]/30">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center max-w-2xl mx-auto space-y-4 mb-16 reveal">
+      <div class="inline-block text-[11px] font-mono uppercase tracking-[0.2em] bg-[var(--surface)] border border-[var(--border)] px-4 py-1.5 rounded-full text-[var(--violet2)]">🌍 Global Connectivity</div>
+      <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight text-[var(--text)]">Worldwide Users, <span class="text-[var(--violet2)]">One Platform</span></h2>
+      <p class="text-[var(--muted)] text-sm">TalentCircle connects learners and teachers across 94 countries. Knowledge flows freely — no borders, no paywalls.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <!-- 3D GLOBE CANVAS -->
+      <div class="lg:col-span-7 flex items-center justify-center reveal-left">
+        <div id="globe-container" class="relative">
+          <div class="absolute inset-0 bg-[radial-gradient(circle,var(--glow-bg)_0%,transparent_70%)] pointer-events-none rounded-full transition-colors duration-500"></div>
+          <canvas id="globe-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- METRICS & STATS -->
+      <div class="lg:col-span-5 space-y-4 reveal-right">
+        <div class="glass-card p-6">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-bold text-[var(--text)]">Top Active Regions</span>
+            <span class="text-xs text-[var(--violet2)] font-mono">Live Sync</span>
+          </div>
+          <div class="space-y-3">
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class-[var(--text)]>North America</span><span class="text-[var(--violet2)]">34%</span></div>
+              <div class="h-1.5 rounded-full bg-[var(--surface2)]"><div class="h-full rounded-full bg-gradient-to-r from-[var(--violet)] to-[var(--violet2)]" style="width:34%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class-[var(--text)]>Europe</span><span class="text-[var(--text)]">28%</span></div>
+              <div class="h-1.5 rounded-full bg-[var(--surface2)]"><div class="h-full rounded-full bg-gradient-to-r from-[var(--text)] to-[var(--muted)]" style="width:28%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1"><span class-[var(--text)]>Asia Pacific</span><span class="text-[var(--violet2)]">22%</span></div>
+              <div class="h-1.5 rounded-full bg-[var(--surface2)]"><div class="h-full rounded-full bg-gradient-to-r from-[var(--violet2)] to-[var(--purple)]" style="width:22%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="glass-card p-6 text-center">
+            <div class="font-mono font-black text-2xl text-[var(--violet2)]" data-count="94">0</div>
+            <div class="text-xs text-[var(--muted)] mt-1">Countries</div>
+          </div>
+          <div class="glass-card p-6 text-center">
+            <div class="font-mono font-black text-2xl text-[var(--text)]">24/7</div>
+            <div class="text-xs text-[var(--muted)] mt-1">Sessions Live</div>
+          </div>
+        </div>
+
+        <!-- RECENT JOINS (Text Only) -->
+        <div class="glass-card p-6">
+          <div class="text-xs text-[var(--muted)] font-mono uppercase mb-3">🟢 Recent Joins</div>
+          <div class="space-y-2">
+            <div class="flex items-center gap-3 text-sm">
+              <span class="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--violet2)] to-[var(--purple)] flex items-center justify-center text-xs font-bold text-white">A</span>
+              <span class="text-[var(--text)]"><b>Ahmed</b> from Cairo</span><span class="ml-auto text-[var(--violet2)] text-xs font-semibold">🎸 Guitar</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+              <span class="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--text)] to-[var(--muted)] flex items-center justify-center text-xs font-bold text-[var(--bg)]">S</span>
+              <span class="text-[var(--text)]"><b>Suki</b> from Tokyo</span><span class="ml-auto text-[var(--text)] text-xs font-semibold">🐍 Python</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="gradient-divider"></div>
+
+<!-- ================= BOTTOM 3-COLUMN DASHBOARD (IMAGES) ================= -->
+<section class="py-24 px-6 max-w-7xl mx-auto relative z-10">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Col 1: Why Choose List -->
+    <div class="glass-card p-8 reveal">
+      <h3 class="text-xl font-bold text-[var(--text)] mb-6">Why Choose TalentCircle?</h3>
+      <ul class="space-y-4">
+        <li class="flex items-start gap-3">
+          <div class="w-5 h-5 rounded-full bg-[var(--violet)] flex items-center justify-center text-white text-xs mt-0.5">✓</div>
+          <span class="text-sm text-[var(--muted)]"><b class="text-[var(--text)]">No money required</b> — 100% skill exchange</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <div class="w-5 h-5 rounded-full bg-[var(--violet)] flex items-center justify-center text-white text-xs mt-0.5">✓</div>
+          <span class="text-sm text-[var(--muted)]"><b class="text-[var(--text)]">Learn from real people</b>, not just videos</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <div class="w-5 h-5 rounded-full bg-[var(--violet)] flex items-center justify-center text-white text-xs mt-0.5">✓</div>
+          <span class="text-sm text-[var(--muted)]"><b class="text-[var(--text)]">Flexible learning</b> at your own pace</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <div class="w-5 h-5 rounded-full bg-[var(--violet)] flex items-center justify-center text-white text-xs mt-0.5">✓</div>
+          <span class="text-sm text-[var(--muted)]"><b class="text-[var(--text)]">Build a strong</b> and supportive community</span>
+        </li>
+      </ul>
+      
+      <!-- Graphic Placeholder -->
+      <div class="mt-8 relative h-32 w-full flex justify-center">
+        <img src="images/why-globe.png" class="h-full object-contain float-img" onerror="this.outerHTML='<div class=\'w-32 h-32 rounded-full img-placeholder\'>Add images/why-globe.png</div>'">
+      </div>
+    </div>
+
+    <!-- Col 2: AI Assistant Mockup -->
+    <div class="glass-card p-8 reveal bg-gradient-to-b from-[var(--surface)] to-[var(--glow-bg)]" style="transition-delay: 0.1s;">
+      <h3 class="text-xl font-bold text-[var(--text)] mb-1">AI Assistant</h3>
+      <p class="text-xs text-[var(--muted)] mb-6">Your smart learning companion</p>
+      
+      <div class="space-y-3 mb-6 relative z-10">
+        <div class="bg-[var(--violet)] text-white text-xs py-2 px-4 rounded-2xl rounded-tl-sm inline-block shadow-lg">Hi! How can I help you today?</div>
+        <div class="bg-[var(--surface2)] border border-[var(--border)] text-[var(--text)] text-xs py-2 px-4 rounded-2xl cursor-pointer hover:border-[var(--violet2)] transition">Find a skill to learn</div>
+        <div class="bg-[var(--surface2)] border border-[var(--border)] text-[var(--text)] text-xs py-2 px-4 rounded-2xl cursor-pointer hover:border-[var(--violet2)] transition">How does points work?</div>
+        <div class="bg-[var(--surface2)] border border-[var(--border)] text-[var(--text)] text-xs py-2 px-4 rounded-2xl cursor-pointer hover:border-[var(--violet2)] transition">Help me schedule a session</div>
+      </div>
+      
+      <!-- AI Bot Image placeholder -->
+      <div class="absolute bottom-4 right-4 h-40 w-40">
+        <img src="images/ai-bot.png" class="h-full w-full object-contain float-img" onerror="this.outerHTML='<div class=\'w-full h-full rounded-full img-placeholder\'>Add images/ai-bot.png</div>'">
+      </div>
+    </div>
+
+    <!-- Col 3: Reviews Summary -->
+    <div class="glass-card p-8 reveal flex flex-col justify-between" style="transition-delay: 0.2s;">
+      <div>
+        <h3 class="text-xl font-bold text-[var(--text)] mb-2">What Our Community Says</h3>
+        <div class="flex items-end gap-3 mb-2">
+          <span class="text-4xl font-black text-[var(--text)]">4.8/5</span>
+          <span class="text-[var(--violet2)] text-xl pb-1">★★★★★</span>
+        </div>
+        <p class="text-xs text-[var(--muted)] mb-6">from 1,200+ reviews</p>
+        
+        <div class="bg-[var(--surface2)] border border-[var(--border)] rounded-2xl p-5 relative">
+          <p class="text-sm text-[var(--muted)] italic mb-4">"TalentCircle helped me learn UI/UX design and now I'm teaching others. It's amazing!"</p>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full img-placeholder overflow-hidden border border-[var(--border)]"><img src="images/avatar4.png" onerror="this.style.display='none'"></div>
+            <span class="text-xs font-bold text-[var(--text)]">— Priya Sharma</span>
+          </div>
+          <div class="absolute -right-3 -bottom-3 text-2xl drop-shadow-lg">💎</div>
+        </div>
+      </div>
+      
+      <!-- Illustration placeholder -->
+      <div class="mt-6 flex justify-end h-24">
+         <img src="images/review-art.png" class="h-full object-contain" onerror="this.outerHTML='<div class=\'w-24 h-24 img-placeholder rounded-lg\'>Add images/review-art.png</div>'">
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= PRE-FOOTER CTA ================= -->
+<section id="cta" class="py-12 px-6 max-w-7xl mx-auto relative z-10 reveal">
+  <div class="bg-gradient-to-r from-[var(--surface2)] to-[var(--purple)] border border-[var(--border)] rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden shadow-2xl shadow-[var(--glow-bg)]">
+    
+    <!-- CTA Image Left -->
+    <div class="hidden md:block w-48 h-48 relative z-10">
+      <img src="images/cta-rocket.png" alt="Rocket" class="w-full h-full object-contain float-img" onerror="this.outerHTML='<div class=\'w-full h-full img-placeholder rounded-full\'>Add images/cta-rocket.png</div>'">
+    </div>
+    
+    <div class="flex-1 text-center md:text-left relative z-10">
+      <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-[var(--text)] mb-3">Ready to unlock your potential?</h2>
+      <p class="text-[var(--text)] opacity-80 text-sm mb-6 max-w-md mx-auto md:mx-0">
+        Join TalentCircle today and become part of a growing learning community.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+        <a href="#" class="bg-[var(--text)] text-[var(--bg)] font-bold px-6 py-3 rounded-full hover:opacity-90 transition text-sm flex items-center justify-center gap-2">Get Started Now <span>→</span></a>
+        <a href="#" class="bg-transparent text-[var(--text)] border border-[var(--text)] font-bold px-6 py-3 rounded-full hover:bg-[var(--text)] hover:text-[var(--bg)] transition text-sm flex items-center justify-center gap-2">Join the Community <span>👥</span></a>
+      </div>
+    </div>
+
+    <!-- CTA Image Right -->
+    <div class="absolute -bottom-6 -right-6 w-40 h-40 opacity-50 md:opacity-100">
+      <img src="images/cta-books.png" class="w-full h-full object-contain float-img" onerror="this.outerHTML='<div class=\'w-full h-full img-placeholder\'>Add images/cta-books.png</div>'">
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER WITH NEWSLETTER ================= -->
+<footer class="border-t border-[var(--border)] bg-[var(--surface)] pt-16 pb-8 px-6 relative z-10 transition-colors duration-300">
+  <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
+    
+    <!-- Brand Col -->
+    <div class="lg:col-span-2 space-y-4">
+      <div class="flex items-center gap-2">
+        <img src="images/logo.png" alt="TalentCircle" width="120" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" class="filter">
+        <span class="font-bold text-[var(--text)] hidden" id="logo-fallback">Talent<span class="text-[var(--violet2)]">Circle</span></span>
+      </div>
+      <p class="text-sm text-[var(--muted)] leading-relaxed max-w-sm">
+        Learn. Teach. Grow — Together.<br>
+        Exchange skills. Build connections.<br>Create opportunities.
+      </p>
+      <div class="flex gap-3 pt-2">
+        <a href="#" class="w-8 h-8 rounded-full bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center text-sm hover:bg-[var(--violet)] hover:text-white transition text-[var(--text)]">f</a>
+        <a href="#" class="w-8 h-8 rounded-full bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center text-sm hover:bg-[var(--violet)] hover:text-white transition text-[var(--text)]">𝕏</a>
+        <a href="#" class="w-8 h-8 rounded-full bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center text-sm hover:bg-[var(--violet)] hover:text-white transition text-[var(--text)]">in</a>
+        <a href="#" class="w-8 h-8 rounded-full bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center text-sm hover:bg-[var(--violet)] hover:text-white transition text-[var(--text)]">▶</a>
+      </div>
+    </div>
+
+    <!-- Links Col -->
+    <div>
+      <h5 class="text-sm font-bold text-[var(--text)] mb-4">Quick Links</h5>
+      <ul class="space-y-2 text-sm text-[var(--muted)]">
+        <li><a href="#" class="hover:text-[var(--violet2)] transition">Explore Skills</a></li>
+        <li><a href="#" class="hover:text-[var(--violet2)] transition">How It Works</a></li>
+        <li><a href="#" class="hover:text-[var(--violet2)] transition">Community</a></li>
+        <li><a href="#" class="hover:text-[var(--violet2)] transition">About Us</a></li>
+      </ul>
+    </div>
+
+    <!-- Support Col -->
+    <div>
+      <h5 class="text-sm font-bold text-[var(--text)] mb-4">Support</h5>
+      <ul class="space-y-2 text-sm text-[var(--muted)]">
+        <li><a href="#" class="hover:text-[var(--violet2)] transition">Contact Us</a></li>
+        <li><a href="#" class="hover:text-[var(--violet2)] transition">Help Center</a></li>
+        <li><a href="#" class="hover:text-[var(--violet2)] transition">FAQs</a></li>
+      </ul>
+    </div>
+
+    <!-- Legal Col -->
+    <div>
+      <h5 class="text-sm font-bold text-[var(--text)] mb-4">Legal</h5>
+      <ul class="space-y-2 text-sm text-[var(--muted)]">
+        <li><a href="#" class="hover:text-[var(--violet2)] transition">Privacy Policy</a></li>
+        <li><a href="#" class="hover:text-[var(--violet2)] transition">Terms & Conditions</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Newsletter & Copyright -->
+  <div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-[var(--border2)] flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="text-xs text-[var(--muted)] text-center md:text-left">
+      © 2026 TalentCircle. All rights reserved.
+    </div>
+    
+    <div class="flex items-center gap-4 bg-[var(--surface2)] p-2 rounded-xl border border-[var(--border2)] w-full md:w-auto transition-colors duration-300">
+      <div class="px-2">
+        <div class="text-sm font-bold text-[var(--text)]">Subscribe to our newsletter</div>
+        <div class="text-[10px] text-[var(--muted)]">Get updates on new features.</div>
+      </div>
+      <div class="flex">
+        <input type="email" placeholder="Enter your email" class="bg-[var(--bg)] text-[var(--text)] px-3 py-2 text-xs rounded-l-lg w-32 md:w-48 outline-none border border-[var(--border2)] border-r-0 focus:ring-2 focus:ring-[var(--violet2)]">
+        <button class="bg-[var(--violet)] text-white text-xs font-bold px-4 py-2 rounded-r-lg hover:bg-[var(--purple)] transition">Subscribe</button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================= SCRIPTS (THEME, REVEAL, 3D) ============================= -->
+<script>
+// ===== THEME TOGGLE =====
+const toggleBtn = document.getElementById('theme-toggle');
+const icon = document.getElementById('theme-icon');
+toggleBtn.addEventListener('click', () => {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  icon.textContent = isDark ? '🌙' : '☀️';
+});
+
+// ===== SCROLL REVEAL =====
+const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); }
+  });
+}, { threshold: 0.1 });
+revealEls.forEach(el => observer.observe(el));
+
+// ===== NUMBER COUNTERS =====
+function animateCounter(el, target, duration = 1800) {
+  let start = 0;
+  const step = (ts) => {
+    if (!start) start = ts;
+    const progress = Math.min((ts - start) / duration, 1);
+    const val = Math.floor(progress * target);
+    el.textContent = val.toLocaleString() + (target > 100 ? '+' : '');
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = target.toLocaleString() + (target > 100 ? '+' : '');
+  };
+  requestAnimationFrame(step);
+}
+const statObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const target = parseInt(e.target.dataset.count);
+      animateCounter(e.target, target);
+      statObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('[data-count]').forEach(el => statObs.observe(el));
+
+// Reduce Motion Check
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ===== GLOBAL COMMUNITY 3D MAP MODEL =====
+(function(){
+  const canvas = document.getElementById('globe-canvas');
+  if (!canvas) return;
+  const container = document.getElementById('globe-container');
+
+  const w = container.clientWidth;
+  const h = Math.min(w, 520);
+  canvas.width = w; canvas.height = h;
+  container.style.height = h + 'px';
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, w/h, 0.1, 1000);
+  camera.position.z = 220;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const group = new THREE.Group();
+  scene.add(group);
+
+  const PRIM_PURPLE = 0xbd24d2;
+  const SEC_ORCHID = 0xe163f2;
+
+  const globeGeo = new THREE.SphereGeometry(80, 32, 32);
+  const globeMat = new THREE.MeshBasicMaterial({ color: PRIM_PURPLE, wireframe: true, transparent: true, opacity: 0.22 });
+  group.add(new THREE.Mesh(globeGeo, globeMat));
+
+  // Keeping inner globe slightly dark so wireframe is always visible
+  const innerGeo = new THREE.SphereGeometry(78, 32, 32);
+  const innerMat = new THREE.MeshBasicMaterial({ color: 0x0c0510, transparent: true, opacity: 0.6 });
+  group.add(new THREE.Mesh(innerGeo, innerMat));
+
+  const locations = [
+    { lat: 40.7, lon: -74 }, { lat: 51.5, lon: -0.1 }, { lat: 35.7, lon: 139.7 }, { lat: 30.0, lon: 31.2 },
+    { lat: -33.8, lon: 151.2 }, { lat: 37.6, lon: -122.4 }, { lat: -23.5, lon: -46.6 }
+  ];
+
+  const dotGeo = new THREE.SphereGeometry(1.5, 8, 8);
+  const dotMat = new THREE.MeshBasicMaterial({ color: SEC_ORCHID });
+  const ringMat = new THREE.MeshBasicMaterial({ color: SEC_ORCHID, transparent: true, opacity: 0.4, side: THREE.DoubleSide });
+
+  locations.forEach(loc => {
+    const phi = (90 - loc.lat) * (Math.PI / 180);
+    const theta = (loc.lon + 180) * (Math.PI / 180);
+    const x = 80 * Math.sin(phi) * Math.cos(theta);
+    const y = 80 * Math.cos(phi);
+    const z = 80 * Math.sin(phi) * Math.sin(theta);
+
+    const dot = new THREE.Mesh(dotGeo, dotMat);
+    dot.position.set(x, y, z);
+    group.add(dot);
+
+    const ripple = new THREE.Mesh(new THREE.RingGeometry(2, 5, 16), ringMat.clone());
+    ripple.position.set(x, y, z);
+    ripple.lookAt(0, 0, 0);
+    ripple.userData.phase = Math.random() * Math.PI * 2;
+    group.add(ripple);
+  });
+
+  let t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t += 0.016;
+    if (!reduceMotion) { group.rotation.y += 0.003; }
+    group.children.forEach(child => {
+      if (child.userData.phase !== undefined) {
+        const scale = 1 + 0.5 * Math.sin(t * 2 + child.userData.phase);
+        child.scale.set(scale, scale, scale);
+        child.material.opacity = 0.4 * (1 - Math.abs(Math.sin(t + child.userData.phase)));
+      }
+    });
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    const nw = container.clientWidth;
+    const nh = Math.min(nw, 520);
+    camera.aspect = nw/nh;
+    camera.updateProjectionMatrix();
+    renderer.setSize(nw, nh);
+    container.style.height = nh + 'px';
+  });
+})();
+</script>
+</body>
+</html>

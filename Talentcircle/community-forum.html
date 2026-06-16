@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community Forum | TalentCircle</title>
+  
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.className = savedTheme;
+    })();
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+ <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Poppins', 'sans-serif'] },
+          colors: {
+            purple: {
+              50: '#fdf2ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe',
+              400: '#b300ff', 500: '#9600B6', 600: '#7a0094', 700: '#5a0072',
+              800: '#3a0050', 900: '#1a0f2e', 950: '#0f0a1a',
+            }
+          },
+          animation: {
+            'float': 'float 4s ease-in-out infinite',
+            'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+          },
+          keyframes: {
+            float: { '0%, 100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-8px)' } },
+            slideUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+          }
+        },
+      },
+    }
+  </script>
+  
+  <style>
+    body { transition: background-color 0.4s ease, color 0.4s ease; }
+
+    /* ── Dark theme base ── */
+    .dark body { background-color: #0f0a1a; color: #fff; }
+
+    /* ── Light theme base ── */
+    .light body { background-color: #f5f0ff; color: #1a0f2e; }
+
+    /* Glassmorphism */
+    .glass {
+      backdrop-filter: blur(20px);
+      transition: background 0.4s, border-color 0.4s, box-shadow 0.4s, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .dark .glass {
+      background: rgba(20, 20, 40, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .light .glass {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(150, 0, 182, 0.15);
+      box-shadow: 0 4px 20px rgba(150, 0, 182, 0.05);
+    }
+
+    /* Sidebar */
+    .dark aside  { background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.1); }
+    .light aside { background: rgba(255,255,255,0.9); border-color: rgba(150,0,182,0.12); }
+
+    /* Nav links */
+    .dark  nav a.inactive { color: #94a3b8; }
+    .light nav a.inactive { color: #6b21a8; opacity: .75; }
+    .dark  nav a.inactive:hover { color: #c084fc; background: rgba(150,0,182,.08); }
+    .light nav a.inactive:hover { color: #7a0094; background: rgba(150,0,182,.06); }
+
+    /* Section label (menu heading) */
+    .dark  .nav-label { color: rgba(196,181,253,.4); }
+    .light .nav-label { color: rgba(122,0,148,.5); }
+
+    /* Header border */
+    .dark  header { border-color: rgba(255,255,255,.1); }
+    .light header { border-color: rgba(150,0,182,.12); }
+
+    /* Muted text */
+    .dark  .t-muted { color: rgba(255,255,255,.45); }
+    .light .t-muted { color: rgba(26,15,46,.5); }
+
+    /* Page title */
+    .dark  h1 { color: #fff; }
+    .light h1 { color: #1a0f2e; }
+
+    /* Feed cards */
+   /* Feed card */
+.light .feed-card {
+  background: rgba(255,255,255,.9);
+  border-color: rgba(150,0,182,.12);
+}
+.light .feed-card:hover {
+  border-color: rgba(150,0,182,.3);
+}
+
+/* Post author */
+.dark .post-author { color: #e2e8f0; }
+.light .post-author { color: #1a0f2e; }
+
+/* Post timestamp */
+.dark .post-time { color: rgba(255,255,255,.4); }
+.light .post-time { color: rgba(26,15,46,.45); }
+
+/* Post body */
+.dark .post-body { color: rgba(255,255,255,.65); }
+.light .post-body { color: rgba(26,15,46,.65); }
+
+/* Post actions */
+.dark .post-actions {
+  color: rgba(255,255,255,.45);
+  border-color: rgba(150,0,182,.06);
+}
+.light .post-actions {
+  color: rgba(26,15,46,.45);
+  border-color: rgba(150,0,182,.08);
+}
+
+/* Filter buttons */
+.dark .filter-btn { color: #94a3b8; }
+.light .filter-btn { color: #6b21a8; opacity: .7; }
+.dark .filter-btn:hover { color: #fff; }
+.light .filter-btn:hover { color: #7a0094; opacity: 1; }
+
+/* Search input */
+.dark .search-input {
+  background: rgba(0,0,0,.3);
+  color: #fff;
+  border-color: rgba(150,0,182,.12);
+}
+.light .search-input {
+  background: rgba(255,255,255,.9);
+  color: #1a0f2e;
+  border-color: rgba(150,0,182,.18);
+}
+.dark .search-input::placeholder { color: rgba(255,255,255,.3); }
+.light .search-input::placeholder { color: rgba(26,15,46,.35); }
+
+/* Panel card */
+.light .panel-card {
+  background: rgba(255,255,255,.9);
+  border-color: rgba(150,0,182,.12);
+}
+
+/* Metric cards */
+.dark .metric-mini {
+  background: rgba(150,0,182,.05);
+  border-color: rgba(150,0,182,.05);
+}
+.light .metric-mini {
+  background: rgba(150,0,182,.06);
+  border-color: rgba(150,0,182,.1);
+}
+
+/* Panel heading */
+.dark .panel-heading { color: rgba(255,255,255,.5); }
+.light .panel-heading { color: rgba(26,15,46,.5); }
+
+/* Metrics */
+.dark .metric-label { color: rgba(255,255,255,.4); }
+.light .metric-label { color: rgba(26,15,46,.45); }
+.dark .metric-val { color: #fff; }
+.light .metric-val { color: #1a0f2e; }
+
+/* Contributors */
+.dark .contrib-row {
+  background: rgba(150,0,182,.05);
+  border-color: rgba(150,0,182,.05);
+}
+.light .contrib-row {
+  background: rgba(150,0,182,.05);
+  border-color: rgba(150,0,182,.1);
+}
+.dark .contrib-name { color: #e2e8f0; }
+.light .contrib-name { color: #1a0f2e; }
+
+/* XP badge */
+.dark .xp-badge { color: #fbbf24; }
+.light .xp-badge { color: #b45309; }
+
+/* Theme toggle */
+.dark #theme-toggle {
+  color: #e2e8f0;
+  border-color: rgba(150,0,182,.25);
+}
+.light #theme-toggle {
+  color: #7a0094;
+  border-color: rgba(150,0,182,.3);
+}
+
+/* Modal */
+.light #newPostModal {
+  background: rgba(200,180,220,.6);
+}
+
+.light .modal-card {
+  background: rgba(255,255,255,.95);
+  border-color: rgba(150,0,182,.2);
+}
+    .dark  .modal-title { color: #c084fc; }
+    .light .modal-title { color: #7a0094; }
+
+    /* Modal labels */
+    .dark  .modal-label { color: rgba(255,255,255,.4); }
+    .light .modal-label { color: rgba(26,15,46,.45); }
+
+    /* Modal inputs */
+    .dark  .modal-input { background: rgba(0,0,0,.4); border-color: rgba(255,255,255,.1); color: #fff; }
+    .light .modal-input { background: rgba(150,0,182,.04); border-color: rgba(150,0,182,.2); color: #1a0f2e; }
+    .dark  .modal-input::placeholder { color: rgba(255,255,255,.25); }
+    .light .modal-input::placeholder { color: rgba(26,15,46,.3); }
+
+    /* Modal select */
+    .dark  .modal-select { background: #0f0a1a; border-color: rgba(255,255,255,.1); color: #fff; }
+    .light .modal-select { background: rgba(255,255,255,.9); border-color: rgba(150,0,182,.2); color: #1a0f2e; }
+
+    /* Modal close btn */
+    .dark  .modal-close { color: #94a3b8; }
+    .light .modal-close { color: #6b21a8; }
+
+    /* BG blobs */
+    .dark  .blob-top    { background: rgba(150,0,182,.10); }
+    .light .blob-top    { background: rgba(150,0,182,.07); }
+    .dark  .blob-bottom { background: rgba(90,0,114,.05); }
+    .light .blob-bottom { background: rgba(90,0,114,.04); }
+
+    /* Staggered feed reveal */
+    .stagger-feed-item { opacity: 0; transform: translateY(15px); animation: itemReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes itemReveal { to { opacity: 1; transform: translateY(0); } }
+
+    /* Scrollbar */
+    .custom-scroll::-webkit-scrollbar { width: 5px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(150, 0, 182, 0.2); border-radius: 99px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #9600B6; }
+  </style>
+</head>
+<body class="min-h-screen overflow-x-hidden flex flex-col">
+
+  <div class="fixed inset-0 z-0 pointer-events-none transition-opacity duration-500">
+    <div class="blob-top absolute w-[600px] h-[600px] -top-32 -right-32 rounded-full blur-[120px]"></div>
+    <div class="blob-bottom absolute w-[500px] h-[500px] -bottom-32 -left-32 rounded-full blur-[120px]"></div>
+  </div>
+
+  <div class="flex flex-col lg:flex-row min-h-screen relative z-10 w-full flex-grow">
+    
+    <aside class="w-full lg:w-[240px] border-b lg:border-b-0 lg:border-r p-5 flex flex-col justify-between shrink-0 z-20 backdrop-blur-xl">
+      <div>
+        <div class="flex items-center gap-3 mb-10 px-2 justify-center lg:justify-start">
+          <a href="home.html" class="block">
+            <img src="images/logo.png" class="h-9 w-auto object-contain transition-all duration-300 dark:invert-0 light:invert light:brightness-50 light:contrast-150" alt="TalentCircle Logo">
+          </a>
+        </div>
+        
+        <nav class="space-y-1 overflow-y-auto custom-scroll text-xs md:text-sm">
+          <p class="nav-label text-[10px] font-bold uppercase tracking-widest px-3 py-2">Menu</p>
+          <a href="#" class="inactive flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200">
+            <i class="fas fa-th-large w-4 text-center"></i>Dashboard
+          </a>
+          <a href="#" class="inactive flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200">
+            <i class="fas fa-calendar-alt w-4 text-center"></i>Calendar
+          </a>
+          <a href="#" class="inactive flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200">
+            <i class="fas fa-video w-4 text-center"></i>Sessions
+          </a>
+          <a href="#" class="inactive flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200">
+            <i class="fas fa-coins w-4 text-center"></i>Tokens
+          </a>
+          <a href="#" class="inactive flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200">
+            <i class="fas fa-star w-4 text-center"></i>Points
+          </a>
+          <a href="ranking.html" class="inactive flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200">
+            <i class="fas fa-trophy w-4 text-center"></i>Rankings
+          </a>
+          <a href="badges.html" class="inactive flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200">
+            <i class="fas fa-award w-4 text-center"></i>Badges
+          </a>
+          <a href="community-forum.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-purple-500/10 text-purple-500 dark:text-purple-400 font-semibold border-l-4 border-purple-600 shadow-sm transition-all">
+            <i class="fas fa-comments w-4 text-center text-purple-500"></i>Community Hub
+          </a>
+        </nav>
+      </div>
+
+      <button id="theme-toggle" class="mt-8 w-full py-3 px-4 rounded-xl border glass font-bold text-[10px] tracking-widest uppercase hover:border-purple-500/50 active:scale-98 focus:outline-none transition-all">
+        🌓 Switch Theme Mode
+      </button>
+    </aside>
+
+    <main class="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto space-y-6 overflow-hidden flex flex-col h-screen">
+      
+      <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b animate-slide-up flex-shrink-0">
+        <div>
+          <h1 class="text-2xl font-black tracking-tight">Community Hub</h1>
+          <p class="t-muted text-xs mt-0.5">Discuss trends, request peer help, and sync peer token exchanges.</p>
+        </div>
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+          <button onclick="openNewPostModal()" class="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-bold text-xs tracking-wider px-5 py-3 rounded-xl transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99] shadow-md shadow-purple-600/10">
+            <i class="fas fa-plus-circle mr-2"></i>Start Discussion
+          </button>
+        </div>
+      </header>
+
+      <div class="flex-grow flex flex-col md:flex-row gap-6 min-h-0">
+        
+        <!-- Left: Feed -->
+        <div class="flex-1 flex flex-col space-y-4 overflow-y-auto pr-1 custom-scroll min-h-0">
+          
+          <div class="flex gap-2 flex-wrap items-center text-xs font-semibold flex-shrink-0">
+            <button class="px-3.5 py-1.5 rounded-full bg-purple-600 border border-transparent text-white shadow-md">All Feed</button>
+            <button class="filter-btn px-3.5 py-1.5 rounded-full border border-purple-500/10 glass transition-all">Code Help</button>
+            <button class="filter-btn px-3.5 py-1.5 rounded-full border border-purple-500/10 glass transition-all">Design Feedback</button>
+            <button class="filter-btn px-3.5 py-1.5 rounded-full border border-purple-500/10 glass transition-all">Token Swaps</button>
+            <input class="search-input px-4 py-1.5 border rounded-xl font-normal text-xs w-full sm:w-44 focus:sm:w-56 focus:outline-none focus:border-purple-500 transition-all ml-auto mt-2 sm:mt-0" type="text" placeholder="Search discussions…"/>
+          </div>
+
+          <div class="space-y-4" id="forumFeedStream">
+            
+            <!-- Post 01 -->
+            <div class="feed-card stagger-feed-item glass rounded-2xl p-5 md:p-6 border border-purple-500/10 hover:border-purple-500/30 cursor-pointer group relative" style="animation-delay: 0.1s;">
+              <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl overflow-hidden border border-purple-500/10 flex-shrink-0">
+                  <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100" class="w-full h-full object-cover">
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <span class="post-author text-xs font-bold">Liam O'Donnell</span>
+                    <span class="post-time text-[10px]">· 2 hours ago</span>
+                    <span class="ml-auto bg-purple-500/10 border border-purple-500/20 text-purple-500 dark:text-purple-400 px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider">Design Feedback</span>
+                  </div>
+                  <h3 class="text-base font-bold tracking-tight group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors mb-1.5 truncate">Looking for a Laravel Backend Engineer to swap for custom Figma UI workflows</h3>
+                  <p class="post-body text-xs leading-relaxed line-clamp-2 mb-4">
+                    Hey everyone! I've spent the last week prototyping an advanced bilingual asset management interface. I need help mapping multi-tenant database isolation logic in Laravel in exchange for full design telemetry and high-fidelity prototype sets.
+                  </p>
+                  <div class="post-actions flex items-center gap-4 text-xs font-semibold pt-3 border-t">
+                    <span class="hover:text-purple-500 flex items-center gap-1.5 cursor-pointer"><i class="far fa-thumbs-up"></i> 14 Upvotes</span>
+                    <span class="hover:text-purple-500 flex items-center gap-1.5 cursor-pointer"><i class="far fa-comment"></i> 8 Replies</span>
+                    <span class="flex items-center gap-1.5 ml-auto text-[11px] font-mono text-purple-500"><i class="fas fa-coins"></i> +25 Token Value</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Post 02 -->
+            <div class="feed-card stagger-feed-item glass rounded-2xl p-5 md:p-6 border border-purple-500/10 hover:border-purple-500/30 cursor-pointer group relative" style="animation-delay: 0.15s;">
+              <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl overflow-hidden border border-purple-500/10 flex-shrink-0">
+                  <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100" class="w-full h-full object-cover">
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <span class="post-author text-xs font-bold">Yuki Tanaka</span>
+                    <span class="post-time text-[10px]">· 5 hours ago</span>
+                    <span class="ml-auto bg-blue-500/10 border border-blue-500/20 text-blue-500 dark:text-blue-400 px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider">Code Help</span>
+                  </div>
+                  <h3 class="text-base font-bold tracking-tight group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors mb-1.5 truncate">Sub-second WebRTC connection timeouts occurring across specific proxy configurations</h3>
+                  <p class="post-body text-xs leading-relaxed line-clamp-2 mb-4">
+                    Debugging socket pipeline disconnect vectors inside our virtual classroom architecture frames. The STUN server returns successful bindings but peer candidates drop telemetry arrays systematically under enterprise firewalls.
+                  </p>
+                  <div class="post-actions flex items-center gap-4 text-xs font-semibold pt-3 border-t">
+                    <span class="hover:text-purple-500 flex items-center gap-1.5 cursor-pointer"><i class="far fa-thumbs-up"></i> 22 Upvotes</span>
+                    <span class="hover:text-purple-500 flex items-center gap-1.5 cursor-pointer"><i class="far fa-comment"></i> 11 Replies</span>
+                    <span class="flex items-center gap-1.5 ml-auto text-[11px] font-mono text-purple-500"><i class="fas fa-coins"></i> +40 Token Value</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Right: Stats Panel -->
+        <div class="w-full md:w-[280px] flex flex-col space-y-4 flex-shrink-0 overflow-y-auto custom-scroll min-h-0">
+          
+          <div class="panel-card glass rounded-2xl p-5 border border-purple-500/10 space-y-3 flex-shrink-0">
+            <h4 class="panel-heading text-xs font-bold uppercase tracking-widest">Ecosystem Metrics</h4>
+            <div class="grid grid-cols-2 gap-3 pt-1">
+              <div class="metric-mini p-3 rounded-xl border">
+                <p class="metric-label text-[10px] font-semibold">Active Topics</p>
+                <p class="metric-val text-lg font-black tracking-tight mt-0.5">1,420</p>
+              </div>
+              <div class="metric-mini p-3 rounded-xl border">
+                <p class="metric-label text-[10px] font-semibold">Resolutions</p>
+                <p class="text-lg font-black tracking-tight text-emerald-500 mt-0.5">87%</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card glass rounded-2xl p-5 border border-purple-500/10 flex-1 flex flex-col space-y-4">
+            <h4 class="panel-heading text-xs font-bold uppercase tracking-widest">Top Key Contributors</h4>
+            
+            <div class="space-y-3 flex-grow overflow-y-auto custom-scroll pr-1">
+              <div class="contrib-row flex items-center justify-between p-2 rounded-xl border">
+                <div class="flex items-center gap-2 truncate">
+                  <div class="w-8 h-8 rounded-lg overflow-hidden border border-purple-500/10"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=80" class="w-full h-full object-cover"></div>
+                  <div class="truncate">
+                    <p class="contrib-name text-xs font-bold truncate">Aisha Khan</p>
+                    <p class="text-[10px] text-purple-500 font-medium">42 Solved Blocks</p>
+                  </div>
+                </div>
+                <span class="xp-badge text-[10px] font-bold font-mono">+1.2k XP</span>
+              </div>
+
+              <div class="contrib-row flex items-center justify-between p-2 rounded-xl border">
+                <div class="flex items-center gap-2 truncate">
+                  <div class="w-8 h-8 rounded-lg overflow-hidden border border-purple-500/10"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=80" class="w-full h-full object-cover"></div>
+                  <div class="truncate">
+                    <p class="contrib-name text-xs font-bold truncate">Caritica Chen</p>
+                    <p class="text-[10px] text-purple-500 font-medium">29 Solved Blocks</p>
+                  </div>
+                </div>
+                <span class="xp-badge text-[10px] font-bold font-mono">+840 XP</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div id="newPostModal" class="fixed inset-0 bg-black/60 backdrop-blur-md z-50 hidden items-center justify-center p-4 transition-all duration-300">
+    <div class="modal-card glass rounded-3xl p-6 md:p-8 max-w-lg w-full border shadow-2xl relative animate-float">
+      <button onclick="closeNewPostModal()" class="modal-close absolute top-4 right-5 text-2xl hover:text-purple-500 focus:outline-none">&times;</button>
+      <h2 class="modal-title text-xl font-black mb-4">Initialize Discussion Stream</h2>
+
+      <form id="discussionInputForm" class="space-y-4">
+        <div>
+          <label class="modal-label block text-[10px] font-bold uppercase tracking-widest mb-1.5">Topic Title Signature</label>
+          <input type="text" required class="modal-input w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-all font-medium text-sm" placeholder="e.g., Optimizing Multi-tenant isolated router paths...">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="modal-label block text-[10px] font-bold uppercase tracking-widest mb-1.5">Category Stream Tag</label>
+            <select title="Category Stream Tag" class="modal-select w-full px-3 py-3 border rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm">
+              <option>Code Help</option>
+              <option>Design Feedback</option>
+              <option>Token Swaps</option>
+            </select>
+
+          </div>
+          <div>
+            <label class="modal-label block text-[10px] font-bold uppercase tracking-widest mb-1.5">Token Allocation Value</label>
+            <input type="number" min="0" required class="modal-input w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-all font-mono text-sm" placeholder="25">
+          </div>
+        </div>
+
+        <div>
+          <label class="modal-label block text-[10px] font-bold uppercase tracking-widest mb-1.5">Context Description Payload</label>
+          <textarea required rows="4" class="modal-input w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/40 transition-all text-xs leading-relaxed font-light custom-scroll" placeholder="Provide complete specifications regarding your telemetry conflict, stack array variables, or swap conditions..."></textarea>
+        </div>
+
+        <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-purple-500 text-white py-3.5 rounded-xl font-bold text-sm hover:shadow-lg transition-all duration-300">
+          Broadcast Discussion Node
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const htmlDoc = document.documentElement;
+    const themeToggle = document.getElementById('theme-toggle');
+
+    themeToggle.addEventListener('click', () => {
+      if (htmlDoc.classList.contains('dark')) {
+        htmlDoc.className = 'light';
+        localStorage.setItem('theme', 'light');
+      } else {
+        htmlDoc.className = 'dark';
+        localStorage.setItem('theme', 'dark');
+      }
+    });
+
+    function openNewPostModal() {
+      const modal = document.getElementById('newPostModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeNewPostModal() {
+      const modal = document.getElementById('newPostModal');
+      modal.classList.remove('flex');
+      modal.classList.add('hidden');
+      document.getElementById('discussionInputForm').reset();
+    }
+
+    document.getElementById('newPostModal').addEventListener('click', (e) => {
+      if (e.target.id === 'newPostModal') closeNewPostModal();
+    });
+
+    const feedStream = document.getElementById('forumFeedStream');
+    const filterButtons = Array.from(document.querySelectorAll('.filter-btn'));
+    const searchInput = document.querySelector('input.search-input');
+
+
+    // Matches backend categories from the modal/select.
+    const categoryByButtonText = (txt) => {
+      const s = (txt || '').trim();
+      if (!s) return null;
+      if (s.toLowerCase().includes('code')) return 'Code Help';
+      if (s.toLowerCase().includes('design')) return 'Design Feedback';
+      if (s.toLowerCase().includes('token')) return 'Token Swaps';
+      return s;
+    };
+
+    let state = {
+      category: null,
+      q: null,
+      limit: 50,
+      loading: false,
+    };
+
+    function formatRelativeTime(isoOrDate) {
+      const d = new Date(isoOrDate);
+      if (Number.isNaN(d.getTime())) return '';
+      const diffMs = Date.now() - d.getTime();
+      const minutes = Math.floor(diffMs / 60000);
+      if (minutes < 60) return `· ${minutes} min ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `· ${hours} hours ago`;
+      const days = Math.floor(hours / 24);
+      return `· ${days} days ago`;
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '<')
+        .replace(/>/g, '>')
+        .replace(/"/g, '"')
+        .replace(/'/g, '&#039;');
+    }
+
+    function badgeColorClass(category) {
+      const c = (category || '').toLowerCase();
+      if (c.includes('design')) return 'bg-purple-500/10 border-purple-500/20 text-purple-500 dark:text-purple-400';
+      if (c.includes('token')) return 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 dark:text-emerald-300';
+      if (c.includes('code')) return 'bg-blue-500/10 border-blue-500/20 text-blue-500 dark:text-blue-400';
+      return 'bg-purple-500/10 border-purple-500/20 text-purple-500 dark:text-purple-400';
+    }
+
+    function renderTopics(topics) {
+      if (!topics || !Array.isArray(topics) || topics.length === 0) {
+        feedStream.innerHTML = `
+          <div class="glass rounded-2xl p-6 border border-purple-500/10">
+            <p class="text-xs t-muted">No discussions found. Start one to kick things off.</p>
+          </div>
+        `;
+        return;
+      }
+
+      feedStream.innerHTML = '';
+      topics.forEach((t, idx) => {
+        const authorName = t?.author?.name || 'Unknown';
+        const authorImage = t?.author?.image || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=80';
+        const createdAt = t?.created_at ? formatRelativeTime(t.created_at) : '';
+        const categoryBadge = t?.category || '';
+
+        const card = document.createElement('div');
+        card.className = 'feed-card stagger-feed-item glass rounded-2xl p-5 md:p-6 border border-purple-500/10 hover:border-purple-500/30 cursor-pointer group relative';
+        card.style.animationDelay = `${0.1 + idx * 0.05}s`;
+        card.innerHTML = `
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl overflow-hidden border border-purple-500/10 flex-shrink-0">
+              <img src="${escapeHtml(authorImage)}" class="w-full h-full object-cover" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-2 mb-1">
+                <span class="post-author text-xs font-bold">${escapeHtml(authorName)}</span>
+                <span class="post-time text-[10px]">${escapeHtml(createdAt)}</span>
+                <span class="ml-auto ${badgeColorClass(categoryBadge)} px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border">${escapeHtml(categoryBadge)}</span>
+              </div>
+              <h3 class="text-base font-bold tracking-tight group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors mb-1.5 truncate">${escapeHtml(t?.title)}</h3>
+              <p class="post-body text-xs leading-relaxed line-clamp-2 mb-4">${escapeHtml(t?.description)}</p>
+              <div class="post-actions flex items-center gap-4 text-xs font-semibold pt-3 border-t">
+                <span class="hover:text-purple-500 flex items-center gap-1.5 cursor-pointer"><i class="far fa-thumbs-up"></i> ${(t?.upvotes ?? 0)} Upvotes</span>
+                <span class="hover:text-purple-500 flex items-center gap-1.5 cursor-pointer"><i class="far fa-comment"></i> ${(t?.replies ?? 0)} Replies</span>
+                <span class="flex items-center gap-1.5 ml-auto text-[11px] font-mono text-purple-500"><i class="fas fa-coins"></i> +${escapeHtml(t?.token_value ?? 0)} Token Value</span>
+              </div>
+            </div>
+          </div>
+        `;
+        // For now, keep cursor but no detail page exists; click no-op.
+        feedStream.appendChild(card);
+      });
+    }
+
+    async function loadTopics() {
+      if (state.loading) return;
+      state.loading = true;
+
+      try {
+        const url = new URL('/api/forum/topics', window.location.origin);
+        if (state.category) url.searchParams.set('category', state.category);
+        if (state.q) url.searchParams.set('q', state.q);
+        if (state.limit) url.searchParams.set('limit', String(state.limit));
+
+        const res = await fetch(url.toString(), {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        const data = await res.json();
+        if (!res.ok || data?.error) {
+          throw new Error(data?.error || 'Failed to load topics');
+        }
+
+        renderTopics(data.topics);
+      } catch (err) {
+        feedStream.innerHTML = `
+          <div class="glass rounded-2xl p-6 border border-purple-500/10">
+            <p class="text-xs t-muted">${escapeHtml(err.message || 'Failed to load discussions')}</p>
+          </div>
+        `;
+      } finally {
+        state.loading = false;
+      }
+    }
+
+    // Filter button wiring
+    filterButtons.forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        filterButtons.forEach(b => {
+          b.classList.remove('bg-purple-600', 'border-transparent', 'text-white');
+        });
+
+        const category = categoryByButtonText(btn.textContent);
+        state.category = category;
+
+        btn.classList.add('bg-purple-600', 'border-transparent', 'text-white');
+        await loadTopics();
+      });
+    });
+
+    // "All Feed" button
+    const allFeedBtn = Array.from(document.querySelectorAll('button'))
+      .find(b => (b.textContent || '').trim() === 'All Feed');
+
+    if (allFeedBtn) {
+      allFeedBtn.addEventListener('click', async () => {
+        filterButtons.forEach(b => {
+          b.classList.remove('bg-purple-600', 'border-transparent', 'text-white');
+        });
+        state.category = null;
+        await loadTopics();
+      });
+    }
+
+    // Search input (debounced)
+    let searchTimer = null;
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+          const v = (searchInput.value || '').trim();
+          state.q = v ? v : null;
+          loadTopics();
+        }, 350);
+      });
+    }
+
+    // Modal submit: create topic
+    const form = document.getElementById('discussionInputForm');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = form.querySelector('input[type="text"]')?.value?.trim() || '';
+        const category = form.querySelector('select')?.value?.trim() || '';
+        const tokenValue = Number(form.querySelector('input[type="number"]')?.value || 0);
+        const description = form.querySelector('textarea')?.value?.trim() || '';
+
+        try {
+          // Your backend expects Authorization token; reuse the token mechanism used elsewhere if present.
+          // Fallback: try localStorage token.
+          const token = localStorage.getItem('token') || localStorage.getItem('authToken') || '';
+
+          const res = await fetch('/api/forum/topics', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              ...(token ? { 'Authorization': token } : {})
+            },
+            body: JSON.stringify({
+              title,
+              category,
+              token_value: Number.isFinite(tokenValue) ? tokenValue : 0,
+              description
+            })
+          });
+
+          const data = await res.json();
+          if (!res.ok || data?.error) {
+            throw new Error(data?.error || 'Failed to create discussion');
+          }
+
+          closeNewPostModal();
+          await loadTopics();
+        } catch (err) {
+          alert(err.message || 'Failed to create discussion');
+        }
+      });
+    }
+
+    // Initial load
+    loadTopics();
+  </script>
+</body>
+</html>

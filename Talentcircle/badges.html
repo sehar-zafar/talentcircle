@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Badges | Talent Circle</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="./src/api-base.js"></script>
+<style>
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --purple:#9b30d9;--purple-2:#7b1fa2;--purple-hl:#c05fe8;--purple-soft:#d98bf5;
+  --tt:background .35s ease,color .35s ease,border-color .35s ease,box-shadow .35s ease;
+}
+[data-theme="dark"]{
+  --bg:#05030d;--bg2:#080614;--card:#0c0a1a;--nav:rgba(6,4,16,.97);
+  --border:rgba(155,48,217,.15);--bd2:rgba(192,95,232,.32);
+  --t1:#f0ecff;--t2:#9a8fbe;--tm:#504870;
+  --pu:#9b30d9;--pl:#c05fe8;--pd:#7b1fa2;--psoft:#d98bf5;
+  --go:#f5c842;--bl:#60a5fa;
+  --na-bg:rgba(155,48,217,.16);--na-t:#c05fe8;
+  --shim:rgba(200,150,255,.09);--lop:.32;--sbth:#1e1440;
+  --sh:0 4px 32px rgba(0,0,0,.75);--gp:0 0 36px rgba(155,48,217,.4);
+  --tip:#120d24;--pibg:rgba(155,48,217,.06);--inbg:#0c0a1a;--mbg:rgba(0,0,0,.88);
+  --grid-col:rgba(155,48,217,.07);
+}
+[data-theme="light"]{
+  --bg:#f4f0ff;--bg2:#ede8ff;--card:#fff;--nav:rgba(240,236,255,.97);
+  --border:rgba(123,31,162,.12);--bd2:rgba(155,48,217,.3);
+  --t1:#1a1030;--t2:#5a4878;--tm:#9080b0;
+  --pu:#7b1fa2;--pl:#9b30d9;--pd:#6a1b9a;--psoft:#c05fe8;
+  --go:#b45309;--bl:#2563eb;
+  --na-bg:rgba(155,48,217,.09);--na-t:#7b1fa2;
+  --shim:rgba(255,255,255,.5);--lop:.42;--sbth:#c8b0e8;
+  --sh:0 4px 20px rgba(100,50,180,.1);--gp:0 0 20px rgba(155,48,217,.2);
+  --tip:#ede8ff;--pibg:rgba(155,48,217,.05);--inbg:#fff;--mbg:rgba(60,20,100,.22);
+  --grid-col:rgba(123,31,162,.06);
+}
+
+html,body{height:100%;font-family:'Poppins',sans-serif;}
+body{background:var(--bg);color:var(--t1);transition:var(--tt);min-height:100vh;overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--sbth);border-radius:99px;}
+::-webkit-scrollbar-thumb:hover{background:var(--pu);}
+
+/* ── AMBIENT ORBS ── */
+.orb{position:fixed;border-radius:50%;filter:blur(130px);pointer-events:none;z-index:0;}
+.orb-a{width:700px;height:700px;top:-180px;right:-180px;background:radial-gradient(circle,rgba(155,48,217,.22) 0%,transparent 70%);animation:orbA 9s ease-in-out infinite;}
+.orb-b{width:500px;height:500px;bottom:-160px;left:-120px;background:radial-gradient(circle,rgba(192,95,232,.12) 0%,transparent 70%);animation:orbB 12s ease-in-out infinite;}
+.orb-c{width:380px;height:380px;top:45%;left:35%;background:radial-gradient(circle,rgba(123,31,162,.08) 0%,transparent 70%);animation:orbC 16s ease-in-out infinite 2s;}
+.orb-d{width:250px;height:250px;top:20%;left:15%;background:radial-gradient(circle,rgba(217,139,245,.06) 0%,transparent 70%);animation:orbA 7s ease-in-out infinite 4s;}
+@keyframes orbA{0%,100%{transform:translate(0,0) scale(1);}40%{transform:translate(28px,-18px) scale(1.06);}70%{transform:translate(-18px,12px) scale(.96);}}
+@keyframes orbB{0%,100%{transform:translate(0,0) scale(1);}35%{transform:translate(-22px,20px) scale(1.04);}65%{transform:translate(14px,-10px) scale(.98);}}
+@keyframes orbC{0%,100%{transform:translate(0,0);}50%{transform:translate(-30px,20px);}}
+
+/* ── PARTICLES ── */
+#particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.pt{position:absolute;border-radius:50%;animation:ptFloat linear infinite;opacity:0;}
+@keyframes ptFloat{0%{transform:translateY(100vh) scale(0);opacity:0;}10%{opacity:1;}90%{opacity:.6;}100%{transform:translateY(-20px) scale(1.2);opacity:0;}}
+
+.app{display:flex;height:100vh;overflow:hidden;position:relative;z-index:1;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:242px;flex-shrink:0;display:flex;flex-direction:column;background:var(--nav);border-right:1px solid var(--border);backdrop-filter:blur(32px);transition:transform .32s cubic-bezier(.4,0,.2,1),var(--tt);z-index:100;overflow:hidden;}
+.sl{padding:18px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.logo-wrap{width:38px;height:38px;flex-shrink:0;border-radius:11px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--pu),var(--pd));box-shadow:var(--gp);animation:logoPulse 3s ease-in-out infinite;}
+@keyframes logoPulse{0%,100%{box-shadow:0 0 18px rgba(155,48,217,.4);}50%{box-shadow:0 0 32px rgba(192,95,232,.6);}}
+.logo-fallback{font-size:18px;display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
+.lt{font-size:14px;font-weight:800;color:var(--t1);letter-spacing:-.3px;}.lt span{color:var(--pl);}
+.sn{flex:1;padding:10px;overflow-y:auto;}
+.ns{font-size:9.5px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.12em;padding:8px 10px 4px;}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:10px;color:var(--t2);font-size:12.5px;font-weight:500;text-decoration:none;cursor:pointer;transition:all .22s ease;position:relative;overflow:hidden;}
+.ni::before{content:'';position:absolute;left:0;top:0;width:3px;height:100%;background:var(--pu);border-radius:0 2px 2px 0;transform:scaleY(0);transition:transform .2s ease;}
+.ni:hover{background:var(--pibg);color:var(--t1);transform:translateX(4px);}
+.ni.active{background:var(--na-bg);color:var(--na-t);font-weight:600;}
+.ni.active::before{transform:scaleY(1);}
+.ni svg{width:15px;height:15px;flex-shrink:0;}
+.nb{margin-left:auto;background:var(--pu);color:#fff;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:99px;animation:badgeBounce 2s ease-in-out infinite;}
+@keyframes badgeBounce{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+.nd{margin-left:auto;width:7px;height:7px;border-radius:50%;background:var(--pu);box-shadow:0 0 8px var(--pu);animation:ndPulse 2s ease-in-out infinite;}
+@keyframes ndPulse{0%,100%{box-shadow:0 0 6px var(--pu);transform:scale(1);}50%{box-shadow:0 0 16px rgba(155,48,217,.7),0 0 28px rgba(192,95,232,.4);transform:scale(1.2);}}
+.su{padding:12px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:9px;}
+.ua{width:32px;height:32px;border-radius:9px;flex-shrink:0;background:linear-gradient(135deg,var(--pu),var(--pd));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;}
+.un{font-size:12.5px;font-weight:700;color:var(--t1);}.ur{font-size:10.5px;color:var(--tm);}
+.ham{display:none;flex-direction:column;gap:4px;padding:8px;cursor:pointer;background:none;border:none;z-index:200;}
+.ham span{display:block;width:20px;height:2px;border-radius:2px;background:var(--t1);transition:all .3s ease;}
+.ham.open span:nth-child(1){transform:translateY(6px) rotate(45deg);}
+.ham.open span:nth-child(2){opacity:0;}
+.ham.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:90;backdrop-filter:blur(6px);}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.ph{display:flex;align-items:center;gap:14px;padding:14px 26px;border-bottom:1px solid var(--border);background:var(--nav);backdrop-filter:blur(32px);flex-shrink:0;flex-wrap:wrap;position:relative;z-index:10;}
+.mob{display:none;align-items:center;gap:10px;}
+.ht h1{font-size:21px;font-weight:800;color:var(--t1);letter-spacing:-.4px;}.ht p{font-size:11.5px;color:var(--tm);margin-top:1px;}
+.hr{margin-left:auto;display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+.sp{display:flex;align-items:center;gap:9px;padding:7px 13px;background:var(--card);border:1px solid var(--border);border-radius:12px;transition:var(--tt);position:relative;overflow:hidden;}
+.sp::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(155,48,217,.04),transparent);animation:spSheen 4s linear infinite;}
+@keyframes spSheen{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+.sl2{font-size:9.5px;color:var(--tm);margin-bottom:1px;font-weight:500;}.sv{font-size:13px;font-weight:800;color:var(--t1);}
+.dv{width:1px;height:26px;background:var(--border);}
+.prc{transition:stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1);}
+.tb{width:34px;height:34px;border-radius:9px;background:var(--card);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .22s ease;flex-shrink:0;font-family:'Poppins',sans-serif;}
+.tb:hover{border-color:var(--bd2);transform:scale(1.1) rotate(12deg);box-shadow:var(--gp);}
+.cb{flex:1;overflow-y:auto;padding-bottom:60px;}
+
+/* ── HERO ── */
+.hero{position:relative;padding:40px 26px 32px;overflow:hidden;border-bottom:1px solid var(--border);}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,rgba(155,48,217,.1) 0%,rgba(123,31,162,.06) 40%,rgba(192,95,232,.04) 100%);pointer-events:none;}
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(var(--grid-col) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-col) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none;
+
+  /* Fix for compatibility */
+  -webkit-mask-image: radial-gradient(ellipse 90% 85% at 50% 50%, black 30%, transparent 100%);
+  mask-image: radial-gradient(ellipse 90% 85% at 50% 50%, black 30%, transparent 100%);
+}
+.hero-scan{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(155,48,217,.4),rgba(192,95,232,.6),rgba(155,48,217,.4),transparent);animation:scanDown 5s linear infinite;pointer-events:none;}
+@keyframes scanDown{0%{top:-2px;opacity:0;}5%{opacity:1;}95%{opacity:1;}100%{top:100%;opacity:0;}}
+.hero-inner{display:flex;align-items:center;gap:32px;position:relative;z-index:1;}
+.hero-text{flex:1;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;background:rgba(155,48,217,.12);border:1px solid rgba(155,48,217,.35);border-radius:99px;font-size:10px;font-weight:700;color:var(--pl);text-transform:uppercase;letter-spacing:.14em;margin-bottom:14px;animation:fadeUp .6s ease both;}
+.hero-eyebrow::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--pl);animation:ndPulse 2s ease-in-out infinite;}
+.hero-title{font-size:40px;font-weight:900;line-height:1.08;letter-spacing:-.9px;margin-bottom:10px;animation:fadeUp .6s ease .08s both;}
+.hero-title span{background:linear-gradient(135deg,var(--pl),var(--psoft),var(--go));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gradShift 4s ease-in-out infinite;}
+@keyframes gradShift{0%,100%{filter:hue-rotate(0deg);}50%{filter:hue-rotate(20deg);}}
+.hero-sub{font-size:13px;color:var(--t2);line-height:1.65;max-width:430px;margin-bottom:20px;animation:fadeUp .6s ease .16s both;font-weight:400;}
+.hero-stats{display:flex;gap:20px;animation:fadeUp .6s ease .24s both;}
+.hstat{text-align:left;}
+.hstat-val{font-size:26px;font-weight:800;color:var(--t1);line-height:1;}
+.hstat-val span{font-size:13px;color:var(--pl);font-weight:600;}
+.hstat-lbl{font-size:10px;color:var(--tm);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+.hero-divider{width:1px;height:44px;background:var(--border);}
+.hero-3d{width:290px;height:210px;flex-shrink:0;position:relative;animation:fadeUp .6s ease .12s both;}
+.hero-canvas-wrap{position:relative;width:100%;height:100%;}
+.hero-canvas-glow{position:absolute;inset:-24px;background:radial-gradient(circle,rgba(155,48,217,.15) 0%,transparent 70%);pointer-events:none;border-radius:50%;animation:glowPulse 3s ease-in-out infinite;}
+@keyframes glowPulse{0%,100%{opacity:.7;transform:scale(1);}50%{opacity:1;transform:scale(1.08);}}
+#heroCanvas{display:block;width:100%;height:100%;border-radius:18px;}
+
+/* ── FEATURED ── */
+.fw{padding:20px 26px 8px;}
+.fc{position:relative;border-radius:20px;overflow:hidden;padding:20px 24px;background:var(--card);border:1.5px solid rgba(245,200,66,.28);display:flex;align-items:center;gap:20px;box-shadow:0 0 80px rgba(245,200,66,.05),var(--sh);transition:transform .3s ease,box-shadow .3s ease;animation:fadeUp .5s ease .28s both;}
+.fc:hover{transform:translateY(-4px);box-shadow:0 20px 70px rgba(245,200,66,.12),var(--sh);}
+.fsh{position:absolute;inset:0;background:linear-gradient(130deg,rgba(245,200,66,.05) 0%,transparent 50%,rgba(155,48,217,.06) 100%);pointer-events:none;}
+/* Corner sparkles */
+.fc-spark{position:absolute;pointer-events:none;}
+.fc-spark span{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(245,200,66,.7);animation:sparkFloat 2.5s ease-in-out infinite;}
+.fc-spark span:nth-child(1){top:8px;right:10px;animation-delay:0s;}
+.fc-spark span:nth-child(2){top:16px;right:22px;animation-delay:.4s;}
+.fc-spark span:nth-child(3){top:6px;right:32px;animation-delay:.8s;}
+@keyframes sparkFloat{0%,100%{transform:translateY(0);opacity:.7;}50%{transform:translateY(-5px);opacity:1;}}
+.fsp{position:absolute;right:22px;top:50%;transform:translateY(-50%);opacity:.07;}
+@keyframes spin{to{transform:rotate(360deg);}}.ss{animation:spin 14s linear infinite;}
+.fi{width:72px;height:72px;border-radius:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:40px;background:linear-gradient(135deg,rgba(245,200,66,.14),rgba(155,48,217,.14));border:1px solid rgba(245,200,66,.38);box-shadow:0 0 32px rgba(245,200,66,.22);animation:floatBob 3.5s ease-in-out infinite;}
+@keyframes floatBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+.ftg{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--go);margin-bottom:3px;}
+.ftt{font-size:20px;font-weight:800;color:var(--t1);margin-bottom:3px;letter-spacing:-.3px;}
+.fds{font-size:11.5px;color:var(--t2);max-width:420px;line-height:1.6;font-weight:400;}
+.fme{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:10.5px;color:var(--tm);}
+.fxp{color:var(--go);font-weight:700;}
+
+/* ── FILTER BAR ── */
+.fb{padding:12px 26px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.fl2{font-size:9.5px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.1em;margin-right:3px;}
+.pill{padding:5px 13px;border-radius:99px;font-size:10.5px;font-weight:600;font-family:'Poppins',sans-serif;border:1px solid var(--border);background:var(--pibg);color:var(--t2);cursor:pointer;transition:all .22s ease;white-space:nowrap;}
+.pill:hover{border-color:var(--bd2);color:var(--pl);transform:translateY(-1px);}
+.pill.active{background:linear-gradient(135deg,var(--pu),var(--pd));color:#fff;border-color:transparent;box-shadow:0 4px 18px rgba(155,48,217,.4);}
+.sep{width:1px;height:16px;background:var(--border);margin:0 1px;}
+.si{margin-left:auto;background:var(--inbg);border:1px solid var(--border);border-radius:10px;padding:6px 14px;font-size:11.5px;font-family:'Poppins',sans-serif;color:var(--t1);width:170px;transition:all .22s ease;}
+.si::placeholder{color:var(--tm);}
+.si:focus{outline:none;border-color:var(--pu);width:210px;box-shadow:0 0 0 3px rgba(155,48,217,.18);}
+
+/* ── BADGE GRID ── */
+.gw{padding:4px 26px;}
+.bg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:13px;}
+
+.bc{position:relative;border-radius:18px;padding:16px 12px 14px;text-align:center;cursor:pointer;overflow:hidden;background:var(--card);border:1.5px solid var(--border);transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .28s ease,opacity .28s ease,border-color .28s ease;}
+.bc:hover{transform:translateY(-8px) scale(1.04);}
+.bc.earned.rarity-rare:hover{box-shadow:0 16px 38px rgba(96,165,250,.22),var(--sh);border-color:rgba(96,165,250,.5);}
+.bc.earned.rarity-epic:hover{box-shadow:0 16px 38px rgba(155,48,217,.35),var(--sh);border-color:rgba(192,95,232,.6);}
+.bc.earned.rarity-legendary{animation:legendaryGlow 3.5s ease-in-out infinite;}
+.bc.earned.rarity-legendary:hover{box-shadow:0 16px 48px rgba(245,200,66,.42),var(--sh);}
+.bc.locked{opacity:var(--lop);}.bc.locked:hover{opacity:.7;transform:translateY(-4px);}
+.rarity-common.earned{border-color:rgba(155,48,217,.28);}
+.rarity-rare.earned{border-color:rgba(96,165,250,.32);}
+.rarity-epic.earned{border-color:rgba(192,95,232,.42);}
+.rarity-legendary.earned{border-color:rgba(245,200,66,.48);}
+@keyframes legendaryGlow{0%,100%{box-shadow:0 0 18px rgba(245,200,66,.18);}50%{box-shadow:0 0 42px rgba(245,200,66,.5),0 0 80px rgba(155,48,217,.2);}}
+
+/* Shimmer sweep */
+.bc::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,var(--shim) 50%,transparent 65%);transform:translateX(-220%) skewX(-20deg);pointer-events:none;}
+.bc:hover::after{animation:shimmer .6s ease forwards;}
+@keyframes shimmer{to{transform:translateX(320%) skewX(-20deg);}}
+
+/* Purple corner accent on earned */
+.bc.earned::before{content:'';position:absolute;top:0;right:0;width:0;height:0;border-top:20px solid rgba(155,48,217,.3);border-left:20px solid transparent;}
+
+/* 3D canvas on card */
+.badge-3d-canvas{display:block;width:72px;height:72px;margin:0 auto 8px;}
+
+.bn{font-size:11.5px;font-weight:700;color:var(--t1);line-height:1.3;margin-bottom:3px;}
+.br{font-size:10px;font-weight:600;}
+.bd{font-size:9.5px;color:var(--tm);margin-top:3px;font-weight:500;}
+.bpg{margin-top:7px;}
+.pn{display:flex;justify-content:space-between;font-size:9px;color:var(--tm);margin-bottom:2px;font-weight:500;}
+.pt{height:3px;background:rgba(155,48,217,.15);border-radius:99px;overflow:hidden;}
+.pf{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--pu),var(--pl));transition:width 1s cubic-bezier(.4,0,.2,1);}
+.li-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:.5;pointer-events:none;}
+
+/* tooltip */
+.btp{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--tip);border:1px solid var(--bd2);border-radius:10px;padding:7px 12px;width:160px;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:50;box-shadow:var(--sh);}
+.bc:hover .btp{opacity:1;}
+.btp::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--bd2);}
+.tn{font-size:10.5px;font-weight:700;color:var(--t1);margin-bottom:2px;}.ts{font-size:9.5px;color:var(--t2);}
+.nr{text-align:center;padding:60px 20px;color:var(--tm);font-size:13px;font-weight:500;display:none;}
+.nr-i{font-size:34px;margin-bottom:10px;}
+
+/* ── SECTION LABEL ── */
+.sec-label{display:flex;align-items:center;gap:10px;padding:14px 26px 6px;font-size:9.5px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.14em;}
+.sec-label::before,.sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.sec-label::before{max-width:20px;}
+
+/* ── MODAL ── */
+.mbd{display:none;position:fixed;inset:0;z-index:200;background:var(--mbg);backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:16px;}
+.mbd.open{display:flex;}
+.mb{width:100%;max-width:370px;background:var(--card);border:1px solid var(--bd2);border-radius:24px;overflow:hidden;box-shadow:0 32px 100px rgba(0,0,0,.5),0 0 80px rgba(155,48,217,.15);animation:modalIn .34s cubic-bezier(.34,1.56,.64,1) forwards;}
+@keyframes modalIn{from{opacity:0;transform:scale(.84) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.mban{position:relative;height:140px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.mbb{position:absolute;inset:0;}
+.mrw{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.1;}
+.mic{position:relative;z-index:1;font-size:60px;animation:floatBob 3s ease-in-out infinite;}
+/* Modal top border glow */
+.mb::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--pl),transparent);pointer-events:none;}
+.mbo{padding:20px 24px;}
+.mts{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:7px;}
+.mrp{font-size:9.5px;font-weight:700;padding:3px 10px;border-radius:99px;border:1px solid;}
+.mct{font-size:10.5px;color:var(--tm);font-weight:500;}
+.mtl{font-size:20px;font-weight:800;text-align:center;color:var(--t1);margin-bottom:5px;letter-spacing:-.3px;}
+.mds{font-size:11.5px;color:var(--t2);text-align:center;line-height:1.65;margin-bottom:14px;font-weight:400;}
+.mst{display:flex;justify-content:center;gap:24px;margin-bottom:14px;}
+.msl{font-size:9.5px;color:var(--tm);margin-bottom:2px;text-align:center;font-weight:500;}
+.msv{font-size:13.5px;font-weight:800;text-align:center;}
+.mpw{margin-bottom:16px;}
+.mpt{display:flex;justify-content:space-between;font-size:10.5px;color:var(--tm);margin-bottom:5px;font-weight:500;}
+.mpr{height:5px;background:rgba(155,48,217,.14);border-radius:99px;overflow:hidden;}
+.mpf{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--pu),var(--pl),var(--psoft));transition:width .9s cubic-bezier(.4,0,.2,1);}
+.mbtn{width:100%;padding:11px;border-radius:12px;background:linear-gradient(135deg,var(--pu),var(--pd));border:none;cursor:pointer;color:#fff;font-family:'Poppins',sans-serif;font-size:13.5px;font-weight:700;transition:all .22s ease;letter-spacing:.02em;position:relative;overflow:hidden;}
+.mbtn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);transform:translateX(-100%);transition:transform .4s ease;}
+.mbtn:hover::after{transform:translateX(100%);}
+.mbtn:hover{box-shadow:0 0 28px rgba(155,48,217,.55);transform:translateY(-1px);}
+
+.cc{color:var(--t2);}
+.cr{color:var(--bl);}
+.ce{color:var(--pl);}
+.cl{color:var(--go);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+@keyframes cardIn{from{opacity:0;transform:translateY(16px) scale(.94);}to{opacity:1;transform:translateY(0) scale(1);}}
+
+@media(max-width:900px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .ov.vis{display:block;}
+  .main{width:100%;}
+  .mob{display:flex;}
+  .ph{padding:11px 15px;}
+  .hero{padding:24px 15px 20px;}
+  .hero-3d{width:160px;height:130px;}
+  .hero-title{font-size:26px;}
+  .fw{padding:12px 15px 5px;}
+  .fb{padding:10px 15px;}
+  .si{width:130px;}.si:focus{width:160px;}
+  .gw{padding:4px 15px;}
+}
+@media(max-width:600px){
+  .hero-inner{flex-direction:column;gap:16px;}
+  .hero-3d{width:100%;height:160px;}
+  .ht h1{font-size:18px;}
+  .fc{padding:14px 16px;gap:12px;}
+  .fi{width:56px;height:56px;font-size:32px;}
+  .ftt{font-size:17px;}
+  .bg{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;}
+}
+@media(max-width:360px){.bg{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="orb orb-a"></div>
+<div class="orb orb-b"></div>
+<div class="orb orb-c"></div>
+<div class="orb orb-d"></div>
+<div id="particles"></div>
+
+<div class="app">
+  <div class="ov" id="ov" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sl">
+      <div class="logo-wrap" id="logoWrap">
+        <img src="images/logo.png" alt="Talent Circle" id="logoImg" onerror="handleLogoError()" style="display:block;"/>
+      </div>
+      <div class="lt">Talent<span>Circle</span></div>
+    </div>
+    <nav class="sn">
+      <p class="ns">Menu</p>
+      <a class="ni" href="#"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>Dashboard</a>
+      <a class="ni" href="#"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Calendar</a>
+      <a class="ni" href="#"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Sessions</a>
+      <a class="ni" href="#"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2"/></svg>Tokens</a>
+      <a class="ni" href="#"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>Points</a>
+      <a class="ni active" href="#"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>Badges<span class="nd"></span></a>
+      <a class="ni" href="#"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>Rankings</a>
+      <a class="ni" href="#"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>Messages<span class="nb">3</span></a>
+    </nav>
+    <div class="su"><div class="ua">A</div><div><div class="un">Alex Rivera</div><div class="ur">Full-Stack Dev</div></div></div>
+  </aside>
+
+  <main class="main">
+    <header class="ph">
+      <div class="mob"><button class="ham" id="ham" onclick="toggleSidebar()"><span></span><span></span><span></span></button></div>
+      <div class="ht"><h1>🏅 Badges</h1><p>Your achievements &amp; milestones</p></div>
+      <div class="hr">
+        <div class="sp">
+          <div><div class="sl2">Earned</div><div class="sv"><span id="ec">0</span> / <span id="tc">0</span></div></div>
+          <div class="dv"></div>
+          <svg width="36" height="36" viewBox="0 0 36 36" style="transform:rotate(-90deg)">
+            <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(155,48,217,.2)" stroke-width="3"/>
+            <circle id="ring" cx="18" cy="18" r="14" fill="none" stroke="url(#ringGrad)" stroke-width="3" stroke-linecap="round" stroke-dasharray="87.96" stroke-dashoffset="87.96" class="prc"/>
+            <defs><linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#9b30d9"/><stop offset="100%" stop-color="#c05fe8"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div class="sp" style="border-color:rgba(245,200,66,.25);">
+          <span style="font-size:17px;">🏅</span>
+          <div><div class="sl2">Rarest</div><div class="sv" style="color:var(--go);font-size:12px;">Gold Rank</div></div>
+        </div>
+        <button class="tb" id="themeBtn" onclick="toggleTheme()">☀️</button>
+      </div>
+    </header>
+
+    <div class="cb">
+      <!-- HERO -->
+      <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-grid"></div>
+        <div class="hero-scan"></div>
+        <div class="hero-inner">
+          <div class="hero-text">
+            <div class="hero-eyebrow">Achievement System</div>
+            <h2 class="hero-title">Collect. Earn.<br><span>Conquer.</span></h2>
+            <p class="hero-sub">Every badge tells a story of your growth. Unlock rare achievements, climb the ranks, and show the world what you're made of on Talent Circle.</p>
+            <div class="hero-stats">
+              <div class="hstat"><div class="hstat-val" id="heroEarned">0 <span>earned</span></div><div class="hstat-lbl">Badges collected</div></div>
+              <div class="hero-divider"></div>
+              <div class="hstat"><div class="hstat-val" id="heroXP">0 <span>XP</span></div><div class="hstat-lbl">Total XP from badges</div></div>
+              <div class="hero-divider"></div>
+              <div class="hstat"><div class="hstat-val" id="heroLegendary">1 <span>legendary</span></div><div class="hstat-lbl">Rarest tier earned</div></div>
+            </div>
+          </div>
+          <div class="hero-3d">
+            <div class="hero-canvas-wrap">
+              <div class="hero-canvas-glow"></div>
+              <canvas id="heroCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURED -->
+      <div class="fw">
+        <div class="fc">
+          <div class="fsh"></div>
+          <div class="fc-spark"><span></span><span></span><span></span></div>
+          <div class="fsp ss"><svg width="120" height="120" viewBox="0 0 120 120" fill="none"><circle cx="60" cy="60" r="55" stroke="var(--go)" stroke-width="1.5" stroke-dasharray="9 4"/><circle cx="60" cy="60" r="38" stroke="var(--pu)" stroke-width="1" stroke-dasharray="6 6"/></svg></div>
+          <div class="fi">👑</div>
+          <div style="flex:1;min-width:0;">
+            <div class="ftg">⭐ Legendary · Latest Earned</div>
+            <div class="ftt">Platinum Pioneer</div>
+            <div class="fds">Awarded to members who reach Platinum rank within their first 90 days — achieved by fewer than 3% of all users.</div>
+            <div class="fme"><span>Earned · May 2, 2026</span><span>·</span><span class="fxp">+500 XP awarded</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div class="fb">
+        <span class="fl2">Filter:</span>
+        <button class="pill active" onclick="setFilter('all',this)">All</button>
+        <button class="pill" onclick="setFilter('earned',this)">Earned</button>
+        <button class="pill" onclick="setFilter('locked',this)">Locked</button>
+        <div class="sep"></div>
+        <button class="pill" onclick="setFilter('common',this)">Common</button>
+        <button class="pill" onclick="setFilter('rare',this)">Rare</button>
+        <button class="pill" onclick="setFilter('epic',this)">Epic</button>
+        <button class="pill" onclick="setFilter('legendary',this)">Legendary</button>
+        <input class="si" type="text" placeholder="Search badges…" oninput="setSearch(this.value)"/>
+      </div>
+
+      <!-- GRID -->
+      <div class="gw">
+        <div class="bg" id="badgeGrid"></div>
+        <div class="nr" id="noRes"><div class="nr-i">🔍</div>No badges match your search.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="mbd" id="modal" onclick="handleModalClick(event)">
+  <div class="mb">
+    <div class="mban"><div class="mbb" id="mBannerBg"></div><div class="mrw ss"><svg width="140" height="140" viewBox="0 0 140 140" fill="none"><circle cx="70" cy="70" r="64" stroke="white" stroke-width="1.5" stroke-dasharray="10 5"/><circle cx="70" cy="70" r="46" stroke="white" stroke-width="1" stroke-dasharray="6 7"/></svg></div><span class="mic" id="mIcon">🏅</span></div>
+    <div class="mbo">
+      <div class="mts"><span class="mrp" id="mRarPill"></span><span class="mct" id="mCat"></span></div>
+      <div class="mtl" id="mTitle"></div>
+      <div class="mds" id="mDesc"></div>
+      <div class="mst" id="mStats"></div>
+      <div class="mpw" id="mProgWrap" style="display:none;"><div class="mpt"><span>Progress</span><span id="mProgLbl"></span></div><div class="mpr"><div class="mpf" id="mProgFill" style="width:0"></div></div></div>
+      <button class="mbtn" onclick="closeModal()">Got it ✓</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════
+   PARTICLES
+═══════════════════════════════════ */
+(function(){
+  const container = document.getElementById('particles');
+  const count = 22;
+  const purples = ['rgba(155,48,217,.5)','rgba(192,95,232,.4)','rgba(217,139,245,.35)','rgba(123,31,162,.5)'];
+  for(let i=0;i<count;i++){
+    const el = document.createElement('div');
+    el.className = 'pt';
+    const size = Math.random()*3+1.5;
+    el.style.cssText = `
+      width:${size}px;height:${size}px;
+      left:${Math.random()*100}%;
+      background:${purples[Math.floor(Math.random()*purples.length)]};
+      animation-duration:${8+Math.random()*14}s;
+      animation-delay:${Math.random()*12}s;
+    `;
+    container.appendChild(el);
+  }
+})();
+
+/* ═══════════════════════════════════
+   3D BADGE RENDERER
+═══════════════════════════════════ */
+const RARITY_3D = {
+  common:    {outer:'#6b5eb0',inner:'#3d3468',rim:'#a097cc',glow:'rgba(120,100,200,.4)',face:'#8b83b8'},
+  rare:      {outer:'#3b82f6',inner:'#1e40af',rim:'#93c5fd',glow:'rgba(96,165,250,.5)',face:'#60a5fa'},
+  epic:      {outer:'#9b30d9',inner:'#5b1fa0',rim:'#c05fe8',glow:'rgba(192,95,232,.6)',face:'#b060e8'},
+  legendary: {outer:'#f5c842',inner:'#92400e',rim:'#fde68a',glow:'rgba(245,200,66,.6)',face:'#fbbf24'},
+};
+
+function lighten(hex,a){
+  const n=parseInt(hex.replace('#',''),16);
+  const r=Math.min(255,((n>>16)&0xff)+a);
+  const g=Math.min(255,((n>>8)&0xff)+a);
+  const b=Math.min(255,(n&0xff)+a);
+  return `rgb(${r},${g},${b})`;
+}
+
+function draw3DBadge(canvas,rarity,icon,earned){
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.width=canvas.offsetWidth*dpr;
+  const H=canvas.height=canvas.offsetHeight*dpr;
+  const ctx=canvas.getContext('2d');
+  const cx=W/2,cy=H/2;
+  const R=Math.min(W,H)*0.38;
+  const c=RARITY_3D[rarity]||RARITY_3D.common;
+  ctx.clearRect(0,0,W,H);
+  if(!earned)ctx.globalAlpha=0.35;
+  // Outer glow
+  const g1=ctx.createRadialGradient(cx,cy,R*0.5,cx,cy,R*1.7);
+  g1.addColorStop(0,c.glow);g1.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g1;ctx.beginPath();ctx.arc(cx,cy,R*1.7,0,Math.PI*2);ctx.fill();
+  // Shadow
+  ctx.save();ctx.shadowBlur=R*0.6;ctx.shadowColor=c.glow;ctx.shadowOffsetY=R*0.14;
+  ctx.beginPath();ctx.arc(cx,cy+R*0.04,R,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,.28)';ctx.fill();
+  ctx.restore();
+  // Depth rim
+  const g2=ctx.createRadialGradient(cx,cy+R*0.06,R*0.9,cx,cy,R*1.12);
+  g2.addColorStop(0,c.rim);g2.addColorStop(0.4,c.outer);g2.addColorStop(1,c.inner);
+  ctx.beginPath();ctx.arc(cx,cy+R*0.09,R*1.05,0,Math.PI*2);
+  ctx.fillStyle=c.inner;ctx.fill();
+  // Face
+  const g3=ctx.createRadialGradient(cx-R*0.26,cy-R*0.26,R*0.04,cx,cy,R);
+  g3.addColorStop(0,lighten(c.face,65));g3.addColorStop(0.4,c.face);
+  g3.addColorStop(0.85,c.outer);g3.addColorStop(1,c.inner);
+  ctx.beginPath();ctx.arc(cx,cy,R,0,Math.PI*2);ctx.fillStyle=g3;ctx.fill();
+  // Inner ring
+  ctx.beginPath();ctx.arc(cx,cy,R*0.74,0,Math.PI*2);
+  ctx.strokeStyle=c.rim;ctx.lineWidth=R*0.04;ctx.globalAlpha=earned?.5:.18;ctx.stroke();
+  ctx.globalAlpha=earned?1:.35;
+  // Highlight
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,R*0.95,Math.PI*1.18,Math.PI*1.76);
+  ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=R*0.06;ctx.lineCap='round';ctx.stroke();ctx.restore();
+  // Legendary sparkles
+  if(rarity==='legendary'&&earned){
+    for(let i=0;i<6;i++){
+      const a=(i/6)*Math.PI*2;
+      const sr=R*1.2;
+      ctx.beginPath();ctx.arc(cx+Math.cos(a)*sr,cy+Math.sin(a)*sr,R*0.042,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,220,80,.9)';ctx.fill();
+    }
+  }
+  // Icon
+  const fs=R*(dpr>1?.76:.73);
+  ctx.font=`${fs}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  if(!earned){ctx.font=`${fs*.7}px serif`;ctx.fillText('🔒',cx,cy);}
+  else ctx.fillText(icon,cx,cy+R*0.03);
+  ctx.globalAlpha=1;
+}
+
+/* Hero animated canvas */
+function initHeroCanvas(){
+  const canvas=document.getElementById('heroCanvas');
+  if(!canvas)return;
+  const dpr=window.devicePixelRatio||1;
+  function resize(){canvas.width=canvas.offsetWidth*dpr;canvas.height=canvas.offsetHeight*dpr;}
+  resize();window.addEventListener('resize',resize);
+  const HERO=[{rarity:'legendary',icon:'👑',earned:true},{rarity:'epic',icon:'💜',earned:true},{rarity:'rare',icon:'🔥',earned:true}];
+  let t=0;
+  function frame(){
+    const W=canvas.width,H=canvas.height;
+    const ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,W,H);
+    t+=0.013;
+    HERO.forEach((b,i)=>{
+      const angle=(i/3)*Math.PI*2+t;
+      const orbitR=Math.min(W,H)*0.28;
+      const bx=W/2+Math.cos(angle)*orbitR;
+      const by=H/2+Math.sin(angle)*orbitR*0.4-H*0.02;
+      const R=Math.min(W,H)*0.14;
+      const c=RARITY_3D[b.rarity];
+      const gl=ctx.createRadialGradient(bx,by,0,bx,by,R*1.5);
+      gl.addColorStop(0,c.glow);gl.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=gl;ctx.beginPath();ctx.arc(bx,by,R*1.5,0,Math.PI*2);ctx.fill();
+      const fg=ctx.createRadialGradient(bx-R*0.2,by-R*0.2,R*0.04,bx,by,R);
+      fg.addColorStop(0,lighten(c.face,60));fg.addColorStop(0.5,c.face);fg.addColorStop(1,c.inner);
+      ctx.beginPath();ctx.arc(bx,by,R,0,Math.PI*2);ctx.fillStyle=fg;ctx.fill();
+      ctx.beginPath();ctx.arc(bx,by,R*0.95,Math.PI*1.15,Math.PI*1.72);
+      ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=R*0.07;ctx.lineCap='round';ctx.stroke();
+      ctx.font=`${R*1.1}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(b.icon,bx,by+R*0.05);
+    });
+    const cg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.min(W,H)*0.2);
+    cg.addColorStop(0,'rgba(155,48,217,.2)');cg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=cg;ctx.beginPath();ctx.arc(W/2,H/2,Math.min(W,H)*0.2,0,Math.PI*2);ctx.fill();
+    requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+/* ═══════════════════════════════════
+   BADGE DATA
+═══════════════════════════════════ */
+const BADGES=[
+  {id:1,icon:'🚀',label:'First Session',rarity:'common',cat:'Milestones',earned:true,xp:50,date:'Jan 15, 2026',desc:'Completed your very first skill swap session on Talent Circle.',progress:null},
+  {id:2,icon:'🎓',label:'First Teacher',rarity:'common',cat:'Teaching',earned:true,xp:50,date:'Jan 18, 2026',desc:'Taught your first session and shared your knowledge.',progress:null},
+  {id:3,icon:'📚',label:'First Learner',rarity:'common',cat:'Learning',earned:true,xp:30,date:'Jan 20, 2026',desc:'Attended your first learning session on Talent Circle.',progress:null},
+  {id:4,icon:'✅',label:'Profile Complete',rarity:'common',cat:'Milestones',earned:true,xp:20,date:'Jan 14, 2026',desc:'Filled out every section of your profile.',progress:null},
+  {id:5,icon:'👋',label:'Welcome Aboard',rarity:'common',cat:'Milestones',earned:true,xp:10,date:'Jan 14, 2026',desc:'Joined the Talent Circle community. Welcome!',progress:null},
+  {id:6,icon:'💬',label:'Conversation Starter',rarity:'common',cat:'Social',earned:true,xp:15,date:'Jan 19, 2026',desc:'Sent your first message to a potential skill partner.',progress:null},
+  {id:7,icon:'📸',label:'Photo Ready',rarity:'common',cat:'Milestones',earned:true,xp:10,date:'Jan 14, 2026',desc:'Uploaded a profile photo to personalise your account.',progress:null},
+  {id:8,icon:'🔔',label:'Notified',rarity:'common',cat:'Milestones',earned:true,xp:5,date:'Jan 15, 2026',desc:'Enabled notifications to stay on top of your sessions.',progress:null},
+  {id:9,icon:'🗓️',label:'Calendar Sync',rarity:'common',cat:'Milestones',earned:true,xp:15,date:'Jan 16, 2026',desc:'Synced your external calendar with Talent Circle.',progress:null},
+  {id:10,icon:'🎯',label:'First Booking',rarity:'common',cat:'Milestones',earned:true,xp:20,date:'Jan 17, 2026',desc:'Booked your first session with another member.',progress:null},
+  {id:11,icon:'⭐',label:'First Review',rarity:'common',cat:'Social',earned:true,xp:20,date:'Jan 21, 2026',desc:'Left your first review for a skill swap partner.',progress:null},
+  {id:12,icon:'📧',label:'Email Verified',rarity:'common',cat:'Milestones',earned:true,xp:10,date:'Jan 13, 2026',desc:'Verified your email address to secure your account.',progress:null},
+  {id:13,icon:'🌐',label:'Skill Listed',rarity:'common',cat:'Teaching',earned:true,xp:15,date:'Jan 14, 2026',desc:'Listed your first teachable skill on your profile.',progress:null},
+  {id:14,icon:'👍',label:'Liked Listing',rarity:'common',cat:'Social',earned:false,xp:5,date:null,desc:'Liked a skill listing to save it for later.',progress:{current:0,total:1}},
+  {id:15,icon:'🔗',label:'Referral Sent',rarity:'common',cat:'Social',earned:false,xp:25,date:null,desc:'Sent an invite link to a friend to join Talent Circle.',progress:{current:0,total:1}},
+  {id:16,icon:'🔥',label:'7-Day Streak',rarity:'rare',cat:'Streaks',earned:true,xp:75,date:'Feb 3, 2026',desc:'Logged in and engaged every day for 7 consecutive days.',progress:null},
+  {id:17,icon:'⭐',label:'5-Star Tutor',rarity:'rare',cat:'Teaching',earned:true,xp:80,date:'Feb 10, 2026',desc:'Received a perfect 5-star rating from a learner.',progress:null},
+  {id:18,icon:'🤝',label:'Social Learner',rarity:'rare',cat:'Social',earned:true,xp:60,date:'Feb 15, 2026',desc:'Successfully swapped skills with 5 different partners.',progress:null},
+  {id:19,icon:'📖',label:'Knowledge Base',rarity:'rare',cat:'Learning',earned:true,xp:70,date:'Mar 1, 2026',desc:'Learned 5 completely different skills across categories.',progress:null},
+  {id:20,icon:'⚡',label:'Speed Learner',rarity:'rare',cat:'Learning',earned:true,xp:55,date:'Mar 8, 2026',desc:'Booked and confirmed a session within 1 hour of posting.',progress:null},
+  {id:21,icon:'🌍',label:'Global Reach',rarity:'rare',cat:'Social',earned:true,xp:90,date:'Mar 20, 2026',desc:'Connected with partners from 3 different countries.',progress:null},
+  {id:22,icon:'🏃',label:'30-Day Streak',rarity:'rare',cat:'Streaks',earned:true,xp:120,date:'Mar 28, 2026',desc:'Kept your activity streak alive for 30 days straight.',progress:null},
+  {id:23,icon:'💎',label:'Token Saver',rarity:'rare',cat:'Milestones',earned:true,xp:60,date:'Mar 5, 2026',desc:'Saved up 100 tokens without spending them for a month.',progress:null},
+  {id:24,icon:'🎁',label:'Gift Giver',rarity:'rare',cat:'Social',earned:true,xp:65,date:'Feb 28, 2026',desc:'Gifted a free session slot to another community member.',progress:null},
+  {id:25,icon:'🏅',label:'Top Rated',rarity:'rare',cat:'Teaching',earned:false,xp:100,date:null,desc:'Maintain a 4.5+ average rating across 10 sessions.',progress:{current:7,total:10}},
+  {id:26,icon:'📣',label:'Influencer',rarity:'rare',cat:'Social',earned:false,xp:80,date:null,desc:'Get 3 referral signups from your personal invite link.',progress:{current:1,total:3}},
+  {id:27,icon:'🛡️',label:'Trusted Member',rarity:'rare',cat:'Milestones',earned:false,xp:75,date:null,desc:'Complete identity verification to earn the trust badge.',progress:{current:0,total:1}},
+  {id:28,icon:'🎤',label:'Public Speaker',rarity:'rare',cat:'Teaching',earned:false,xp:90,date:null,desc:'Host a group session with 5 or more participants.',progress:{current:2,total:5}},
+  {id:29,icon:'🧩',label:'Skill Collector',rarity:'rare',cat:'Learning',earned:false,xp:85,date:null,desc:'Add 10 different skills to your learning wishlist.',progress:{current:6,total:10}},
+  {id:30,icon:'🌙',label:'Night Owl',rarity:'rare',cat:'Streaks',earned:false,xp:55,date:null,desc:'Complete 5 sessions scheduled after 9 PM local time.',progress:{current:3,total:5}},
+  {id:31,icon:'☀️',label:'Early Bird',rarity:'rare',cat:'Streaks',earned:false,xp:55,date:null,desc:'Complete 5 sessions scheduled before 8 AM local time.',progress:{current:1,total:5}},
+  {id:32,icon:'💜',label:'Community Hero',rarity:'epic',cat:'Social',earned:true,xp:150,date:'Apr 1, 2026',desc:'Helped 10+ learners improve a skill, leaving a lasting impact.',progress:null},
+  {id:33,icon:'🥇',label:'Gold Rank',rarity:'epic',cat:'Milestones',earned:true,xp:200,date:'Apr 12, 2026',desc:'Reached the Gold tier — placing you in the top 15% of all users.',progress:null},
+  {id:34,icon:'🏅',label:'Consistent Pro',rarity:'epic',cat:'Streaks',earned:true,xp:180,date:'Apr 28, 2026',desc:'Maintained an active streak for 30 consecutive days.',progress:null},
+  {id:35,icon:'💡',label:'Innovator',rarity:'epic',cat:'Teaching',earned:true,xp:120,date:'Apr 5, 2026',desc:'Taught a skill categorised as emerging or cutting-edge.',progress:null},
+  {id:36,icon:'🎯',label:'Sharpshooter',rarity:'epic',cat:'Milestones',earned:false,xp:160,date:null,desc:'Complete 100% of booked sessions without cancellations.',progress:{current:22,total:25}},
+  {id:37,icon:'🦋',label:'Metamorphosis',rarity:'epic',cat:'Learning',earned:false,xp:200,date:null,desc:'Complete an entire skill track from beginner to advanced.',progress:{current:3,total:5}},
+  {id:38,icon:'🧠',label:'Mastermind',rarity:'epic',cat:'Teaching',earned:false,xp:175,date:null,desc:'Create a structured curriculum with 8+ lesson modules.',progress:{current:5,total:8}},
+  {id:39,icon:'🌈',label:'All-Rounder',rarity:'epic',cat:'Learning',earned:false,xp:200,date:null,desc:'Complete sessions in 6 different skill categories.',progress:{current:4,total:6}},
+  {id:40,icon:'🔑',label:'Key Contributor',rarity:'epic',cat:'Social',earned:false,xp:160,date:null,desc:'Respond to 20 help requests in the community forum.',progress:{current:11,total:20}},
+  {id:41,icon:'⚔️',label:'Skill Duelist',rarity:'epic',cat:'Social',earned:false,xp:140,date:null,desc:'Win 3 skill challenge competitions hosted on the platform.',progress:{current:1,total:3}},
+  {id:42,icon:'🎪',label:'Event Host',rarity:'epic',cat:'Teaching',earned:false,xp:180,date:null,desc:'Organise and host a community skill event with 10+ attendees.',progress:{current:0,total:1}},
+  {id:43,icon:'📊',label:'Data Driven',rarity:'epic',cat:'Milestones',earned:false,xp:150,date:null,desc:'Track your learning progress daily for 60 days.',progress:{current:38,total:60}},
+  {id:44,icon:'👑',label:'Platinum Pioneer',rarity:'legendary',cat:'Milestones',earned:true,xp:500,date:'May 2, 2026',desc:'Reached Platinum rank within your first 90 days — achieved by fewer than 3% of all users.',progress:null},
+  {id:45,icon:'🌟',label:'Rising Star',rarity:'legendary',cat:'Social',earned:false,xp:300,date:null,desc:'Selected as the featured learner of the month by the editorial team.',progress:null},
+  {id:46,icon:'🏆',label:'Grand Master',rarity:'legendary',cat:'Teaching',earned:false,xp:500,date:null,desc:'Teach 100 sessions with an average rating of 4.8 or above.',progress:{current:47,total:100}},
+  {id:47,icon:'🌌',label:'Universe Builder',rarity:'legendary',cat:'Milestones',earned:false,xp:1000,date:null,desc:'Reach the maximum Diamond rank — the pinnacle of the reputation system.',progress:{current:1,total:5}},
+  {id:48,icon:'🦄',label:'Unicorn Talent',rarity:'legendary',cat:'Teaching',earned:false,xp:750,date:null,desc:'Have your skill listing featured as "Unique" by the curation team.',progress:null},
+  {id:49,icon:'🔮',label:'Oracle',rarity:'legendary',cat:'Social',earned:false,xp:600,date:null,desc:'Give advice that leads to 5 learners earning their first badge.',progress:{current:2,total:5}},
+  {id:50,icon:'🧬',label:'DNA of TC',rarity:'legendary',cat:'Milestones',earned:false,xp:800,date:null,desc:'Be among the first 100 members to join Talent Circle at launch.',progress:null},
+  {id:51,icon:'🛸',label:'Trailblazer',rarity:'legendary',cat:'Milestones',earned:false,xp:500,date:null,desc:'Complete every onboarding challenge without skipping a single step.',progress:{current:4,total:7}},
+  {id:52,icon:'💫',label:'Supernova',rarity:'legendary',cat:'Social',earned:false,xp:900,date:null,desc:'Accumulate 10,000 total XP points across your Talent Circle journey.',progress:{current:2340,total:10000}},
+];
+
+const RM={
+  common:   {label:'Common',   cls:'cc',pill:'color:var(--t2);border-color:var(--bd2);background:var(--pibg)',            banner:'rgba(40,30,70,.9)',  ibg:'rgba(120,110,180,.1)'},
+  rare:     {label:'Rare',     cls:'cr',pill:'color:var(--bl);border-color:rgba(96,165,250,.5);background:rgba(96,165,250,.1)',banner:'rgba(12,35,90,.9)',ibg:'rgba(96,165,250,.1)'},
+  epic:     {label:'Epic',     cls:'ce',pill:'color:var(--pl);border-color:rgba(155,48,217,.5);background:rgba(155,48,217,.1)',banner:'rgba(60,16,110,.9)',ibg:'rgba(155,48,217,.1)'},
+  legendary:{label:'Legendary',cls:'cl',pill:'color:var(--go);border-color:rgba(245,200,66,.5);background:rgba(245,200,66,.08)',banner:'rgba(80,52,6,.9)', ibg:'rgba(245,200,66,.09)'},
+};
+const CI={Milestones:'🏁',Teaching:'🎓',Learning:'📚',Social:'🤝',Streaks:'🔥'};
+
+let filt='all',srch='';
+const canvasRegistry=[];
+
+function build(){
+  const g=document.getElementById('badgeGrid'),n=document.getElementById('noRes');
+  g.innerHTML='';canvasRegistry.length=0;
+  const list=BADGES.filter(b=>{
+    const mf=filt==='all'?true:filt==='earned'?b.earned:filt==='locked'?!b.earned:filt===b.rarity;
+    const ms=srch===''||b.label.toLowerCase().includes(srch)||b.cat.toLowerCase().includes(srch)||b.rarity.includes(srch);
+    return mf&&ms;
+  });
+  if(!list.length){n.style.display='block';return;}n.style.display='none';
+  list.forEach((b,i)=>{
+    const r=RM[b.rarity];
+    const el=document.createElement('div');
+    el.className=`bc ${b.earned?'earned':'locked'} rarity-${b.rarity}`;
+    el.style=`animation:cardIn .4s cubic-bezier(.34,1.56,.64,1) ${i*.028}s both;`;
+    el.onclick=()=>openModal(b);
+    const cid=`bc3d_${b.id}`;
+    const pg=b.progress?`<div class="bpg"><div class="pn"><span>${b.progress.current}</span><span>${b.progress.total}</span></div><div class="pt"><div class="pf" style="width:${Math.round(b.progress.current/b.progress.total*100)}%"></div></div></div>`:'';
+    const st=b.earned?`✓ ${b.date}`:b.progress?`${b.progress.current}/${b.progress.total}`:'Locked';
+    el.innerHTML=`
+      <div class="btp"><div class="tn">${b.label}</div><div class="ts">${st}</div></div>
+      <canvas class="badge-3d-canvas" id="${cid}" style="width:72px;height:72px;"></canvas>
+      <div class="bn">${b.label}</div>
+      <div class="br ${r.cls}">${r.label}</div>
+      ${pg}
+      ${b.earned?`<div class="bd">${b.date}</div>`:''}`;
+    g.appendChild(el);
+    canvasRegistry.push({id:cid,rarity:b.rarity,icon:b.icon,earned:b.earned});
+  });
+  // Counters
+  const ec=BADGES.filter(b=>b.earned).length;
+  const totalXP=BADGES.filter(b=>b.earned).reduce((s,b)=>s+b.xp,0);
+  document.getElementById('ec').textContent=ec;
+  document.getElementById('tc').textContent=BADGES.length;
+  document.getElementById('heroEarned').innerHTML=`${ec} <span>earned</span>`;
+  document.getElementById('heroXP').innerHTML=`${totalXP.toLocaleString()} <span>XP</span>`;
+  const c=87.96;
+  document.getElementById('ring').style.strokeDashoffset=c-(ec/BADGES.length)*c;
+  requestAnimationFrame(()=>{
+    canvasRegistry.forEach(({id,rarity,icon,earned})=>{
+      const canvas=document.getElementById(id);
+      if(canvas)draw3DBadge(canvas,rarity,icon,earned);
+    });
+  });
+}
+
+function setFilter(t,btn){filt=t;document.querySelectorAll('.fb .pill').forEach(p=>p.className='pill');btn.classList.add('active');build();}
+function setSearch(v){srch=v.trim().toLowerCase();build();}
+
+function openModal(b){
+  const r=RM[b.rarity];
+  document.getElementById('mIcon').textContent=b.icon;
+  document.getElementById('mTitle').textContent=b.label;
+  document.getElementById('mDesc').textContent=b.desc;
+  document.getElementById('mBannerBg').style.background=`radial-gradient(ellipse at center,${r.banner} 0%,var(--bg) 100%)`;
+  const p=document.getElementById('mRarPill');p.textContent=r.label;p.style.cssText=r.pill;
+  document.getElementById('mCat').textContent=`${CI[b.cat]||''} ${b.cat}`;
+  document.getElementById('mStats').innerHTML=b.earned
+    ?`<div><div class="msl">Earned</div><div class="msv">${b.date}</div></div><div><div class="msl">XP Awarded</div><div class="msv" style="color:var(--go)">+${b.xp} XP</div></div>`
+    :`<div><div class="msl">XP Reward</div><div class="msv" style="color:var(--pl)">+${b.xp} XP</div></div><div><div class="msl">Status</div><div class="msv" style="color:var(--tm)">🔒 Locked</div></div>`;
+  const pw=document.getElementById('mProgWrap'),fill=document.getElementById('mProgFill');
+  fill.style.width='0';
+  if(b.progress){
+    pw.style.display='block';
+    const pc=Math.round(b.progress.current/b.progress.total*100);
+    document.getElementById('mProgLbl').textContent=`${b.progress.current}/${b.progress.total} (${pc}%)`;
+    setTimeout(()=>fill.style.width=pc+'%',150);
+  }else pw.style.display='none';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');setTimeout(()=>document.getElementById('mProgFill').style.width='0',300);}
+function handleModalClick(e){if(e.target===document.getElementById('modal'))closeModal();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+function toggleSidebar(){const s=document.getElementById('sidebar'),o=document.getElementById('ov'),h=document.getElementById('ham');s.classList.toggle('open');o.classList.toggle('vis');h.classList.toggle('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('ov').classList.remove('vis');document.getElementById('ham').classList.remove('open');}
+
+function toggleTheme(){
+  const html=document.documentElement,d=html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme',d?'light':'dark');
+  document.getElementById('themeBtn').textContent=d?'🌙':'☀️';
+  try{localStorage.setItem('tc-theme',d?'light':'dark');}catch(e){}
+  setTimeout(()=>{canvasRegistry.forEach(({id,rarity,icon,earned})=>{const c=document.getElementById(id);if(c)draw3DBadge(c,rarity,icon,earned);});},50);
+}
+
+function handleLogoError(){
+  const img=document.getElementById('logoImg');
+  const wrap=document.getElementById('logoWrap');
+  if(img)img.style.display='none';
+  const fb=document.createElement('span');
+  fb.className='logo-fallback';fb.textContent='🎯';
+  wrap.appendChild(fb);
+}
+
+try{const s=localStorage.getItem('tc-theme');if(s){document.documentElement.setAttribute('data-theme',s);document.getElementById('themeBtn').textContent=s==='dark'?'☀️':'🌙';}}catch(e){}
+
+window.addEventListener('resize',()=>{
+  setTimeout(()=>{canvasRegistry.forEach(({id,rarity,icon,earned})=>{const c=document.getElementById(id);if(c)draw3DBadge(c,rarity,icon,earned);});},100);
+});
+
+build();
+initHeroCanvas();
+</script>
+</body>
+</html>

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TalentCircle — Notifications</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Poppins','sans-serif']}}}}</script>
+ <!-- Centralized API base configuration (port 8000) -->
+    <script src="./src/api-base.js"></script>
+    
+<style>
+*{font-family:'Poppins',sans-serif;}
+:root{
+  --bg:#07050f;--surf:#0d0920;--card:#120e24;--card2:#18132e;--card3:#1e1840;
+  --bd:rgba(155,48,217,.18);--bd2:rgba(255,255,255,.05);--bd3:rgba(255,255,255,.08);
+  --t1:#f0eeff;--t2:#9ca3af;--t3:#4b5563;
+  --acc:#9b30d9;--acc2:#b855f0;--adim:rgba(155,48,217,.14);--aglow:rgba(155,48,217,.3);
+}
+.light{
+  --bg:#f2f0ff;--surf:#ffffff;--card:#ffffff;--card2:#f5f2ff;--card3:#ede9ff;
+  --bd:rgba(155,48,217,.2);--bd2:rgba(0,0,0,.06);--bd3:rgba(0,0,0,.1);
+  --t1:#0f0a1e;--t2:#6b7280;--t3:#9ca3af;
+}
+body{background:var(--bg);color:var(--t1);}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--acc);border-radius:10px;}
+
+/* ── Sidebar ── */
+.sb{background:var(--surf);border-right:1px solid var(--bd2);}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .2s;color:var(--t2);text-decoration:none;}
+.nav-item:hover{color:#e9d5ff;background:rgba(155,48,217,.1);}
+.nav-item.on{color:#fff;background:linear-gradient(135deg,#9b30d9,#b855f0);box-shadow:0 4px 16px rgba(155,48,217,.35);}
+.nbadge{margin-left:auto;background:rgba(155,48,217,.18);color:#b855f0;padding:1px 7px;border-radius:20px;font-size:.65rem;font-weight:700;}
+.nav-item.on .nbadge{background:rgba(255,255,255,.22);color:#fff;}
+.slbl{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:6px;padding-left:2px;}
+.gd{width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.22);flex-shrink:0;}
+
+/* ── Topbar ── */
+.tb{background:var(--surf);border-bottom:1px solid var(--bd2);}
+
+/* ── Notif card ── */
+.ncard{
+  background:var(--card);border:1px solid var(--bd2);border-radius:16px;
+  transition:all .22s;position:relative;overflow:hidden;cursor:pointer;
+  animation:fu .4s ease both;
+}
+.ncard:hover{border-color:var(--bd);box-shadow:0 6px 28px rgba(155,48,217,.1);transform:translateY(-1px);}
+.ncard.unread{border-left:3px solid var(--acc);}
+.ncard.unread::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--acc),transparent);}
+
+/* ── Filter tab ── */
+.ftab{padding:8px 18px;border-radius:10px;font-size:.78rem;font-weight:600;border:1px solid var(--bd2);background:var(--card2);color:var(--t2);cursor:pointer;transition:all .2s;white-space:nowrap;}
+.ftab.on{background:linear-gradient(135deg,#9b30d9,#b855f0);color:#fff;border-color:transparent;box-shadow:0 4px 16px rgba(155,48,217,.35);}
+.ftab:hover:not(.on){border-color:var(--bd);color:#b855f0;}
+
+/* ── Icon wrappers ── */
+.ni{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.15rem;}
+.ni-purple{background:rgba(155,48,217,.15);box-shadow:0 0 0 1px rgba(155,48,217,.2);}
+.ni-green{background:rgba(34,197,94,.12);box-shadow:0 0 0 1px rgba(34,197,94,.2);}
+.ni-blue{background:rgba(59,130,246,.12);box-shadow:0 0 0 1px rgba(59,130,246,.2);}
+.ni-amber{background:rgba(251,191,36,.1);box-shadow:0 0 0 1px rgba(251,191,36,.2);}
+.ni-red{background:rgba(239,68,68,.1);box-shadow:0 0 0 1px rgba(239,68,68,.2);}
+.ni-cyan{background:rgba(6,182,212,.1);box-shadow:0 0 0 1px rgba(6,182,212,.2);}
+
+/* ── Unread dot ── */
+.udot{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px rgba(155,48,217,.6);flex-shrink:0;}
+
+/* ── Avatar colours ── */
+.av-a{background:linear-gradient(135deg,#9b30d9,#b855f0);}
+.av-b{background:linear-gradient(135deg,#2060e0,#40b0f0);}
+.av-c{background:linear-gradient(135deg,#059669,#10b981);}
+.av-d{background:linear-gradient(135deg,#d97706,#f59e0b);}
+.av-e{background:linear-gradient(135deg,#0891b2,#22d3ee);}
+
+/* ── Action btn ── */
+.abtn{padding:5px 14px;border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;border:1px solid var(--bd2);background:var(--card2);color:var(--t2);transition:all .2s;}
+.abtn:hover{border-color:var(--bd);color:#b855f0;}
+.abtn.prim{background:linear-gradient(135deg,#9b30d9,#b855f0);color:#fff;border:none;box-shadow:0 3px 12px rgba(155,48,217,.3);}
+.abtn.prim:hover{box-shadow:0 4px 20px rgba(155,48,217,.5);transform:translateY(-1px);}
+
+/* ── Empty state ── */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;}
+
+/* ── Chip ── */
+.chip{padding:2px 8px;border-radius:20px;font-size:.62rem;font-weight:700;letter-spacing:.03em;}
+.chip-new{background:rgba(155,48,217,.15);color:#b855f0;border:1px solid rgba(155,48,217,.25);}
+.chip-ok{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.2);}
+.chip-warn{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);}
+.chip-info{background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.2);}
+.chip-red{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.18);}
+
+/* ── Section divider ── */
+.sdiv{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);padding:4px 2px;margin-bottom:8px;margin-top:4px;}
+
+/* ── Tg ── */
+.tg{background:linear-gradient(135deg,#b855f0,#9b30d9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* ── Animations ── */
+@keyframes fu{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+.d1{animation-delay:.04s;}.d2{animation-delay:.08s;}.d3{animation-delay:.12s;}.d4{animation-delay:.16s;}
+.d5{animation-delay:.20s;}.d6{animation-delay:.24s;}.d7{animation-delay:.28s;}.d8{animation-delay:.32s;}
+.d9{animation-delay:.36s;}.d10{animation-delay:.40s;}
+
+/* ── Swipe hint ── */
+.swipe-hint{font-size:.65rem;color:var(--t3);display:flex;align-items:center;gap:5px;}
+
+/* ── Stats bar ── */
+.sbar{height:4px;border-radius:20px;background:var(--card2);overflow:hidden;}
+.sbf{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--acc),var(--acc2));}
+
+@media(max-width:768px){#sb{display:none;}#mn{margin-left:0!important;}}
+
+/* ── Notification ring animation ── */
+@keyframes ring{0%{transform:rotate(0);}10%{transform:rotate(14deg);}20%{transform:rotate(-8deg);}30%{transform:rotate(14deg);}40%{transform:rotate(-4deg);}50%,100%{transform:rotate(0);}}
+.bell-ring{animation:ring 2s ease infinite;}
+
+/* ── Slide out on dismiss ── */
+.sliding-out{animation:slideOut .35s ease forwards;}
+@keyframes slideOut{to{opacity:0;transform:translateX(60px);max-height:0;padding:0;margin:0;border:none;overflow:hidden;}}
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<aside id="sb" class="sb fixed left-0 top-0 h-full w-56 z-40 flex flex-col py-5 px-3 overflow-y-auto">
+  <div class="flex items-center gap-2.5 px-2 mb-7">
+    <div class="w-8 h-8 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0" style="background:linear-gradient(135deg,#9b30d9,#b855f0);box-shadow:0 4px 14px rgba(155,48,217,.4)">
+      <img src="images/logo.png" alt="logo" class="w-full h-full object-cover" onerror="this.style.display='none';this.parentElement.innerHTML+='<span style=\'color:#fff;font-weight:800;font-size:.9rem\'>P</span>'"/>
+    </div>
+    <div>
+      <div style="font-weight:700;font-size:.9rem;color:var(--t1)">ProDash</div>
+      <div style="font-size:.58rem;color:var(--t3)">Analytics Pro</div>
+    </div>
+  </div>
+
+  <div class="slbl px-1">MENU</div>
+  <nav class="flex flex-col gap-0.5 mb-5">
+    <a href="dashboard.html" class="nav-item">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a href="notifications.html" class="nav-item on" aria-label="Notifications">
+      <svg class="w-4 h-4 flex-shrink-0 bell-ring" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Notifications
+      <span class="nbadge">12</span>
+    </a>
+    <a href="calendar.html" class="nav-item">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Calendar
+      <span class="nbadge">3</span>
+    </a>
+    <a href="chat-list.html" class="nav-item">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Messages
+      <span class="nbadge">5</span>
+    </a>
+    <a href="badges.html" class="nav-item">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+      Badges
+    </a>
+    <a href="tokens.html" class="nav-item">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Tokens
+    </a>
+  </nav>
+
+  <div class="slbl px-1">ANALYTICS</div>
+  <nav class="flex flex-col gap-0.5 mb-5">
+    <a href="#" class="nav-item">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Performance
+    </a>
+    <a href="#" class="nav-item">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Candidates
+    </a>
+  </nav>
+
+  <div class="mt-auto">
+    <div class="flex items-center gap-2.5 p-2.5 rounded-xl" style="background:var(--card2);border:1px solid var(--bd2)">
+      <div class="av-a w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0">S</div>
+      <div class="min-w-0 flex-1">
+        <div style="font-size:.75rem;font-weight:600;color:var(--t1)" class="truncate">Sarah Mitchell</div>
+        <div style="font-size:.62rem;color:var(--t3)" class="truncate">Senior Coach</div>
+      </div>
+      <div class="gd"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══════════════ TOPBAR ══════════════ -->
+<header class="tb fixed top-0 left-56 right-0 h-14 z-30 flex items-center px-5 gap-3" style="backdrop-filter:blur(14px)">
+  <div>
+    <div style="font-size:.67rem;color:var(--t3)">Home / <span style="color:#b855f0">Notifications</span></div>
+    <div style="font-size:.82rem;font-weight:600;color:var(--t1)">Notification Center</div>
+  </div>
+
+  <div class="ml-auto flex items-center gap-2">
+    <!-- Mark all read -->
+    <button onclick="markAllRead()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all hover:scale-105" style="background:var(--card);border:1px solid var(--bd2);color:var(--t2);font-size:.75rem;font-weight:600;cursor:pointer">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      Mark all read
+    </button>
+    <!-- Clear all -->
+    <button onclick="clearAll()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all hover:scale-105" style="background:var(--card);border:1px solid var(--bd2);color:var(--t2);font-size:.75rem;font-weight:600;cursor:pointer">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      Clear all
+    </button>
+    <!-- Settings -->
+    <button onclick="toggleSettings()" id="setBtn" aria-label="Notification settings" class="w-8 h-8 rounded-xl flex items-center justify-center transition-all hover:scale-105" style="background:var(--card);border:1px solid var(--bd2);color:var(--t2)">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 1.64 13.65M4.93 4.93a10 10 0 0 0-1.64 13.65"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+    </button>
+    <!-- Theme -->
+    <button onclick="toggleTheme()" aria-label="Toggle theme" class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:var(--card);border:1px solid var(--bd2);color:var(--t2)">
+      <svg id="mi" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg id="si" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+    </button>
+    <a href="dashboard.html" class="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-white font-semibold" style="background:linear-gradient(135deg,#9b30d9,#b855f0);font-size:.78rem;box-shadow:0 4px 16px rgba(155,48,217,.35);text-decoration:none">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+  </div>
+</header>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<main id="mn" class="pt-14 min-h-screen" style="margin-left:224px;background:var(--bg)">
+<div class="p-5" style="max-width:1100px;margin:0 auto">
+
+  <!-- ── Header Stats ── -->
+  <div class="grid grid-cols-4 gap-4 mb-6" style="animation:fu .4s ease both">
+    <div class="rounded-2xl p-4" style="background:var(--card);border:1px solid var(--bd2)">
+      <div class="flex items-center justify-between mb-3">
+        <div class="ni ni-purple">🔔</div>
+        <span style="font-size:.7rem;font-weight:700;background:rgba(155,48,217,.15);color:#b855f0;padding:2px 8px;border-radius:20px">Total</span>
+      </div>
+      <div class="tg font-bold" style="font-size:1.8rem;line-height:1">24</div>
+      <div style="font-size:.72rem;color:var(--t2);margin-top:2px">All Notifications</div>
+      <div class="sbar mt-3"><div class="sbf" style="width:60%"></div></div>
+    </div>
+    <div class="rounded-2xl p-4" style="background:var(--card);border:1px solid var(--bd2)">
+      <div class="flex items-center justify-between mb-3">
+        <div class="ni ni-red" style="font-size:1.15rem">🔴</div>
+        <span style="font-size:.7rem;font-weight:700;background:rgba(239,68,68,.1);color:#ef4444;padding:2px 8px;border-radius:20px">Unread</span>
+      </div>
+      <div class="font-bold" style="font-size:1.8rem;line-height:1;color:#ef4444" id="unreadCount">12</div>
+      <div style="font-size:.72rem;color:var(--t2);margin-top:2px">Unread Messages</div>
+      <div class="sbar mt-3"><div style="height:100%;border-radius:20px;background:linear-gradient(90deg,#dc2626,#f87171);width:50%"></div></div>
+    </div>
+    <div class="rounded-2xl p-4" style="background:var(--card);border:1px solid var(--bd2)">
+      <div class="flex items-center justify-between mb-3">
+        <div class="ni ni-green">📅</div>
+        <span style="font-size:.7rem;font-weight:700;background:rgba(34,197,94,.12);color:#22c55e;padding:2px 8px;border-radius:20px">Today</span>
+      </div>
+      <div class="font-bold" style="font-size:1.8rem;line-height:1;color:#22c55e">8</div>
+      <div style="font-size:.72rem;color:var(--t2);margin-top:2px">Today's Alerts</div>
+      <div class="sbar mt-3"><div style="height:100%;border-radius:20px;background:linear-gradient(90deg,#059669,#22c55e);width:33%"></div></div>
+    </div>
+    <div class="rounded-2xl p-4" style="background:var(--card);border:1px solid var(--bd2)">
+      <div class="flex items-center justify-between mb-3">
+        <div class="ni ni-amber">⭐</div>
+        <span style="font-size:.7rem;font-weight:700;background:rgba(251,191,36,.1);color:#fbbf24;padding:2px 8px;border-radius:20px">Priority</span>
+      </div>
+      <div class="font-bold" style="font-size:1.8rem;line-height:1;color:#fbbf24">3</div>
+      <div style="font-size:.72rem;color:var(--t2);margin-top:2px">High Priority</div>
+      <div class="sbar mt-3"><div style="height:100%;border-radius:20px;background:linear-gradient(90deg,#b45309,#fbbf24);width:12%"></div></div>
+    </div>
+  </div>
+
+  <!-- ── Two-column layout ── -->
+  <div class="grid gap-5" style="grid-template-columns:1fr 300px">
+
+    <!-- LEFT: Notification feed -->
+    <div>
+      <!-- Filter tabs + search -->
+      <div class="flex items-center gap-3 mb-5 flex-wrap" style="animation:fu .4s ease .05s both">
+        <div class="flex gap-2 flex-wrap" id="tabs">
+          <button class="ftab on" onclick="filterTab(this,'all')">All <span id="tabAll" style="font-size:.65rem;margin-left:3px;opacity:.7">24</span></button>
+          <button class="ftab" onclick="filterTab(this,'unread')">Unread <span id="tabUnread" style="font-size:.65rem;margin-left:3px;opacity:.7">12</span></button>
+          <button class="ftab" onclick="filterTab(this,'session')">Sessions</button>
+          <button class="ftab" onclick="filterTab(this,'review')">Reviews</button>
+          <button class="ftab" onclick="filterTab(this,'system')">System</button>
+          <button class="ftab" onclick="filterTab(this,'achievement')">Achievements</button>
+        </div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-xl ml-auto" style="background:var(--card);border:1px solid var(--bd2);min-width:180px">
+          <svg class="w-3.5 h-3.5 flex-shrink-0" style="color:var(--t3)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search notifications..." oninput="searchNotifs(this.value)" class="bg-transparent outline-none flex-1" style="font-size:.75rem;color:var(--t1)"/>
+        </div>
+      </div>
+
+      <!-- Notification list -->
+      <div id="nlist" class="flex flex-col gap-3"></div>
+
+      <!-- Empty state -->
+      <div id="emptyState" class="empty hidden">
+        <div style="font-size:3rem;margin-bottom:12px">🔕</div>
+        <div style="font-weight:700;font-size:1rem;color:var(--t1);margin-bottom:6px">All caught up!</div>
+        <div style="font-size:.82rem;color:var(--t2)">No notifications match your current filter.</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Settings + Summary -->
+    <div class="flex flex-col gap-4">
+
+      <!-- Notification settings panel -->
+      <div id="settingsPanel" class="rounded-2xl p-5" style="background:var(--card);border:1px solid var(--bd2);animation:fu .4s ease .1s both">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="ni ni-purple" style="width:36px;height:36px;font-size:1rem">⚙️</div>
+          <div style="font-weight:600;font-size:.88rem;color:var(--t1)">Notification Settings</div>
+        </div>
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <div><div style="font-size:.78rem;font-weight:500;color:var(--t1)">Session Reminders</div><div style="font-size:.65rem;color:var(--t2)">Before each session</div></div>
+            <label class="toggle" aria-label="Session reminders"><input type="checkbox" checked onchange="togglePref(this,'sessions')"><span class="slider" aria-hidden="true"></span></label>
+          </div>
+          <div class="flex items-center justify-between">
+            <div><div style="font-size:.78rem;font-weight:500;color:var(--t1)">New Reviews</div><div style="font-size:.65rem;color:var(--t2)">When you receive a review</div></div>
+            <label class="toggle" aria-label="New reviews"><input type="checkbox" checked onchange="togglePref(this,'reviews')"/><span class="slider" aria-hidden="true"></span></label>
+
+          </div>
+          <div class="flex items-center justify-between">
+            <div><div style="font-size:.78rem;font-weight:500;color:var(--t1)">Messages</div><div style="font-size:.65rem;color:var(--t2)">New chat messages</div></div>
+            <label class="toggle" aria-label="Messages"><input type="checkbox" checked onchange="togglePref(this,'messages')"/><span class="slider" aria-hidden="true"></span></label>
+
+
+          </div>
+          <div class="flex items-center justify-between">
+            <div><div style="font-size:.78rem;font-weight:500;color:var(--t1)">Achievements</div><div style="font-size:.65rem;color:var(--t2)">Badge & ranking updates</div></div>
+            <label class="toggle"><input type="checkbox" checked onchange="togglePref(this,'achievements')"><span class="slider"></span></label>
+          </div>
+          <div class="flex items-center justify-between">
+            <div><div style="font-size:.78rem;font-weight:500;color:var(--t1)">Token Updates</div><div style="font-size:.65rem;color:var(--t2)">Wallet & earnings alerts</div></div>
+            <label class="toggle"><input type="checkbox" onchange="togglePref(this,'tokens')"><span class="slider"></span></label>
+          </div>
+          <div class="flex items-center justify-between">
+            <div><div style="font-size:.78rem;font-weight:500;color:var(--t1)">System Alerts</div><div style="font-size:.65rem;color:var(--t2)">Platform updates</div></div>
+            <label class="toggle"><input type="checkbox" checked onchange="togglePref(this,'system')"><span class="slider"></span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notification types breakdown -->
+      <div class="rounded-2xl p-5" style="background:var(--card);border:1px solid var(--bd2);animation:fu .4s ease .15s both">
+        <div style="font-weight:600;font-size:.88rem;color:var(--t1);margin-bottom:16px">By Category</div>
+        <div class="flex flex-col gap-3">
+          <div>
+            <div class="flex justify-between mb-1"><span style="font-size:.75rem;color:var(--t2)">Sessions</span><span style="font-size:.75rem;font-weight:600;color:var(--t1)">8</span></div>
+            <div class="sbar"><div class="sbf" style="width:33%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1"><span style="font-size:.75rem;color:var(--t2)">Reviews</span><span style="font-size:.75rem;font-weight:600;color:var(--t1)">6</span></div>
+            <div class="sbar"><div style="height:100%;border-radius:20px;width:25%;background:linear-gradient(90deg,#059669,#22c55e)"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1"><span style="font-size:.75rem;color:var(--t2)">System</span><span style="font-size:.75rem;font-weight:600;color:var(--t1)">5</span></div>
+            <div class="sbar"><div style="height:100%;border-radius:20px;width:21%;background:linear-gradient(90deg,#1d4ed8,#60a5fa)"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between mb-1"><span style="font-size:.75rem;color:var(--t2)">Achievements</span><span style="font-size:.75rem;font-weight:600;color:var(--t1)">5</span></div>
+            <div class="sbar"><div style="height:100%;border-radius:20px;width:21%;background:linear-gradient(90deg,#b45309,#fbbf24)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick links -->
+      <div class="rounded-2xl p-5" style="background:var(--card);border:1px solid var(--bd2);animation:fu .4s ease .2s both">
+        <div style="font-weight:600;font-size:.88rem;color:var(--t1);margin-bottom:12px">Quick Access</div>
+        <div class="flex flex-col gap-2">
+          <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all" style="background:var(--card2);border:1px solid var(--bd2);text-decoration:none;color:var(--t2);font-size:.78rem;font-weight:500" onmouseover="this.style.borderColor='rgba(155,48,217,.3)'" onmouseout="this.style.borderColor=''">
+            <span style="font-size:1rem">🏠</span> Dashboard
+            <svg class="w-3 h-3 ml-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+          <a href="calendar.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all" style="background:var(--card2);border:1px solid var(--bd2);text-decoration:none;color:var(--t2);font-size:.78rem;font-weight:500" onmouseover="this.style.borderColor='rgba(155,48,217,.3)'" onmouseout="this.style.borderColor=''">
+            <span style="font-size:1rem">📅</span> Calendar
+            <svg class="w-3 h-3 ml-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+          <a href="chat-list.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all" style="background:var(--card2);border:1px solid var(--bd2);text-decoration:none;color:var(--t2);font-size:.78rem;font-weight:500" onmouseover="this.style.borderColor='rgba(155,48,217,.3)'" onmouseout="this.style.borderColor=''">
+            <span style="font-size:1rem">💬</span> Messages
+            <svg class="w-3 h-3 ml-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+          <a href="badges.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all" style="background:var(--card2);border:1px solid var(--bd2);text-decoration:none;color:var(--t2);font-size:.78rem;font-weight:500" onmouseover="this.style.borderColor='rgba(155,48,217,.3)'" onmouseout="this.style.borderColor=''">
+            <span style="font-size:1rem">🏆</span> Badges
+            <svg class="w-3 h-3 ml-auto" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</main>
+
+<!-- Toggle switch CSS -->
+<style>
+.toggle{position:relative;display:inline-block;width:38px;height:21px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--card3);border-radius:21px;transition:.3s;border:1px solid var(--bd2);}
+.slider::before{position:absolute;content:'';height:15px;width:15px;left:2px;bottom:2px;background:var(--t3);border-radius:50%;transition:.3s;}
+input:checked+.slider{background:linear-gradient(135deg,#9b30d9,#b855f0);border-color:transparent;box-shadow:0 0 8px rgba(155,48,217,.4);}
+input:checked+.slider::before{transform:translateX(17px);background:#fff;}
+</style>
+
+<script>
+// ── DATA ──
+let notifications = (window.TalentCircleShared && TalentCircleShared.getState)
+  ? (TalentCircleShared.getState().notifications || [])
+  : [
+
+  // TODAY
+  {id:1, cat:'session', unread:true, priority:false, time:'2 min ago', group:'Today',
+    icon:'📅', iconClass:'ni-purple',
+    title:'Upcoming Session — Alex Rodriguez',
+    body:'Your session with Alex Rodriguez (Software Engineer) starts in 30 minutes on Zoom.',
+    chips:[{label:'30 min',cls:'chip-warn'},{label:'Session',cls:'chip-new'}],
+    actions:[{label:'Join Now',cls:'abtn prim'},{label:'Reschedule',cls:'abtn'}],
+    avatar:'AR', avatarCls:'av-b'},
+
+  {id:2, cat:'review', unread:true, priority:true, time:'15 min ago', group:'Today',
+    icon:'⭐', iconClass:'ni-amber',
+    title:'New 5-Star Review Received',
+    body:'Priya Kapoor left you a glowing 5-star review: "Incredible coach, helped me land my dream job!"',
+    chips:[{label:'★★★★★',cls:'chip-ok'},{label:'Review',cls:'chip-new'}],
+    actions:[{label:'View Review',cls:'abtn prim'},{label:'Reply',cls:'abtn'}],
+    avatar:'PK', avatarCls:'av-c'},
+
+  {id:3, cat:'achievement', unread:true, priority:true, time:'1 hr ago', group:'Today',
+    icon:'🏆', iconClass:'ni-amber',
+    title:'New Badge Unlocked — "Placement Pro"',
+    body:'Congratulations! You\'ve earned the Placement Pro badge for completing 35+ successful job placements.',
+    chips:[{label:'Achievement',cls:'chip-warn'},{label:'New Badge',cls:'chip-new'}],
+    actions:[{label:'View Badge',cls:'abtn prim'},{label:'Share',cls:'abtn'}],
+    avatar:null, avatarCls:null},
+
+  {id:4, cat:'session', unread:true, priority:false, time:'2 hr ago', group:'Today',
+    icon:'✅', iconClass:'ni-green',
+    title:'Session Completed — Priya Kapoor',
+    body:'Your session with Priya Kapoor has been marked as completed. Don\'t forget to add session notes.',
+    chips:[{label:'Completed',cls:'chip-ok'},{label:'Session',cls:'chip-info'}],
+    actions:[{label:'Add Notes',cls:'abtn prim'},{label:'View Summary',cls:'abtn'}],
+    avatar:'PK', avatarCls:'av-c'},
+
+  {id:5, cat:'system', unread:true, priority:false, time:'3 hr ago', group:'Today',
+    icon:'💡', iconClass:'ni-blue',
+    title:'Profile Visibility Increased',
+    body:'Your profile appeared in 142 search results this week — a 24% increase from last week!',
+    chips:[{label:'↑ 24%',cls:'chip-ok'},{label:'Insight',cls:'chip-info'}],
+    actions:[{label:'View Analytics',cls:'abtn prim'}],
+    avatar:null, avatarCls:null},
+
+  {id:6, cat:'review', unread:true, priority:false, time:'4 hr ago', group:'Today',
+    icon:'💬', iconClass:'ni-purple',
+    title:'New Message from James Wilson',
+    body:'James Wilson: "Hi Sarah, just wanted to confirm our Friday session. Looking forward to it!"',
+    chips:[{label:'Message',cls:'chip-new'}],
+    actions:[{label:'Reply',cls:'abtn prim'},{label:'View Chat',cls:'abtn'}],
+    avatar:'JW', avatarCls:'av-d'},
+
+  {id:7, cat:'session', unread:true, priority:false, time:'5 hr ago', group:'Today',
+    icon:'📅', iconClass:'ni-purple',
+    title:'Session Booked — Maria Chen',
+    body:'Maria Chen has booked a UX Career Coaching session for Monday, May 13 at 3:00 PM via Microsoft Teams.',
+    chips:[{label:'New Booking',cls:'chip-new'},{label:'Session',cls:'chip-info'}],
+    actions:[{label:'Confirm',cls:'abtn prim'},{label:'Suggest Time',cls:'abtn'}],
+    avatar:'MC', avatarCls:'av-e'},
+
+  {id:8, cat:'achievement', unread:true, priority:true, time:'6 hr ago', group:'Today',
+    icon:'🥇', iconClass:'ni-amber',
+    title:'Ranking Improved — Now #4 Globally',
+    body:'You\'ve moved up 2 positions! You are now ranked #4 globally among all career coaches on the platform.',
+    chips:[{label:'↑ #4',cls:'chip-warn'},{label:'Ranking',cls:'chip-new'}],
+    actions:[{label:'View Leaderboard',cls:'abtn prim'}],
+    avatar:null, avatarCls:null},
+
+  // YESTERDAY
+  {id:9, cat:'system', unread:false, priority:false, time:'Yesterday 4:30 PM', group:'Yesterday',
+    icon:'🪙', iconClass:'ni-amber',
+    title:'Tokens Credited — 120 Tokens',
+    body:'You received 120 tokens for completing 3 sessions this week. Your total balance is now 2,840 tokens.',
+    chips:[{label:'+120 tokens',cls:'chip-ok'},{label:'Wallet',cls:'chip-info'}],
+    actions:[{label:'View Wallet',cls:'abtn prim'}],
+    avatar:null, avatarCls:null},
+
+  {id:10, cat:'review', unread:false, priority:false, time:'Yesterday 2:00 PM', group:'Yesterday',
+    icon:'⭐', iconClass:'ni-amber',
+    title:'Review Request Sent — Kevin Patel',
+    body:'A review request was automatically sent to Kevin Patel after your completed session on May 6.',
+    chips:[{label:'Sent',cls:'chip-ok'}],
+    actions:[{label:'View Session',cls:'abtn'}],
+    avatar:'KP', avatarCls:'av-b'},
+
+  {id:11, cat:'system', unread:false, priority:false, time:'Yesterday 10:00 AM', group:'Yesterday',
+    icon:'🔒', iconClass:'ni-blue',
+    title:'Security Alert — New Login Detected',
+    body:'A new login was detected from Chrome on Windows in New York, USA. If this wasn\'t you, secure your account.',
+    chips:[{label:'Security',cls:'chip-red'},{label:'Alert',cls:'chip-warn'}],
+    actions:[{label:'Secure Account',cls:'abtn prim'},{label:'It was me',cls:'abtn'}],
+    avatar:null, avatarCls:null},
+
+  // THIS WEEK
+  {id:12, cat:'achievement', unread:false, priority:false, time:'May 9, 3:15 PM', group:'This Week',
+    icon:'💎', iconClass:'ni-purple',
+    title:'Points Milestone — 1,000 Points!',
+    body:'You\'ve crossed the 1,000 points milestone. You\'re 290 points away from unlocking Diamond Coach status.',
+    chips:[{label:'Milestone',cls:'chip-new'},{label:'1,290 pts',cls:'chip-info'}],
+    actions:[{label:'View Points',cls:'abtn prim'}],
+    avatar:null, avatarCls:null},
+];
+
+let activeFilter = 'all';
+let searchQuery = '';
+
+// ── RENDER ──
+function renderNotifs() {
+  const list = document.getElementById('nlist');
+  const empty = document.getElementById('emptyState');
+
+  let filtered = notifications.filter(n => {
+    if (activeFilter === 'unread' && !n.unread) return false;
+    if (activeFilter !== 'all' && activeFilter !== 'unread' && n.cat !== activeFilter) return false;
+    if (searchQuery && !n.title.toLowerCase().includes(searchQuery) && !n.body.toLowerCase().includes(searchQuery)) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  // Group by date
+  const groups = {};
+  filtered.forEach(n => {
+    if (!groups[n.group]) groups[n.group] = [];
+    groups[n.group].push(n);
+  });
+
+  let html = '';
+  let delay = 0;
+  Object.entries(groups).forEach(([g, items]) => {
+    html += `<div class="sdiv d${Math.min(delay+1,10)}">${g}</div>`;
+    items.forEach(n => {
+      delay++;
+      html += buildCard(n, delay);
+    });
+  });
+  list.innerHTML = html;
+}
+
+function buildCard(n, delay) {
+  const unreadClass = n.unread ? 'unread' : '';
+  const chips = n.chips.map(c => `<span class="chip ${c.cls}">${c.label}</span>`).join('');
+  const actions = n.actions.map(a => `<button class="${a.cls}" onclick="event.stopPropagation()">${a.label}</button>`).join('');
+  const avatar = n.avatar
+    ? `<div class="${n.avatarCls} flex items-center justify-center text-white font-bold rounded-xl flex-shrink-0" style="width:44px;height:44px;font-size:.72rem">${n.avatar}</div>`
+    : `<div class="ni ${n.iconClass}">${n.icon}</div>`;
+
+  return `
+  <div class="ncard ${unreadClass} d${Math.min(delay,10)}" id="ncard-${n.id}" onclick="markRead(${n.id})">
+    <div class="p-4">
+      <div class="flex gap-3">
+        ${avatar}
+        <div style="flex:1;min-width:0">
+          <div class="flex items-start justify-between gap-2 mb-1">
+            <div style="font-size:.85rem;font-weight:600;color:var(--t1);line-height:1.3">${n.title}</div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              ${n.unread ? `<div class="udot"></div>` : ''}
+              <span style="font-size:.65rem;color:var(--t3);white-space:nowrap">${n.time}</span>
+            </div>
+          </div>
+          <div style="font-size:.75rem;color:var(--t2);line-height:1.55;margin-bottom:10px">${n.body}</div>
+          <div class="flex items-center gap-2 flex-wrap">
+            ${chips}
+            <div class="flex gap-2 ml-auto flex-wrap">
+              ${actions}
+              <button class="abtn" onclick="dismissNotif(event,${n.id})">
+                <svg style="width:12px;height:12px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── ACTIONS ──
+function markRead(id) {
+  const n = notifications.find(x => x.id === id);
+  if (n && n.unread) {
+    n.unread = false;
+
+    if (window.TalentCircleShared && TalentCircleShared.setNotificationRead) {
+      TalentCircleShared.setNotificationRead(id);
+      notifications = TalentCircleShared.getState().notifications || [];
+    }
+
+    updateUnreadCount();
+    renderNotifs();
+  }
+}
+
+
+function dismissNotif(e, id) {
+  e.stopPropagation();
+  const el = document.getElementById(`ncard-${id}`);
+  if (el) {
+    el.classList.add('sliding-out');
+    setTimeout(() => {
+      const idx = notifications.findIndex(x => x.id === id);
+      if (idx > -1) notifications.splice(idx, 1);
+      updateUnreadCount();
+      renderNotifs();
+    }, 350);
+  }
+}
+
+function markAllRead() {
+  notifications.forEach(n => n.unread = false);
+  updateUnreadCount();
+  renderNotifs();
+}
+
+function clearAll() {
+  if (confirm('Clear all notifications?')) {
+    notifications.length = 0;
+    updateUnreadCount();
+    renderNotifs();
+  }
+}
+
+
+function filterTab(el, f) {
+  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  activeFilter = f;
+  renderNotifs();
+}
+
+function searchNotifs(q) {
+  searchQuery = q.toLowerCase();
+  renderNotifs();
+}
+
+function updateUnreadCount() {
+  const cnt = notifications.filter(n => n.unread).length;
+  document.getElementById('unreadCount').textContent = cnt;
+  const tu = document.getElementById('tabUnread');
+  if (tu) tu.textContent = cnt;
+}
+
+function toggleSettings() {
+  const panel = document.getElementById('settingsPanel');
+  if (!panel) return;
+  panel.classList.toggle('hidden');
+}
+
+
+// ── THEME ──
+function toggleTheme() {
+  const h = document.documentElement;
+  const d = h.classList.contains('dark');
+  h.classList.toggle('dark', !d);
+  h.classList.toggle('light', d);
+  document.getElementById('mi').classList.toggle('hidden', d);
+  document.getElementById('si').classList.toggle('hidden', !d);
+}
+
+function togglePref(el, key) {
+  // preference toggle — visual only
+}
+
+// ── INIT ──
+renderNotifs();
+</script>
+</body>
+</html>
