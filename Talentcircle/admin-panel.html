@@ -821,8 +821,7 @@ body.mob-open #sidebar{transform:translateX(0)!important;z-index:45;}
 // ── DATA ──
 // Users table is driven by backend.
 // Keep mock arrays for other panels only.
-const USERS=[
-
+const USERS_FALLBACK=[
   {id:1,name:'Alex Rodriguez',email:'alex@mail.com',role:'Candidate',joined:'May 1, 2026',sessions:24,status:'Active',av:'AR',avc:'av-b'},
   {id:2,name:'Priya Kapoor',email:'priya@mail.com',role:'Candidate',joined:'Apr 28, 2026',sessions:16,status:'Active',av:'PK',avc:'av-c'},
   {id:3,name:'James Wilson',email:'james@mail.com',role:'Pro',joined:'Apr 20, 2026',sessions:38,status:'Active',av:'JW',avc:'av-d'},
@@ -834,7 +833,9 @@ const USERS=[
   {id:9,name:'Omar Hassan',email:'omar@mail.com',role:'Admin',joined:'Jan 1, 2026',sessions:0,status:'Active',av:'OH',avc:'av-a'},
   {id:10,name:'Sofia Romero',email:'sofia@mail.com',role:'Candidate',joined:'Feb 14, 2026',sessions:11,status:'Active',av:'SR',avc:'av-d'},
 ];
+let USERS=[];
 const SESSIONS_DATA=[
+
   {id:'#S-1041',cand:'Alex Rodriguez',coach:'David Park',platform:'Zoom',datetime:'May 16, 10:00 AM',dur:'60 min',status:'Ongoing'},
   {id:'#S-1040',cand:'Priya Kapoor',coach:'Kevin Patel',platform:'Meet',datetime:'May 16, 9:00 AM',dur:'45 min',status:'Completed'},
   {id:'#S-1039',cand:'Maria Chen',coach:'David Park',platform:'Teams',datetime:'May 15, 3:00 PM',dur:'60 min',status:'Completed'},
@@ -914,8 +915,9 @@ function renderUsers(data){
       <td class="hide-mobile" style="font-weight:700;color:var(--t1)">${sessions}</td>
       <td><span class="chip ${sc(status)}">${status}</span></td>
       <td><div style="display:flex;gap:5px">
-<button class="btn btn-ghost btn-sm" onclick="openModal('editUser',${u.id})" title="Edit user" aria-label="Edit user">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="toggleAdminRole(${u.id},this)" title="Toggle admin role" aria-label="Toggle admin role">Toggle</button>
+<button class="btn btn-ghost btn-sm" title="Edit user" aria-label="Edit user" onclick="openModal('editUser',${u.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" title="Toggle admin role" aria-label="Toggle admin role" onclick="toggleAdminRole(${u.id},this)">Toggle</button>
+
       </div></td>
     </tr>`;
   }).join('');
@@ -1088,6 +1090,44 @@ const pageMeta={
   logs:{title:'System Logs',bc:'Logs'},
 };
 
+async function fetchAdminUsers(){
+  try{
+    const token=localStorage.getItem('tc_token')||new URLSearchParams(location.search).get('token')||'';
+    const res=await fetch(window.apiUrl('/api/admin/users') ,{
+      method:'GET',
+      headers: token?{Authorization:token}:{},
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const json=await res.json();
+    USERS=(Array.isArray(json)?json:[]);
+    renderUsers(USERS);
+  }catch(e){
+    console.error('fetchAdminUsers failed',e);
+    USERS=(USERS_FALLBACK||[]);
+    renderUsers(USERS);
+  }
+}
+
+async function toggleAdminRole(userId,btnEl){
+  try{
+    if(btnEl) btnEl.disabled=true;
+    const token=localStorage.getItem('tc_token')||new URLSearchParams(location.search).get('token')||'';
+    const res=await fetch(window.apiUrl('/api/admin/promote'),{
+      method:'POST',
+      headers:{'Content-Type':'application/json',...(token?{Authorization:token}:{})},
+      body: JSON.stringify({user_id:userId})
+    });
+    const json=await res.json().catch(()=>null);
+    if(!res.ok) throw new Error(json?.error||('HTTP '+res.status));
+    await fetchAdminUsers();
+  }catch(e){
+    console.error('toggleAdminRole failed',e);
+    alert('Failed: '+(e?.message||e));
+  }finally{
+    if(btnEl) btnEl.disabled=false;
+  }
+}
+
 function showPage(id,el){
   document.querySelectorAll('.page-tab').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+id)?.classList.add('active');
@@ -1100,7 +1140,11 @@ function showPage(id,el){
     if(bc)bc.textContent=m.bc;
     if(pt)pt.textContent=m.title;
   }
-  if(id==='users')renderUsers(USERS);
+  if(id==='users'){
+    if(!USERS || !USERS.length) fetchAdminUsers();
+    else renderUsers(USERS);
+  }
+
   if(id==='sessions')renderSessions();
   if(id==='coaches')renderCoaches();
   if(id==='reviews')renderReviews();
@@ -1269,12 +1313,20 @@ function animateBars(){
 
 // ── INIT ──
 window.addEventListener('DOMContentLoaded',()=>{
+  // Default to mock data until backend call succeeds
+  USERS=(USERS_FALLBACK||[]);
+  renderUsers(USERS);
+
+  // Load backend users (requires admin token)
+  fetchAdminUsers();
+
   renderSignups();
   renderRecentActivity();
   buildRevChart('m');
   buildUserDonut();
   buildRatingBar();
   animateBars();
+
 
   const isMob=window.innerWidth<=768;
   const mob=document.getElementById('mobileTopBar');
