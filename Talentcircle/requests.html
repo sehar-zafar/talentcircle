@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ProDash — Requests</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['DM Sans','sans-serif'],mono:['DM Mono','monospace']}}}}</script>
@@ -13,7 +13,7 @@
     <script src="./src/api-base.js"></script>
     
 <style>
-*{font-family:'DM Sans',sans-serif;box-sizing:border-box;margin:0;padding:0;}
+*{font-family:'Poppins',sans-serif;box-sizing:border-box;margin:0;padding:0;}
 
 /* ─────── THEME TOKENS ─────── */
 :root{
@@ -137,7 +137,7 @@ html.light #tb{background:rgba(255,255,255,.88);}
 .nav-item:hover::before{transform:translateX(0);}
 .nav-item.on{
   color:#fff;
-  background:linear-gradient(135deg,#8250ff,#a87cff);
+  background:linear-gradient(135deg,#a5189e,#a87cff);
   box-shadow:0 4px 18px rgba(130,80,255,.4);
 }
 html.light .nav-item.on{color:#fff;}
@@ -784,17 +784,28 @@ html.light body::before{opacity:.2;}
 </div>
 
 <script>
-// ── DATA ──
-const REQUESTS = [
-  {id:'REQ-001',title:'Career Transition to Product Management',type:'Career Coaching',coach:'Sarah Mitchell',coachAv:'SM',coachAvc:'av-a',priority:'High',status:'active',date:'May 14, 2026',desc:'I want to transition from a software engineering role into product management. I need help crafting my narrative, updating my LinkedIn, and preparing for PM interviews at top-tier companies.',tags:['PM Transition','FAANG','LinkedIn'],budget:'$200',sessions:3,progress:40,timeline:[{t:'May 14','ev':'Request submitted','c':'#8250ff'},{t:'May 15','ev':'Coach Sarah Mitchell accepted','c':'#2ecc85'},{t:'May 16','ev':'First session scheduled for May 20','c':'#5b9ef5'}]},
-  {id:'REQ-002',title:'Technical Interview Preparation — FAANG',type:'Interview Prep',coach:'David Park',coachAv:'DP',coachAvc:'av-b',priority:'High',status:'pending',date:'May 15, 2026',desc:'Preparing for software engineering interviews at Google, Meta, and Amazon. Need help with data structures, system design, and behavioral questions.',tags:['DSA','System Design','FAANG'],budget:'$300',sessions:5,progress:0,timeline:[{t:'May 15','ev':'Request submitted','c':'#8250ff'},{t:'May 15','ev':'Awaiting coach acceptance','c':'#f5b942'}]},
-  {id:'REQ-003',title:'Resume Review & ATS Optimization',type:'Resume Review',coach:'Kevin Patel',coachAv:'KP',coachAvc:'av-c',priority:'Medium',status:'completed',date:'May 8, 2026',desc:'Need a comprehensive review of my resume for DevOps and SRE roles. Specifically want ATS keyword optimization and format improvements.',tags:['DevOps','ATS','SRE'],budget:'$80',sessions:1,progress:100,timeline:[{t:'May 8','ev':'Request submitted','c':'#8250ff'},{t:'May 8','ev':'Coach accepted within 2 hours','c':'#2ecc85'},{t:'May 10','ev':'Session completed','c':'#2ecc85'},{t:'May 10','ev':'Resume delivered','c':'#2ecc85'}]},
-  {id:'REQ-004',title:'Salary Negotiation Strategy Session',type:'Salary Negotiation',coach:'Emma Thompson',coachAv:'ET',coachAvc:'av-d',priority:'Medium',status:'active',date:'May 12, 2026',desc:'I have received an offer from a Series B startup and want to negotiate effectively. Need help with counter-offer strategies and equity negotiation.',tags:['Negotiation','Startup','Equity'],budget:'$120',sessions:2,progress:60,timeline:[{t:'May 12','ev':'Request submitted','c':'#8250ff'},{t:'May 13','ev':'Coach assigned','c':'#2ecc85'},{t:'May 14','ev':'First session completed','c':'#2ecc85'},{t:'May 18','ev':'Final session scheduled','c':'#5b9ef5'}]},
-  {id:'REQ-005',title:'Mock Interview — Senior SWE Position',type:'Mock Interview',coach:'David Park',coachAv:'DP',coachAvc:'av-b',priority:'Low',status:'pending',date:'May 16, 2026',desc:'Need a realistic mock interview simulation for a Senior Software Engineer role at a mid-size tech company. Focus on system design and coding rounds.',tags:['Mock','Senior SWE','Coding'],budget:'$150',sessions:2,progress:0,timeline:[{t:'May 16','ev':'Request submitted','c':'#8250ff'}]},
-  {id:'REQ-006',title:'LinkedIn Profile & Personal Brand Overhaul',type:'Career Coaching',coach:'Sarah Mitchell',coachAv:'SM',coachAvc:'av-a',priority:'Low',status:'completed',date:'Apr 30, 2026',desc:'Complete rebuild of my LinkedIn profile and personal brand strategy for a senior leadership transition in the fintech industry.',tags:['LinkedIn','Branding','Fintech'],budget:'$160',sessions:2,progress:100,timeline:[{t:'Apr 30','ev':'Request submitted','c':'#8250ff'},{t:'May 1','ev':'Accepted','c':'#2ecc85'},{t:'May 5','ev':'Sessions completed','c':'#2ecc85'},{t:'May 6','ev':'Deliverables sent','c':'#2ecc85'}]},
-  {id:'REQ-007',title:'Job Search Strategy for Data Science Roles',type:'Career Coaching',coach:'Kevin Patel',coachAv:'KP',coachAvc:'av-c',priority:'High',status:'active',date:'May 13, 2026',desc:'Comprehensive job search strategy for data science and ML engineering roles. Need help with targeting companies, outreach, and portfolio presentation.',tags:['Data Science','ML','Job Search'],budget:'$220',sessions:4,progress:25,timeline:[{t:'May 13','ev':'Request submitted','c':'#8250ff'},{t:'May 14','ev':'Coach accepted','c':'#2ecc85'},{t:'May 16','ev':'Strategy session completed','c':'#2ecc85'}]},
-  {id:'REQ-008',title:'Behavioral Interview Coaching',type:'Interview Prep',coach:'Emma Thompson',coachAv:'ET',coachAvc:'av-d',priority:'Medium',status:'cancelled',date:'May 10, 2026',desc:'Help with behavioral interview questions using the STAR method for product and program management roles.',tags:['Behavioral','STAR','PM'],budget:'$100',sessions:2,progress:0,timeline:[{t:'May 10','ev':'Request submitted','c':'#8250ff'},{t:'May 11','ev':'Cancelled by user','c':'#f06c6c'}]},
-];
+  // ── DATA (API-backed) ──
+let REQUESTS = [];
+
+async function tcFetch(path, opts = {}) {
+  const headers = opts.headers || {};
+  // token storage used across the codebase: check localStorage/sessionStorage fallbacks
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  if (token) headers['Authorization'] = token;
+
+  const res = await fetch(window.apiUrl ? window.apiUrl(path) : path, {
+    ...opts,
+    headers: {
+      ...headers,
+      'Content-Type': 'application/json',
+    }
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
 
 let activeFilter='all', activeView='card', searchQ='';
 let isDark=true;
@@ -1062,13 +1073,51 @@ function animateBars(){
   });
 }
 
-// ── INIT ──
-document.addEventListener('DOMContentLoaded',()=>{
-  renderAll();
-  buildTrend();
-  animateBars();
+  // ── LOAD + INIT ──
+async function loadRequestsAndRender(){
+  // this page uses a single API tab; keep existing filter tabs as local status filters.
+  // incoming=target view, sent=past requester view.
+  // We'll treat "incoming" as default (so actions like accept/reject are visible).
+  try {
+    // Fetch both pending sets so All tabs work without extra branching.
+    const [incoming, sent] = await Promise.all([
+      tcFetch('/api/skill-exchange/requests?tab=incoming'),
+      tcFetch('/api/skill-exchange/requests?tab=sent')
+    ]);
 
-  // Keyboard shortcut: T for theme toggle
+    // Merge, but normalize status mapping to match UI expectations.
+    const normalize = (r)=>({
+      ...r,
+      type: r.type || 'Skill Exchange',
+      coach: r.coach || '—',
+      coachAv: r.coachAv || 'SC',
+      coachAvc: r.coachAvc || 'av-a',
+      tags: r.tags || [],
+      desc: r.description || '',
+      title: r.title || '',
+      date: r.created_at ? String(r.created_at).slice(0,16).replace('T',' ') : '',
+      progress: r.status==='ongoing' ? 50 : (r.status==='completed' ? 100 : (r.status==='accepted' ? 25 : 0)),
+      priority: r.priority || 'Medium'
+    });
+
+    REQUESTS = [
+      ...(incoming.requests || []).map(normalize),
+      ...(sent.requests || []).map(normalize)
+    ];
+  } catch (e) {
+    console.error(e);
+    showToast('Failed to load requests', 'error');
+    REQUESTS = [];
+  }
+
+  renderAll();
+  animateBars();
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  buildTrend();
+  loadRequestsAndRender();
+
   document.addEventListener('keydown',e=>{
     if(e.key==='t'&&!e.target.matches('input,textarea'))toggleTheme();
     if(e.key==='Escape')closeDetail();

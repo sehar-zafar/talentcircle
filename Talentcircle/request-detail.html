@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Connection Requests — TalentCircle</title>
+  <title>Skill Exchange Request — TalentCircle</title>
   
   <!-- Global Instant Theme Synchronization Engine -->
   <script>
@@ -12,6 +12,7 @@
       document.documentElement.className = savedTheme;
     })();
   </script>
+
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -153,15 +154,15 @@
   const htmlDoc = document.documentElement;
   let activeTab = 'incoming';
 
-  // Core Requests Data Framework Mock Array Model Matrix Mapping
-  let INCOMING_REQUESTS = [
-    { id: 401, name: "Sarah Rahman", topic: "UI/UX Design Alignment", avatar: "SR", skills: ["Figma", "Design Systems"], date: "2 hours ago", xp: "9,120" },
-    { id: 402, name: "James Wilson", topic: "Python Automation Logic", avatar: "JW", skills: ["Python Data", "Scraping Bot"], date: "Yesterday", xp: "8,400" }
-  ];
+  let ACTIVE_REQUEST = null;
+  let REQUEST_ID = null;
 
-  let SENT_REQUESTS = [
-    { id: 501, name: "Liam O'Donnell", topic: "Laravel Multi-Tenant Bridge", avatar: "LO", skills: ["Backend Route"], date: "3 days ago", xp: "9,850" }
-  ];
+  function getRequestIdFromUrl(){
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get('id') || params.get('requestId') || params.get('req');
+    const n = raw ? parseInt(raw, 10) : NaN;
+    return Number.isFinite(n) ? n : null;
+  }
 
   function toggleTheme() {
     const isDark = htmlDoc.classList.contains('dark');
@@ -263,14 +264,174 @@
     }, 2000);
   }
 
-  // Bootstrap operational handlers loops immediately inside paint lifecycle
-  (function initRequestsFramework() {
-    const activeTheme = localStorage.getItem('theme') || 'dark';
-    document.getElementById('mi').classList.toggle('hidden', activeTheme === 'light');
-    document.getElementById('si').classList.toggle('hidden', activeTheme === 'dark');
+  const tcFetch = async (path, opts = {}) => {
+    const headers = opts.headers || {};
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (token) headers['Authorization'] = token;
 
-    renderRequests();
+    const res = await fetch(window.apiUrl ? window.apiUrl(path) : path, {
+      ...opts,
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  };
+
+  function statusChipClass(status){
+    return status === 'pending' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+      : status === 'accepted' ? 'bg-purple-600/10 text-purple-300 border border-purple-500/20'
+      : status === 'ongoing' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+      : status === 'completed' ? 'bg-emerald-600/15 text-emerald-300 border border-emerald-500/25'
+      : 'bg-red-500/10 text-red-300 border border-red-500/25';
+  }
+
+  function statusLabel(status){
+    return status === 'pending' ? 'Pending' 
+      : status === 'accepted' ? 'Accepted'
+      : status === 'ongoing' ? 'Ongoing'
+      : status === 'completed' ? 'Completed'
+      : status === 'rejected' ? 'Rejected'
+      : 'Cancelled';
+  }
+
+  async function loadAndRender(){
+    REQUEST_ID = getRequestIdFromUrl();
+    const grid = document.getElementById('requestsGrid');
+    const fallback = document.getElementById('emptyRequestsFallback');
+
+    if (!REQUEST_ID){
+      fallback.classList.remove('hidden');
+      fallback.innerHTML = '<div class="text-4xl text-purple-500"><i class="fas fa-exclamation-triangle"></i></div><h3 class="text-base font-bold text-inherit">Missing request id</h3><p class="text-xs opacity-70">Open this page with ?id=REQUEST_ID</p>';
+      grid.innerHTML = '';
+      return;
+    }
+
+    try {
+      const detail = await tcFetch(`/api/skill-exchange/requests/${REQUEST_ID}`);
+      ACTIVE_REQUEST = detail.request;
+
+      fallback.classList.add('hidden');
+      grid.innerHTML = '';
+
+      const r = ACTIVE_REQUEST;
+      const card = document.createElement('div');
+      card.className = 'card p-5 glass fu-item';
+
+      const canAcceptReject = r.status === 'pending';
+      const canCancel = r.status === 'pending';
+      const canStart = r.status === 'accepted';
+      const canComplete = r.status === 'ongoing';
+
+      const actions = [
+        canAcceptReject ? `<button class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-md transition-all active:scale-95" onclick="acceptReq()"><i class="fas fa-user-plus mr-1.5"></i>Accept</button>` : '',
+        canAcceptReject ? `<button class="w-full mt-2 py-2 bg-purple-500/5 border border-purple-500/20 hover:bg-purple-500/10 text-gray-400 hover:text-inherit font-bold text-xs uppercase tracking-wider rounded-lg transition-all active:scale-95" onclick="rejectReq()"><i class="fas fa-ban mr-1"></i>Reject</button>` : '',
+        canCancel ? `<button class="w-full mt-2 py-2 bg-red-500/5 border border-red-500/20 hover:border-red-500 text-gray-400 hover:text-red-500 font-bold text-xs uppercase tracking-wider rounded-lg transition-all active:scale-95" onclick="cancelReq()"><i class="fas fa-xmark mr-1"></i>Cancel</button>` : '',
+        canStart ? `<button class="w-full mt-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-md transition-all active:scale-95" onclick="startReq()"><i class="fas fa-play mr-1"></i>Start</button>` : '',
+        canComplete ? `<button class="w-full mt-2 py-2 bg-emerald-500/10 border border-emerald-500/25 hover:bg-emerald-500/15 text-emerald-300 font-bold text-xs uppercase tracking-wider rounded-lg transition-all active:scale-95" onclick="completeReq()"><i class="fas fa-check mr-1"></i>Complete</button>` : '',
+      ].filter(Boolean).join('');
+
+      card.innerHTML = `
+        <div class="space-y-4">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <div class="slbl">Request</div>
+              <div class="text-sm font-bold text-slate-800 dark:text-white">#${r.id}</div>
+            </div>
+            <div class="px-3 py-1 rounded-xl text-xs font-bold ${statusChipClass(r.status)}">${statusLabel(r.status)}</div>
+          </div>
+
+          <div class="p-3 bg-purple-500/5 border border-purple-500/10 rounded-2xl">
+            <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Title</div>
+            <div class="text-sm font-semibold text-purple-500 dark:text-purple-300 mt-1 break-words">${r.title || ''}</div>
+          </div>
+
+          <div>
+            <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1">Description</div>
+            <div class="text-xs opacity-90 leading-relaxed whitespace-pre-wrap">${r.description || '—'}</div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3 rounded-2xl bg-white/5 border border-white/5">
+              <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Created</div>
+              <div class="text-xs font-semibold mt-1">${r.created_at ? String(r.created_at).slice(0,16).replace('T',' ') : '—'}</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-white/5 border border-white/5">
+              <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Updated</div>
+              <div class="text-xs font-semibold mt-1">${r.updated_at ? String(r.updated_at).slice(0,16).replace('T',' ') : '—'}</div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-purple-500/10">
+            <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-2">Actions</div>
+            <div class="space-y-2">${actions || '<div class="text-xs opacity-70">No actions available for this status.</div>'}</div>
+          </div>
+        </div>
+      `;
+
+      grid.appendChild(card);
+
+      // Expose action handlers in global scope for inline onclick
+      window.acceptReq = async () => {
+        await tcFetch(`/api/skill-exchange/requests/${REQUEST_ID}/accept`, { method:'POST', body: JSON.stringify({}) });
+        showToast('Request accepted', 'success');
+        window.location.href = `request-detail.html?id=${REQUEST_ID}`;
+      };
+      window.rejectReq = async () => {
+        await tcFetch(`/api/skill-exchange/requests/${REQUEST_ID}/reject`, { method:'POST', body: JSON.stringify({ reason: 'Rejected from UI' }) });
+        showToast('Request rejected', 'error');
+        window.location.href = `request-detail.html?id=${REQUEST_ID}`;
+      };
+      window.cancelReq = async () => {
+        await tcFetch(`/api/skill-exchange/requests/${REQUEST_ID}/cancel`, { method:'POST', body: JSON.stringify({ reason: 'Cancelled from UI' }) });
+        showToast('Request cancelled', 'error');
+        window.location.href = `request-detail.html?id=${REQUEST_ID}`;
+      };
+      window.startReq = async () => {
+        await tcFetch(`/api/skill-exchange/requests/${REQUEST_ID}/start`, { method:'POST', body: JSON.stringify({}) });
+        showToast('Request started', 'success');
+        window.location.href = `request-detail.html?id=${REQUEST_ID}`;
+      };
+      window.completeReq = async () => {
+        await tcFetch(`/api/skill-exchange/requests/${REQUEST_ID}/complete`, { method:'POST', body: JSON.stringify({}) });
+        showToast('Request completed', 'success');
+        window.location.href = `request-detail.html?id=${REQUEST_ID}`;
+      };
+    } catch (e) {
+      console.error(e);
+      fallback.classList.remove('hidden');
+      fallback.innerHTML = `<div class="text-4xl text-purple-500"><i class="fas fa-triangle-exclamation"></i></div><h3 class="text-base font-bold text-inherit">Failed to load request</h3><p class="text-xs opacity-70">${String(e.message || e)}</p>`;
+      grid.innerHTML = '';
+    }
+  }
+
+  // Toast helper (simple)
+  function showToast(message, type){
+    const toast = document.getElementById('toastNotificationHUD');
+    const msg = document.getElementById('toastMessageString');
+    if (toast && msg){
+      msg.textContent = message;
+      toast.style.transform = 'translateY(0)';
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.transform = 'translateY(24px)'; toast.style.opacity = '0'; }, 2000);
+    }
+  }
+
+  (function initRequestsFramework(){
+    const activeTheme = localStorage.getItem('theme') || 'dark';
+    const mi = document.getElementById('mi');
+    const si = document.getElementById('si');
+    if(mi && si){
+      mi.classList.toggle('hidden', activeTheme === 'light');
+      si.classList.toggle('hidden', activeTheme === 'dark');
+    }
+    loadAndRender();
   })();
+
 </script>
 </body>
 </html>

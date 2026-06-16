@@ -106,6 +106,11 @@ switch ($uri) {
         include 'app/Http/Controllers/DashboardController.php';
         break;
 
+    // Skill exchange requests
+    case '/api/skill-exchange/requests':
+        include 'app/Http/Controllers/SkillExchangeRequestController.php';
+        break;
+
     default:
         http_response_code(404);
         echo json_encode(['error' => 'Not found']);
