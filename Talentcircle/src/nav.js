@@ -4,11 +4,11 @@
 
 const NAVBAR_TEMPLATE = `
 <nav id="mainNav" class="fixed top-0 w-full z-50 px-6 md:px-12 lg:px-16 py-6 border-b border-white/20 bg-black/90 backdrop-blur-md flex items-center justify-between">
-  <a href="home.html">
+  <a href="index.html">
     <img src="images/logo.png" class="w-32 md:w-40 lg:w-[213px]" alt="TalentCircle Logo">
   </a>
   <ul id="desktopNav" class="hidden md:flex space-x-8 lg:space-x-12 text-lg font-medium">
-    <li><a href="home.html" class="nav-link hover:text-purple-400 transition-all duration-300">Home</a></li>
+    <li><a href="index.html" class="nav-link hover:text-purple-400 transition-all duration-300">Home</a></li>
     <li><a href="about.html" class="nav-link hover:text-purple-400 transition-all duration-300">About</a></li>
     <li><a href="features.html" class="nav-link hover:text-purple-400 transition-all duration-300">Features</a></li>
     <li><a href="certificates.html" class="nav-link hover:text-purple-400 transition-all duration-300">Certificates</a></li>
@@ -19,7 +19,7 @@ const NAVBAR_TEMPLATE = `
 </nav>
 
 <div id="mobileNav" class="md:hidden fixed top-[5.5rem] left-0 right-0 bg-black/95 backdrop-blur-md z-40 p-8 text-center space-y-6 hidden">
-  <a href="home.html" class="block py-4 text-xl font-semibold hover:text-purple-400 transition-all duration-300">Home</a>
+  <a href="index.html" class="block py-4 text-xl font-semibold hover:text-purple-400 transition-all duration-300">Home</a>
   <a href="about.html" class="block py-4 text-xl font-semibold hover:text-purple-400 transition-all duration-300">About</a>
   <a href="features.html" class="block py-4 text-xl font-semibold hover:text-purple-400 transition-all duration-300">Features</a>
   <a href="certificates.html" class="block py-4 text-xl font-semibold hover:text-purple-400 transition-all duration-300">Certificates</a>
@@ -30,7 +30,7 @@ const FOOTER_TEMPLATE = `
 <footer class="w-full py-12 border-t border-white/10 bg-black/50">
   <div class="max-w-6xl mx-auto px-6 text-center text-gray-400 text-sm md:text-base">
     <div class="flex flex-wrap justify-center gap-6 mb-6">
-      <a href="home.html" class="hover:text-purple-400 transition-all duration-300">Home</a>
+      <a href="index.html" class="hover:text-purple-400 transition-all duration-300">Home</a>
       <a href="about.html" class="hover:text-purple-400 transition-all duration-300">About</a>
       <a href="features.html" class="hover:text-purple-400 transition-all duration-300">Features</a>
       <a href="certificates.html" class="hover:text-purple-400 transition-all duration-300">Certificates</a>

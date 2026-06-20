@@ -22,7 +22,7 @@ Because `backend/public/index.php` only handles `/api/*`, you need a router that
 
 Create a `c:/xampp/htdocs/talentcircle/Talentcircle/router.php` with the logic to:
 - if URL starts with `/api/` → include `backend/routes/api.php`
-- else → serve the file from the project root (`./signin.html`, `./home.html`, etc.)
+- else → serve the file from the project root (`./signin.html`, `./index.html`, etc.)
 
 Then run:
 ```bat

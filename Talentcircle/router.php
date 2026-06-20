@@ -25,7 +25,7 @@ $root = __DIR__;
 
 // Default route
 if ($path === '/' || $path === '') {
-    $candidate = $root . '/home.html';
+    $candidate = $root . '/index.html';
     if (file_exists($candidate)) {
         readfile($candidate);
         exit;
