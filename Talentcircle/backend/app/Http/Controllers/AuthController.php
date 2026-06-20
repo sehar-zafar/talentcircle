@@ -1,5 +1,6 @@
 <?php
-
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 require_once __DIR__ . '/../../Models/User.php';
 
 $input = json_decode(file_get_contents('php://input'), true);
@@ -102,40 +103,73 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     } elseif ($uri == '/api/register') {
         // Email-based registration (single handler)
-        $name = trim($input['name'] ?? '');
-        $email = trim($input['email'] ?? '');
-        $password = (string)($input['password'] ?? '');
+        
+       $name = trim($input['name'] ?? '');
+$email = trim($input['email'] ?? '');
+$password = (string)($input['password'] ?? '');
 
-        if ($name === '' || $email === '' || $password === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            sendJson(['error' => 'Invalid registration data'], 400);
-        }
+if (
+    $name === '' ||
+    $email === '' ||
+    $password === '' ||
+    !filter_var($email, FILTER_VALIDATE_EMAIL)
+) {
+    sendJson(['error' => 'Invalid registration data'], 400);
+}
 
-        if (User::findByEmail($email)) {
-            sendJson(['error' => 'User already exists'], 400);
-        }
+if (User::findByEmail($email)) {
+    sendJson(['error' => 'User already exists'], 400);
+}
 
-        $userData = [
-            'name' => $name,
-            'email' => $email,
-            'password' => password_hash($password, PASSWORD_DEFAULT),
-            'role' => 'user',
-            'image' => $input['image'] ?? null,
-            'age' => $input['age'] ?? null,
-            'education' => $input['education'] ?? null,
-            'certificates' => $input['certificates'] ?? [],
-            'skills_teach' => $input['skills_teach'] ?? [],
-            'skills_learn' => $input['skills_learn'] ?? [],
-            'bio' => $input['bio'] ?? ''
-        ];
+$image = $input['image'] ?? null;
+$age = $input['age'] ?? null;
+$education = $input['education'] ?? null;
+$bio = $input['bio'] ?? '';
+$tokens = 0;
 
-        $pdo = User::getPDO();
-        $stmt = $pdo->prepare('INSERT INTO users (name, email, password, role, image, age, education, certificates, skills_teach, skills_learn, bio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        ksort($userData);
-        $stmt->execute(array_values($userData));
+$certificates = json_encode($input['certificates'] ?? []);
+$skillsTeach = json_encode($input['skills_teach'] ?? []);
+$skillsLearn = json_encode($input['skills_learn'] ?? []);
 
-        $user = User::findByEmail($email);
-        $token = $user ? $user->id : null;
-        sendJson(['token' => $token, 'user' => $user]);
+$pdo = User::getPDO();
+
+$stmt = $pdo->prepare(
+    "INSERT INTO users (
+        name,
+        email,
+        password,
+        tokens,
+        image,
+        age,
+        education,
+        certificates,
+        skills_teach,
+        skills_learn,
+        bio
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+);
+
+$stmt->execute([
+    $name,
+    $email,
+    password_hash($password, PASSWORD_DEFAULT),
+    $tokens,
+    $image,
+    $age,
+    $education,
+    $certificates,
+    $skillsTeach,
+    $skillsLearn,
+    $bio
+]);
+
+$user = User::findByEmail($email);
+$token = $user ? $user->id : null;
+
+sendJson([
+    'token' => $token,
+    'user' => (array)$user
+]);
 
     } elseif ($uri == '/api/login') {
         $user = User::findByEmail($input['email']);

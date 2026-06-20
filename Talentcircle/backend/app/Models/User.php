@@ -12,16 +12,17 @@ class User {
     public $age;
     public $education;
     public $certificates;
-    public $role;
-    public $tokens = 0;
+    // public $role;
+   public $tokens = 0;
     public $last_login;
     public $google_id;
     public $phone;
     public $remember_token;
+    public $created_at;
 
     private static $pdo;
 
-    private static function getPDO() {
+    public static function getPDO() {
         if (!self::$pdo) {
             self::$pdo = new PDO('mysql:host=127.0.0.1;dbname=talentcircle', 'root', '', [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION

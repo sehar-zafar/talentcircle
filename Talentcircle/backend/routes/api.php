@@ -20,7 +20,7 @@ switch ($uri) {
     case '/api/profile':
     case '/api/profile/update':
     case '/api/profile/setup':
-        include 'app/Http/Controllers/AuthController.php';
+        include __DIR__ . '/../app/Http/Controllers/AuthController.php';
         break;
     case '/api/ai-matches':
         include 'app/Http/Controllers/AiMatchController.php';

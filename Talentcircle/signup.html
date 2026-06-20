@@ -770,6 +770,7 @@
           body: JSON.stringify(formData)
         });
         const data = await res.json();
+        console.log(data)
         if (res.ok) {
           localStorage.setItem('token', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
@@ -778,6 +779,8 @@
           alert(data.error || 'Registration failed');
         }
       } catch (err) {
+        
+  console.log("error", err)
         alert('Server communication error.');
       }
     });
